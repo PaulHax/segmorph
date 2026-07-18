@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>segmorph DICOM example</title>
+    <style>
+      :root {
+        --line: #2c2c33;
+        --dim: #8b8b98;
+        --panel: #1c1c21;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        background: #16161a;
+        color: #dcdce2;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      #app { display: flex; flex-direction: column; height: 100vh; }
+      header {
+        padding: 12px 16px 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      header h1 { margin: 0; font-size: 14px; font-weight: 600; }
+      header p { margin: 3px 0 0; color: var(--dim); max-width: 100ch; }
+      header code { color: #b9c8e8; }
+      #toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+      }
+      .group {
+        display: flex; flex-direction: column; gap: 4px;
+        padding: 8px 16px; border-right: 1px solid var(--line);
+      }
+      .group-label {
+        font-size: 11px; text-transform: uppercase;
+        letter-spacing: 0.06em; color: var(--dim);
+      }
+      .group-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+      #legend label { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+      #legend .swatch {
+        width: 10px; height: 10px; border-radius: 2px; display: inline-block;
+      }
+      #legend .detail { color: var(--dim); font-size: 12px; }
+      #downloads a { color: #b9c8e8; text-decoration: none; }
+      #downloads a:hover { text-decoration: underline; }
+      .group-last { margin-left: auto; border-right: none; justify-content: center; }
+      .group-last .stat { color: var(--dim); }
+      #view { flex: 1; min-height: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>DICOM RTSTRUCT and SEG, decoded into one scene</h1>
+        <p>
+          Everything below went through real DICOM bytes: contour stacks are
+          written and re-read as an <b>RT Structure Set</b> (dcmjs), then
+          stitched into closed meshes with <code>contourToSurface</code> -
+          including a ring stored with the RTSTRUCT keyhole technique. Binary
+          masks travel as a multi-frame <b>DICOM SEG</b> whose two segments
+          deliberately overlap (each segment owns its frames), then surface via
+          <code>labelmapToSurface</code>. The adapters live in this example;
+          the segmorph core never sees DICOM.
+        </p>
+      </header>
+      <div id="toolbar">
+        <div class="group">
+          <span class="group-label">Structures</span>
+          <div class="group-row" id="legend"></div>
+        </div>
+        <div class="group" id="downloads">
+          <span class="group-label">Generated DICOM</span>
+          <div class="group-row">
+            <a id="rtstruct-download" href="#">rtstruct</a>
+            <a id="seg-download" href="#">seg</a>
+          </div>
+        </div>
+        <div class="group group-last">
+          <span class="stat" id="status">building scene...</span>
+        </div>
+      </div>
+      <div id="view"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

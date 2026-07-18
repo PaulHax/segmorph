@@ -1,0 +1,6 @@
+{
+  "shape": "sphere",
+  "slices": 9,
+  "sphereRadius": 15,
+  "spacing": 3
+}

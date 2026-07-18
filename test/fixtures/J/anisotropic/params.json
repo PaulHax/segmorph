@@ -1,0 +1,13 @@
+{
+  "labelValue": 1,
+  "backgroundLabel": 0,
+  "padded": true,
+  "smoothing": {
+    "iterations": 16,
+    "relaxationFactor": 0.5,
+    "constraintDistance": 2.29128784747792
+  },
+  "outputMeshType": "triangles",
+  "triangulationStrategy": "min-edge",
+  "note": "index-space sphere radius 8, anisotropic spacing"
+}

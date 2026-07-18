@@ -1,0 +1,7 @@
+{
+  "shape": "tilted-cylinder",
+  "slices": 7,
+  "radius": 14,
+  "tiltDegrees": 20,
+  "spacing": 1.8
+}

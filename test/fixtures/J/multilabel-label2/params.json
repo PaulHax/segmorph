@@ -1,0 +1,13 @@
+{
+  "labelValue": 2,
+  "backgroundLabel": 0,
+  "padded": true,
+  "smoothing": {
+    "iterations": 16,
+    "relaxationFactor": 0.5,
+    "constraintDistance": 1.7320508075688772
+  },
+  "outputMeshType": "triangles",
+  "triangulationStrategy": "min-edge",
+  "note": "two face-adjacent boxes, extract label 2 only"
+}

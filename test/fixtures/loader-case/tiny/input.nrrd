@@ -1,0 +1,9 @@
+NRRD0005
+type: uint8
+dimension: 3
+sizes: 2 2 2
+encoding: raw
+space origin: (10,20,30)
+space directions: (2,0,0) (0,3,0) (0,0,-4)
+
+1234567

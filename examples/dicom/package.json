@@ -1,0 +1,20 @@
+{
+  "name": "segmorph-dicom-example",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@kitware/vtk.js": "^36.4.1",
+    "dcmjs": "^0.45.0",
+    "segmorph": "file:../.."
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.1.0"
+  }
+}

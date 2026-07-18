@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # semantic-release commits the changelog and tags
+      issues: write
+      pull-requests: write
+      id-token: write # npm trusted publishing (OIDC) and provenance attestation
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # semantic-release reads the full history to pick a version
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Trusted publishing needs npm 11.5.1 or newer; Node 22 ships an older npm.
+      - run: npm install -g npm@latest
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm test
+
+      - run: npm run build
+
+      # No NPM_TOKEN: the registry authenticates this workflow through OIDC using
+      # the trusted publisher configured on npmjs.com for PaulHax/segmorph.
+      - run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

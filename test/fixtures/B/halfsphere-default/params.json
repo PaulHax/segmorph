@@ -1,0 +1,12 @@
+{
+  "numberOfIterations": 20,
+  "passBand": 0.1,
+  "normalizeCoordinates": false,
+  "windowFunction": "nuttall",
+  "boundarySmoothing": true,
+  "nonManifoldSmoothing": false,
+  "weightNonManifoldEdges": true,
+  "edgeAngle": 30.0,
+  "featureEdgeSmoothing": false,
+  "input": "generated"
+}

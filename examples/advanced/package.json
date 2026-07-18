@@ -1,0 +1,19 @@
+{
+  "name": "segmorph-advanced-example",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@kitware/vtk.js": "^36.2.4",
+    "segmorph": "file:../.."
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.1.0"
+  }
+}

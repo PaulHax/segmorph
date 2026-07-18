@@ -1,0 +1,15 @@
+[project]
+name = "polymorph-oracles"
+version = "0"
+description = "Dev-only reference-oracle fixture generators for polymorph. Not published."
+requires-python = ">=3.11"
+dependencies = [
+    "vtk==9.6.2",
+    # Independent (ITK-lineage) resample oracle for algorithm E, cross-checking
+    # the vtk reslice golden.
+    "itk>=5.4,<5.5",
+]
+
+[tool.uv]
+# Generators only; nothing here is an installable package.
+package = false

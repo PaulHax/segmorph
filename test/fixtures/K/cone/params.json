@@ -1,0 +1,7 @@
+{
+  "shape": "cone",
+  "slices": 7,
+  "baseRadius": 18,
+  "tipRadius": 2,
+  "spacing": 2
+}

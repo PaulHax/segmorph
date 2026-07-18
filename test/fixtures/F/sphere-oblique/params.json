@@ -1,0 +1,30 @@
+{
+ "inputMesh": "A/sphere/golden.mesh.json",
+ "plane": {
+  "origin": [
+   15.5,
+   15.5,
+   15.5
+  ],
+  "xAxis": [
+   0.7071067811865476,
+   -0.7071067811865476,
+   0.0
+  ],
+  "yAxis": [
+   0.4082482904638631,
+   0.4082482904638631,
+   -0.8164965809277261
+  ],
+  "normal": [
+   0.5773502691896258,
+   0.5773502691896258,
+   0.5773502691896258
+  ]
+ },
+ "loopClosure": "off",
+ "outputMode": "polygons",
+ "calibration": {
+  "maxSymmetricDistance": 0.0
+ }
+}

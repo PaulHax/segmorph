@@ -1,0 +1,6 @@
+{
+  "shape": "branching",
+  "trunkSlices": 4,
+  "branchSlices": 4,
+  "spacing": 2
+}

@@ -1,0 +1,6 @@
+{
+  "shape": "cylinder",
+  "slices": 8,
+  "radius": 20,
+  "spacing": 1.5
+}

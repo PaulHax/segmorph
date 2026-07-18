@@ -1,0 +1,30 @@
+{
+ "inputMesh": "F/torus-two-loops/input.mesh.json",
+ "plane": {
+  "origin": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "xAxis": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "yAxis": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "normal": [
+   1.0,
+   0.0,
+   0.0
+  ]
+ },
+ "loopClosure": "off",
+ "outputMode": "polygons",
+ "calibration": {
+  "maxSymmetricDistance": 0.0
+ }
+}

@@ -1,0 +1,6 @@
+node_modules/
+dist/
+logs/
+test/generated/
+__pycache__/
+.venv/

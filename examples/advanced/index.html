@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>segmorph advanced example</title>
+    <style>
+      :root {
+        --line: #2c2c33;
+        --dim: #8b8b98;
+        --panel: #1c1c21;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        background: #16161a;
+        color: #dcdce2;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      #app { display: flex; flex-direction: column; height: 100vh; }
+
+      header {
+        padding: 12px 16px 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      header h1 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+      header p {
+        margin: 3px 0 0;
+        color: var(--dim);
+        max-width: 96ch;
+      }
+      header code { color: #b9c8e8; }
+
+      #toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        gap: 0;
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+      }
+      .group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px 16px;
+        border-right: 1px solid var(--line);
+      }
+      .group > .group-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--dim);
+      }
+      .group-row { display: flex; align-items: center; gap: 14px; }
+      .group label { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+      /* The segment name carries its color so the row doubles as the key, but
+         the checkbox keeps the default accent so it still reads as a checkbox
+         like every other one in the toolbar. */
+      #legend label { font-weight: 500; }
+      .stat {
+        color: var(--dim); white-space: nowrap;
+        /* Reserved width: the text changes as conversions run, and must not
+           push the sliders around when it does. */
+        min-width: 33ch;
+      }
+      .group-last { margin-left: auto; border-right: none; }
+      .group-last .info-panel { left: auto; right: -8px; }
+      #views { display: flex; flex: 1; min-height: 0; }
+      .view { flex: 1; position: relative; min-width: 0; }
+      .view + .view { border-left: 1px solid var(--line); }
+      .caption {
+        position: absolute; z-index: 1; top: 10px; left: 12px;
+        color: var(--dim); pointer-events: none;
+        text-shadow: 0 1px 3px #000;
+      }
+      .caption .info { pointer-events: auto; }
+      .caption .info-panel { text-shadow: none; }
+      .caption b { color: #dcdce2; font-weight: 600; }
+      .overlay {
+        position: absolute; z-index: 1; left: 12px; right: 12px; bottom: 12px;
+        display: flex; align-items: center; gap: 12px;
+        padding: 7px 12px; border-radius: 5px;
+        background: rgba(10, 10, 14, 0.72);
+        backdrop-filter: blur(3px);
+      }
+      .overlay input[type="range"] { flex: 1; }
+      #slice-label { min-width: 12ch; }
+      .hint { color: #7c7c89; white-space: nowrap; }
+      input[type="range"] { width: 88px; }
+
+      .info {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 14px; height: 14px; border-radius: 50%;
+        border: 1px solid #55555f; color: var(--dim);
+        font-size: 10px; font-style: italic; font-family: Georgia, serif;
+        cursor: help; position: relative; user-select: none;
+        flex: none;
+      }
+      .info:hover, .info:focus-visible { border-color: #8f8fa0; color: #dcdce2; }
+      .info-panel {
+        display: none;
+        position: absolute; z-index: 10; top: calc(100% + 8px); left: -8px;
+        width: 320px; padding: 10px 12px;
+        border: 1px solid var(--line); border-radius: 5px;
+        background: #23232b; color: #cfcfd8;
+        font-size: 12px; font-style: normal; font-family: system-ui, sans-serif;
+        line-height: 1.5; text-align: left;
+        /* The group label is uppercase; the explanation must not inherit it. */
+        text-transform: none; letter-spacing: normal;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        cursor: default;
+      }
+      .info:hover .info-panel, .info:focus-within .info-panel { display: block; }
+      .info-panel code { color: #b9c8e8; }
+      .info-panel p { margin: 0; }
+      .info-panel p + p { margin-top: 7px; }
+      .group-label { display: flex; align-items: center; gap: 6px; }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>One segmentation, three representations at once</h1>
+        <p>
+          A chest CT with two overlapping segments. Each segment is stored as a
+          binary <b>labelmap</b>, converted to a <b>surface</b> for the 3D view
+          with <code>labelmapToSurface</code>, and cut to <b>contours</b> on the
+          slice with <code>surfaceToContour</code>. Every conversion runs in a
+          web worker as you change the controls.
+        </p>
+      </header>
+
+      <div id="toolbar">
+        <div class="group">
+          <span class="group-label">
+            Detail
+            <span class="info" tabindex="0">i
+              <span class="info-panel">
+                <p>
+                  The voxel stride every conversion runs at, resampled with
+                  <code>resampleNearest</code>. This feeds all the other
+                  controls, so it changes both views.
+                </p>
+                <p>
+                  Full resolution on this volume is a few million triangles and
+                  takes seconds; half is a good interactive default.
+                </p>
+              </span>
+            </span>
+          </span>
+          <div class="group-row">
+            <label>
+              <select id="stride">
+                <option value="4">quarter</option>
+                <option value="2" selected>half</option>
+                <option value="1">full</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="group">
+          <span class="group-label">
+            Segments
+            <span class="info" tabindex="0">i
+              <span class="info-panel">
+                <p>
+                  <b>Body</b> and <b>Bone</b> are two segmentations of this CT,
+                  seeded by thresholding intensity. Unchecking one hides it in
+                  both views.
+                </p>
+                <p>
+                  They deliberately <b>overlap</b>: every bone voxel is also a
+                  body voxel. One fused labelmap cannot express that, since a
+                  voxel holds a single value, so each segment carries its own
+                  mask and label value.
+                </p>
+              </span>
+            </span>
+          </span>
+          <div class="group-row" id="legend"></div>
+        </div>
+
+        <div class="group">
+          <span class="group-label">View</span>
+          <div class="group-row">
+            <label>
+              CT <input id="ct-opacity" type="range" min="0" max="200" value="100" />
+            </label>
+          </div>
+        </div>
+
+        <div class="group group-last">
+          <span class="group-label">
+            Surface processing
+            <span class="info" tabindex="0">i
+              <span class="info-panel">
+                <p>
+                  <b>smooth</b> runs <code>meshSmooth</code>, a windowed-sinc
+                  filter that relaxes the voxel staircase marching cubes leaves.
+                  It moves vertices without changing how many there are.
+                </p>
+                <p>
+                  <b>decimate</b> runs <code>meshDecimate</code>, quadric
+                  edge-collapse, dropping the triangles that flattened regions
+                  no longer need.
+                </p>
+              </span>
+            </span>
+          </span>
+          <div class="group-row">
+            <label>
+              smooth <input id="smooth" type="range" min="0" max="40" value="20" />
+            </label>
+            <label>
+              decimate <input id="decimate" type="range" min="0" max="90" value="60" />
+            </label>
+            <span class="stat" id="mesh-stat">loading chest CT...</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="views">
+        <div class="view">
+          <div class="caption">
+            <div>
+              <b>2D slice</b> &middot; contours cut from the same surfaces
+              <span class="info" tabindex="0">i
+                <span class="info-panel">
+                  <p><b>scroll</b> moves through slices</p>
+                  <p><b>right-drag</b> or <b>ctrl + scroll</b> zooms</p>
+                  <p><b>shift + drag</b> pans</p>
+                  <p><b>drag</b> adjusts window / level</p>
+                </span>
+              </span>
+            </div>
+          </div>
+          <div id="slice-view" style="width: 100%; height: 100%"></div>
+          <div class="overlay">
+            <span id="slice-label">slice</span>
+            <input id="slice" type="range" />
+            <span class="hint" id="loop-stat"></span>
+          </div>
+        </div>
+        <div class="view">
+          <div class="caption">
+            <div>
+              <b>3D</b> &middot; drag to rotate
+              <span class="info" tabindex="0">i
+                <span class="info-panel">
+                  <p><b>drag</b> rotates</p>
+                  <p><b>scroll</b> zooms</p>
+                  <p><b>shift + drag</b> pans</p>
+                </span>
+              </span>
+            </div>
+          </div>
+          <div id="volume" style="width: 100%; height: 100%"></div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

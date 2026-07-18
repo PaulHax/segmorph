@@ -1,0 +1,69 @@
+{
+  "name": "segmorph",
+  "version": "0.0.0-development",
+  "description": "Pure TypeScript polymorphic segmentation primitives and conversions for medical image viewers",
+  "keywords": [
+    "medical-imaging",
+    "segmentation",
+    "labelmap",
+    "marching-cubes",
+    "surface-nets",
+    "mesh",
+    "contour",
+    "dicom-seg",
+    "rtstruct",
+    "vtk",
+    "volview",
+    "ohif",
+    "cornerstone"
+  ],
+  "homepage": "https://github.com/PaulHax/segmorph#readme",
+  "bugs": "https://github.com/PaulHax/segmorph/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PaulHax/segmorph.git"
+  },
+  "author": "segmorph contributors",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "LICENSE",
+    "THIRD_PARTY_LICENSES.md"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "fixtures": "node oracles/generate.ts",
+    "test": "vitest run --project unit",
+    "test:oracle": "vitest run --project oracle",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@icr/polyseg-wasm": "0.4.0",
+    "@itk-wasm/morphological-contour-interpolation": "2.0.0",
+    "@kitware/vtk.js": "36.4.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@types/node": "^26.1.1",
+    "semantic-release": "^24.2.9",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  }
+}

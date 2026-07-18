@@ -1,0 +1,13 @@
+{
+  "labelValue": 1,
+  "backgroundLabel": 0,
+  "padded": true,
+  "smoothing": {
+    "iterations": 16,
+    "relaxationFactor": 0.5,
+    "constraintDistance": 1.972308292331602
+  },
+  "outputMeshType": "triangles",
+  "triangulationStrategy": "min-edge",
+  "note": "index-space sphere radius 6, rotated direction matrix (Rz30 then Rx20)"
+}

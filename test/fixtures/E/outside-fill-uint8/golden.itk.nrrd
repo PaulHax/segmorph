@@ -1,0 +1,12 @@
+NRRD0005
+type: uint8
+dimension: 3
+sizes: 6 5 4
+space: right-anterior-superior
+space directions: (1.0,0.0,0.0) (0.0,1.0,0.0) (0.0,0.0,1.0)
+kinds: domain domain domain
+encoding: raw
+endian: little
+space origin: (-1.25,-1.25,-1.25)
+
+»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»3456»»=>?@»»GHIJ»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»

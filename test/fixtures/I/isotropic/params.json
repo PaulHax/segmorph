@@ -1,0 +1,38 @@
+{
+  "dims": [
+    20,
+    20,
+    20
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "origin": [
+    -9.5,
+    -9.5,
+    -9.5
+  ],
+  "direction": [
+    [
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "numberOfOffsets": 6,
+  "threshold": 0.5,
+  "encoding": "occupancy count/216 in [0,1]; polysegChar = occupancy*216 - 108",
+  "stencilTolerance": 7.62939453125e-06
+}

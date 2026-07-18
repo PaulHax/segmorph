@@ -1,0 +1,12 @@
+{
+  "numberOfIterations": 40,
+  "passBand": 0.01,
+  "normalizeCoordinates": true,
+  "windowFunction": "nuttall",
+  "boundarySmoothing": false,
+  "nonManifoldSmoothing": true,
+  "weightNonManifoldEdges": true,
+  "edgeAngle": 15.0,
+  "featureEdgeSmoothing": false,
+  "input": "A/sphere/golden.extract.mesh.json"
+}

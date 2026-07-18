@@ -1,0 +1,7 @@
+{
+  "shape": "keyhole-annulus",
+  "slices": 6,
+  "outerRadius": 16,
+  "innerRadius": 8,
+  "spacing": 1.5
+}

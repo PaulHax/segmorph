@@ -1,0 +1,10 @@
+{
+  "majorRadius": 10.0,
+  "minorRadius": 4.0,
+  "majorBands": 48,
+  "minorBands": 24,
+  "targetReductions": [
+    0.5,
+    0.9
+  ]
+}

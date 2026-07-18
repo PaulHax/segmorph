@@ -1,0 +1,4061 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "E",
+      "case": "anisotropic-translated",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            0.7,
+            1.3,
+            2.1
+          ],
+          "origin": [
+            2,
+            -3,
+            5
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            5,
+            3,
+            2
+          ],
+          "spacing": [
+            0.7,
+            1.3,
+            2.1
+          ],
+          "origin": [
+            2.7,
+            -3,
+            5
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 241
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "E",
+      "case": "oblique",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            0.8,
+            1.1,
+            1.7
+          ],
+          "origin": [
+            10,
+            20,
+            -4
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            3,
+            4,
+            2
+          ],
+          "spacing": [
+            1.1,
+            0.8,
+            1.7
+          ],
+          "origin": [
+            12.2,
+            20,
+            -4
+          ],
+          "direction": [
+            [
+              0,
+              -1,
+              0
+            ],
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 241
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "A",
+      "case": "sphere",
+      "params": {
+        "dims": [
+          32,
+          32,
+          32
+        ],
+        "radius": 10,
+        "smoothingFactor": 0.5,
+        "passBand": 0.01,
+        "iterations": 40,
+        "decimation": 0
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "G",
+      "case": "convex-pentagon",
+      "params": {
+        "dims": [
+          24,
+          20,
+          5
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "labelValue": 1,
+        "shape": "polygon",
+        "stencilTolerance": 0.00000762939453125,
+        "composition": "xor-per-loop, union-per-contour"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "G",
+      "case": "concave-l",
+      "params": {
+        "dims": [
+          20,
+          18,
+          3
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "labelValue": 1,
+        "shape": "polygon",
+        "stencilTolerance": 0.00000762939453125,
+        "composition": "xor-per-loop, union-per-contour"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "G",
+      "case": "nested-hole",
+      "params": {
+        "dims": [
+          20,
+          20,
+          3
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "labelValue": 1,
+        "shape": "polygon",
+        "stencilTolerance": 0.00000762939453125,
+        "composition": "xor-per-loop, union-per-contour"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "G",
+      "case": "disjoint-loops",
+      "params": {
+        "dims": [
+          24,
+          16,
+          3
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "labelValue": 1,
+        "shape": "polygon",
+        "stencilTolerance": 0.00000762939453125,
+        "composition": "xor-per-loop, union-per-contour"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "G",
+      "case": "multi-slice",
+      "params": {
+        "dims": [
+          20,
+          20,
+          4
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "labelValue": 1,
+        "shape": "polygon",
+        "stencilTolerance": 0.00000762939453125,
+        "composition": "xor-per-loop, union-per-contour"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "G",
+      "case": "anisotropic",
+      "params": {
+        "dims": [
+          24,
+          12,
+          4
+        ],
+        "spacing": [
+          0.5,
+          2,
+          3
+        ],
+        "origin": [
+          -4.25,
+          3.5,
+          -6
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "labelValue": 1,
+        "shape": "polygon",
+        "stencilTolerance": 0.00000762939453125,
+        "composition": "xor-per-loop, union-per-contour"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "G",
+      "case": "gridline",
+      "params": {
+        "dims": [
+          12,
+          10,
+          3
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "labelValue": 1,
+        "shape": "polygon",
+        "stencilTolerance": 0.00000762939453125,
+        "composition": "xor-per-loop, union-per-contour"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "G",
+      "case": "subvoxel",
+      "params": {
+        "dims": [
+          12,
+          12,
+          3
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "labelValue": 1,
+        "shape": "polygon",
+        "stencilTolerance": 0.00000762939453125,
+        "composition": "xor-per-loop, union-per-contour"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "G",
+      "case": "oblique-pentagon",
+      "params": {
+        "dims": [
+          24,
+          20,
+          5
+        ],
+        "spacing": [
+          1.2,
+          0.8,
+          2.5
+        ],
+        "origin": [
+          10.5,
+          -22.25,
+          4.75
+        ],
+        "direction": [
+          [
+            0.8571673007021123,
+            -0.4925333605385309,
+            0.15058255995856915
+          ],
+          [
+            0.5150380749100542,
+            0.8197131663174273,
+            -0.2506114649388633
+          ],
+          [
+            0,
+            0.29237170472273677,
+            0.9563047559630354
+          ]
+        ],
+        "labelValue": 1,
+        "shape": "polygon",
+        "stencilTolerance": 0.00000762939453125,
+        "composition": "xor-per-loop, union-per-contour"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "C",
+      "case": "a-sphere-r50",
+      "params": {
+        "input": "A/sphere/golden.mesh.json",
+        "targetReduction": 0.5,
+        "golden": "C/a-sphere/golden.r50.mesh.json"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "C",
+      "case": "a-sphere-r90",
+      "params": {
+        "input": "A/sphere/golden.mesh.json",
+        "targetReduction": 0.9,
+        "golden": "C/a-sphere/golden.r90.mesh.json"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "C",
+      "case": "ellipsoid-r50",
+      "params": {
+        "radii": [
+          12,
+          8,
+          6
+        ],
+        "latBands": 40,
+        "lonBands": 52,
+        "targetReduction": 0.5,
+        "golden": "C/ellipsoid/golden.r50.mesh.json",
+        "input": "C/ellipsoid/input.mesh.json"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "C",
+      "case": "ellipsoid-r90",
+      "params": {
+        "radii": [
+          12,
+          8,
+          6
+        ],
+        "latBands": 40,
+        "lonBands": 52,
+        "targetReduction": 0.9,
+        "golden": "C/ellipsoid/golden.r90.mesh.json",
+        "input": "C/ellipsoid/input.mesh.json"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "C",
+      "case": "torus-r50",
+      "params": {
+        "majorRadius": 10,
+        "minorRadius": 4,
+        "majorBands": 48,
+        "minorBands": 24,
+        "targetReduction": 0.5,
+        "golden": "C/torus/golden.r50.mesh.json",
+        "input": "C/torus/input.mesh.json"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "C",
+      "case": "torus-r90",
+      "params": {
+        "majorRadius": 10,
+        "minorRadius": 4,
+        "majorBands": 48,
+        "minorBands": 24,
+        "targetReduction": 0.9,
+        "golden": "C/torus/golden.r90.mesh.json",
+        "input": "C/torus/input.mesh.json"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "F",
+      "case": "sphere-center",
+      "params": {
+        "inputMesh": "A/sphere/golden.mesh.json",
+        "plane": {
+          "origin": [
+            15.5,
+            15.5,
+            15.5
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        "loopClosure": "off",
+        "outputMode": "polygons",
+        "calibration": {
+          "maxSymmetricDistance": 0
+        }
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "F",
+      "case": "sphere-oblique",
+      "params": {
+        "inputMesh": "A/sphere/golden.mesh.json",
+        "plane": {
+          "origin": [
+            15.5,
+            15.5,
+            15.5
+          ],
+          "xAxis": [
+            0.7071067811865476,
+            -0.7071067811865476,
+            0
+          ],
+          "yAxis": [
+            0.4082482904638631,
+            0.4082482904638631,
+            -0.8164965809277261
+          ],
+          "normal": [
+            0.5773502691896258,
+            0.5773502691896258,
+            0.5773502691896258
+          ]
+        },
+        "loopClosure": "off",
+        "outputMode": "polygons",
+        "calibration": {
+          "maxSymmetricDistance": 0
+        }
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "F",
+      "case": "sphere-miss",
+      "params": {
+        "inputMesh": "A/sphere/golden.mesh.json",
+        "plane": {
+          "origin": [
+            15.5,
+            15.5,
+            50
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        "loopClosure": "off",
+        "outputMode": "polygons",
+        "calibration": {
+          "maxSymmetricDistance": 0
+        }
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "F",
+      "case": "torus-two-loops",
+      "params": {
+        "inputMesh": "F/torus-two-loops/input.mesh.json",
+        "plane": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            0,
+            1,
+            0
+          ],
+          "yAxis": [
+            0,
+            0,
+            1
+          ],
+          "normal": [
+            1,
+            0,
+            0
+          ]
+        },
+        "loopClosure": "off",
+        "outputMode": "polygons",
+        "calibration": {
+          "maxSymmetricDistance": 0
+        }
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "F",
+      "case": "cube-axis",
+      "params": {
+        "inputMesh": "F/cube-axis/input.mesh.json",
+        "plane": {
+          "origin": [
+            1,
+            1,
+            1
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        "loopClosure": "off",
+        "outputMode": "polygons",
+        "calibration": {
+          "maxSymmetricDistance": 0
+        }
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "F",
+      "case": "octahedron-on-vertices",
+      "params": {
+        "inputMesh": "F/octahedron-on-vertices/input.mesh.json",
+        "plane": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        "loopClosure": "off",
+        "outputMode": "polygons",
+        "calibration": {
+          "maxSymmetricDistance": 0
+        }
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "I",
+      "case": "isotropic",
+      "params": {
+        "dims": [
+          20,
+          20,
+          20
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          -9.5,
+          -9.5,
+          -9.5
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "numberOfOffsets": 6,
+        "threshold": 0.5,
+        "encoding": "occupancy count/216 in [0,1]; polysegChar = occupancy*216 - 108",
+        "stencilTolerance": 0.00000762939453125
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "I",
+      "case": "anisotropic",
+      "params": {
+        "dims": [
+          24,
+          18,
+          12
+        ],
+        "spacing": [
+          0.7,
+          1.1,
+          1.9
+        ],
+        "origin": [
+          5,
+          -3,
+          2
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "numberOfOffsets": 6,
+        "threshold": 0.5,
+        "encoding": "occupancy count/216 in [0,1]; polysegChar = occupancy*216 - 108",
+        "stencilTolerance": 0.00000762939453125
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "I",
+      "case": "oblique",
+      "params": {
+        "dims": [
+          16,
+          16,
+          16
+        ],
+        "spacing": [
+          1.2,
+          1,
+          0.8
+        ],
+        "origin": [
+          1,
+          2,
+          -3
+        ],
+        "direction": [
+          [
+            0.8501940988064652,
+            -0.41363565295421933,
+            0.32569240236732444
+          ],
+          [
+            0.45972977639838386,
+            0.8847646913895886,
+            -0.07641971972585368
+          ],
+          [
+            -0.25655121720107765,
+            0.21470209005834737,
+            0.9423823456947943
+          ]
+        ],
+        "numberOfOffsets": 6,
+        "threshold": 0.5,
+        "encoding": "occupancy count/216 in [0,1]; polysegChar = occupancy*216 - 108",
+        "stencilTolerance": 0.00000762939453125
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "E",
+      "case": "oblique-anisotropic",
+      "params": {
+        "input": {
+          "dims": [
+            5,
+            4,
+            3
+          ],
+          "spacing": [
+            0.7,
+            1.3,
+            2.1
+          ],
+          "origin": [
+            1,
+            2,
+            3
+          ],
+          "direction": [
+            [
+              0.6,
+              -0.8,
+              0
+            ],
+            [
+              0.8,
+              0.6,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            4,
+            4,
+            3
+          ],
+          "spacing": [
+            1.1,
+            0.9,
+            1.6
+          ],
+          "origin": [
+            1.3,
+            2.4,
+            3.5
+          ],
+          "direction": [
+            [
+              0.8,
+              0.6,
+              0
+            ],
+            [
+              -0.6,
+              0.8,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 17
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "E",
+      "case": "axis-permutation",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            3,
+            2,
+            4
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            [
+              0,
+              0,
+              1
+            ],
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 7
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "E",
+      "case": "upsample-half-spacing",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            1,
+            1.2,
+            1.4
+          ],
+          "origin": [
+            5,
+            6,
+            7
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            8,
+            6,
+            4
+          ],
+          "spacing": [
+            0.5,
+            0.6,
+            0.7
+          ],
+          "origin": [
+            4.75,
+            5.7,
+            6.65
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 11
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "E",
+      "case": "downsample-double-spacing",
+      "params": {
+        "input": {
+          "dims": [
+            8,
+            6,
+            4
+          ],
+          "spacing": [
+            0.5,
+            0.6,
+            0.7
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            1,
+            1.2,
+            1.4
+          ],
+          "origin": [
+            0.125,
+            0.15,
+            0.175
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 13
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "E",
+      "case": "outside-fill-uint8",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            6,
+            5,
+            4
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            -1.25,
+            -1.25,
+            -1.25
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 200
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "E",
+      "case": "outside-fill-uint16",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            0.9,
+            1.1,
+            1.3
+          ],
+          "origin": [
+            2,
+            3,
+            4
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            6,
+            4,
+            3
+          ],
+          "spacing": [
+            0.9,
+            1.1,
+            1.3
+          ],
+          "origin": [
+            0.875,
+            2.725,
+            3.025
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 60000,
+        "dtype": "uint16",
+        "pattern": "counter16"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "E",
+      "case": "mirrored",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            0.8,
+            1.1,
+            1.7
+          ],
+          "origin": [
+            5,
+            6,
+            7
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            0.8,
+            1.1,
+            1.7
+          ],
+          "origin": [
+            7.4,
+            6,
+            7
+          ],
+          "direction": [
+            [
+              -1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 9
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "E",
+      "case": "half-voxel-ties-interior",
+      "params": {
+        "input": {
+          "dims": [
+            5,
+            4,
+            3
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 99
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "E",
+      "case": "half-voxel-border-ties",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 99
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "E",
+      "case": "multi-label",
+      "params": {
+        "input": {
+          "dims": [
+            6,
+            6,
+            4
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            3,
+            3,
+            2
+          ],
+          "spacing": [
+            2,
+            2,
+            2
+          ],
+          "origin": [
+            0.25,
+            0.25,
+            0.25
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 0,
+        "pattern": "octants"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk-wasm-morphological-contour-interpolation",
+        "version": "2.0.0"
+      },
+      "algorithm": "H",
+      "case": "shrinking-disk",
+      "params": {
+        "labelValue": 1,
+        "axis": 2,
+        "segmentedSlices": [
+          2,
+          6
+        ],
+        "disks": [
+          {
+            "z": 2,
+            "cx": 11.5,
+            "cy": 11.5,
+            "r": 7.6
+          },
+          {
+            "z": 6,
+            "cx": 11.5,
+            "cy": 11.5,
+            "r": 3.6
+          }
+        ],
+        "dims": [
+          24,
+          24,
+          9
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk-wasm-morphological-contour-interpolation",
+        "version": "2.0.0"
+      },
+      "algorithm": "H",
+      "case": "translated-blob",
+      "params": {
+        "labelValue": 1,
+        "axis": 2,
+        "segmentedSlices": [
+          2,
+          6
+        ],
+        "disks": [
+          {
+            "z": 2,
+            "cx": 8,
+            "cy": 9,
+            "r": 5.2
+          },
+          {
+            "z": 6,
+            "cx": 15,
+            "cy": 13,
+            "r": 4.2
+          }
+        ],
+        "dims": [
+          24,
+          24,
+          9
+        ],
+        "spacing": [
+          0.8,
+          1.2,
+          2.5
+        ],
+        "origin": [
+          -3,
+          4,
+          10
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk-wasm-morphological-contour-interpolation",
+        "version": "2.0.0"
+      },
+      "algorithm": "H",
+      "case": "split",
+      "params": {
+        "labelValue": 1,
+        "axis": 2,
+        "segmentedSlices": [
+          2,
+          6
+        ],
+        "disks": [
+          {
+            "z": 2,
+            "cx": 7.5,
+            "cy": 11.5,
+            "r": 4.6
+          },
+          {
+            "z": 2,
+            "cx": 12.5,
+            "cy": 11.5,
+            "r": 4.6
+          },
+          {
+            "z": 2,
+            "cx": 16.5,
+            "cy": 11.5,
+            "r": 4.6
+          },
+          {
+            "z": 6,
+            "cx": 6.5,
+            "cy": 11.5,
+            "r": 3.1
+          },
+          {
+            "z": 6,
+            "cx": 17.5,
+            "cy": 11.5,
+            "r": 3.1
+          }
+        ],
+        "dims": [
+          24,
+          24,
+          9
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "J",
+      "case": "sphere",
+      "params": {
+        "labelValue": 1,
+        "backgroundLabel": 0,
+        "padded": true,
+        "smoothing": {
+          "iterations": 16,
+          "relaxationFactor": 0.5,
+          "constraintDistance": 1.7320508075688772
+        },
+        "outputMeshType": "triangles",
+        "triangulationStrategy": "min-edge",
+        "note": "reuses the committed A sphere labelmap (dims 32, radius 10)"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "J",
+      "case": "boundary-blob",
+      "params": {
+        "labelValue": 1,
+        "backgroundLabel": 0,
+        "padded": true,
+        "smoothing": {
+          "iterations": 16,
+          "relaxationFactor": 0.5,
+          "constraintDistance": 1.7320508075688772
+        },
+        "outputMeshType": "triangles",
+        "triangulationStrategy": "min-edge",
+        "note": "box touching -x,+x,-y,-z image faces; closure requires the pad"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "J",
+      "case": "anisotropic",
+      "params": {
+        "labelValue": 1,
+        "backgroundLabel": 0,
+        "padded": true,
+        "smoothing": {
+          "iterations": 16,
+          "relaxationFactor": 0.5,
+          "constraintDistance": 2.29128784747792
+        },
+        "outputMeshType": "triangles",
+        "triangulationStrategy": "min-edge",
+        "note": "index-space sphere radius 8, anisotropic spacing"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "J",
+      "case": "oblique",
+      "params": {
+        "labelValue": 1,
+        "backgroundLabel": 0,
+        "padded": true,
+        "smoothing": {
+          "iterations": 16,
+          "relaxationFactor": 0.5,
+          "constraintDistance": 1.972308292331602
+        },
+        "outputMeshType": "triangles",
+        "triangulationStrategy": "min-edge",
+        "note": "index-space sphere radius 6, rotated direction matrix (Rz30 then Rx20)"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "J",
+      "case": "multilabel-label1",
+      "params": {
+        "labelValue": 1,
+        "backgroundLabel": 0,
+        "padded": true,
+        "smoothing": {
+          "iterations": 16,
+          "relaxationFactor": 0.5,
+          "constraintDistance": 1.7320508075688772
+        },
+        "outputMeshType": "triangles",
+        "triangulationStrategy": "min-edge",
+        "note": "two face-adjacent boxes, extract label 1 only"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "J",
+      "case": "multilabel-label2",
+      "params": {
+        "labelValue": 2,
+        "backgroundLabel": 0,
+        "padded": true,
+        "smoothing": {
+          "iterations": 16,
+          "relaxationFactor": 0.5,
+          "constraintDistance": 1.7320508075688772
+        },
+        "outputMeshType": "triangles",
+        "triangulationStrategy": "min-edge",
+        "note": "two face-adjacent boxes, extract label 2 only"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "icr-polyseg-wasm",
+        "version": "0.4.0"
+      },
+      "algorithm": "A",
+      "case": "sphere",
+      "params": {
+        "dims": [
+          32,
+          32,
+          32
+        ],
+        "radius": 10,
+        "smoothingFactor": 0.5,
+        "decimation": 0
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "D",
+      "case": "sphere",
+      "params": {
+        "dims": [
+          32,
+          32,
+          32
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "insideValue": 1,
+        "outsideValue": 0
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "icr-polyseg-wasm",
+        "version": "0.4.0"
+      },
+      "algorithm": "D",
+      "case": "sphere",
+      "params": {
+        "dims": [
+          32,
+          32,
+          32
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "D",
+      "case": "oblique",
+      "params": {
+        "dims": [
+          26,
+          26,
+          26
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          18.00062322616577,
+          -2.0003108978271484,
+          2.999739646911621
+        ],
+        "direction": [
+          [
+            0.6,
+            -0.8,
+            0
+          ],
+          [
+            0.8,
+            0.6,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "insideValue": 1,
+        "outsideValue": 0
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "D",
+      "case": "anisotropic",
+      "params": {
+        "dims": [
+          18,
+          32,
+          24
+        ],
+        "spacing": [
+          1.4,
+          0.75,
+          1.05
+        ],
+        "origin": [
+          3.600623226165773,
+          3.8746891021728516,
+          3.42473964691162
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "insideValue": 1,
+        "outsideValue": 0
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "D",
+      "case": "oblique-anisotropic",
+      "params": {
+        "dims": [
+          20,
+          28,
+          18
+        ],
+        "spacing": [
+          1.25,
+          0.9,
+          1.5
+        ],
+        "origin": [
+          18.095623226165774,
+          -1.2903108978271476,
+          2.749739646911621
+        ],
+        "direction": [
+          [
+            0.6,
+            -0.8,
+            0
+          ],
+          [
+            0.8,
+            0.6,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "insideValue": 1,
+        "outsideValue": 0
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk",
+        "version": "5.4.6"
+      },
+      "algorithm": "E",
+      "case": "anisotropic-translated",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            0.7,
+            1.3,
+            2.1
+          ],
+          "origin": [
+            2,
+            -3,
+            5
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            5,
+            3,
+            2
+          ],
+          "spacing": [
+            0.7,
+            1.3,
+            2.1
+          ],
+          "origin": [
+            2.7,
+            -3,
+            5
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 241
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk",
+        "version": "5.4.6"
+      },
+      "algorithm": "E",
+      "case": "oblique",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            0.8,
+            1.1,
+            1.7
+          ],
+          "origin": [
+            10,
+            20,
+            -4
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            3,
+            4,
+            2
+          ],
+          "spacing": [
+            1.1,
+            0.8,
+            1.7
+          ],
+          "origin": [
+            12.2,
+            20,
+            -4
+          ],
+          "direction": [
+            [
+              0,
+              -1,
+              0
+            ],
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 241
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk",
+        "version": "5.4.6"
+      },
+      "algorithm": "E",
+      "case": "oblique-anisotropic",
+      "params": {
+        "input": {
+          "dims": [
+            5,
+            4,
+            3
+          ],
+          "spacing": [
+            0.7,
+            1.3,
+            2.1
+          ],
+          "origin": [
+            1,
+            2,
+            3
+          ],
+          "direction": [
+            [
+              0.6,
+              -0.8,
+              0
+            ],
+            [
+              0.8,
+              0.6,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            4,
+            4,
+            3
+          ],
+          "spacing": [
+            1.1,
+            0.9,
+            1.6
+          ],
+          "origin": [
+            1.3,
+            2.4,
+            3.5
+          ],
+          "direction": [
+            [
+              0.8,
+              0.6,
+              0
+            ],
+            [
+              -0.6,
+              0.8,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 17
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk",
+        "version": "5.4.6"
+      },
+      "algorithm": "E",
+      "case": "axis-permutation",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            3,
+            2,
+            4
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            [
+              0,
+              0,
+              1
+            ],
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 7
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk",
+        "version": "5.4.6"
+      },
+      "algorithm": "E",
+      "case": "upsample-half-spacing",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            1,
+            1.2,
+            1.4
+          ],
+          "origin": [
+            5,
+            6,
+            7
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            8,
+            6,
+            4
+          ],
+          "spacing": [
+            0.5,
+            0.6,
+            0.7
+          ],
+          "origin": [
+            4.75,
+            5.7,
+            6.65
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 11
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk",
+        "version": "5.4.6"
+      },
+      "algorithm": "E",
+      "case": "downsample-double-spacing",
+      "params": {
+        "input": {
+          "dims": [
+            8,
+            6,
+            4
+          ],
+          "spacing": [
+            0.5,
+            0.6,
+            0.7
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            1,
+            1.2,
+            1.4
+          ],
+          "origin": [
+            0.125,
+            0.15,
+            0.175
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 13
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk",
+        "version": "5.4.6"
+      },
+      "algorithm": "E",
+      "case": "outside-fill-uint8",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            6,
+            5,
+            4
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            -1.25,
+            -1.25,
+            -1.25
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 200
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk",
+        "version": "5.4.6"
+      },
+      "algorithm": "E",
+      "case": "outside-fill-uint16",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            0.9,
+            1.1,
+            1.3
+          ],
+          "origin": [
+            2,
+            3,
+            4
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            6,
+            4,
+            3
+          ],
+          "spacing": [
+            0.9,
+            1.1,
+            1.3
+          ],
+          "origin": [
+            0.875,
+            2.725,
+            3.025
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 60000,
+        "dtype": "uint16",
+        "pattern": "counter16"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk",
+        "version": "5.4.6"
+      },
+      "algorithm": "E",
+      "case": "mirrored",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            0.8,
+            1.1,
+            1.7
+          ],
+          "origin": [
+            5,
+            6,
+            7
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            0.8,
+            1.1,
+            1.7
+          ],
+          "origin": [
+            7.4,
+            6,
+            7
+          ],
+          "direction": [
+            [
+              -1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 9
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk",
+        "version": "5.4.6"
+      },
+      "algorithm": "E",
+      "case": "half-voxel-ties-interior",
+      "params": {
+        "input": {
+          "dims": [
+            5,
+            4,
+            3
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 99
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk",
+        "version": "5.4.6"
+      },
+      "algorithm": "E",
+      "case": "half-voxel-border-ties",
+      "params": {
+        "input": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            4,
+            3,
+            2
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 99
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk",
+        "version": "5.4.6"
+      },
+      "algorithm": "E",
+      "case": "multi-label",
+      "params": {
+        "input": {
+          "dims": [
+            6,
+            6,
+            4
+          ],
+          "spacing": [
+            1,
+            1,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "output": {
+          "dims": [
+            3,
+            3,
+            2
+          ],
+          "spacing": [
+            2,
+            2,
+            2
+          ],
+          "origin": [
+            0.25,
+            0.25,
+            0.25
+          ],
+          "direction": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "interpolation": "nearest",
+        "fillValue": 0,
+        "pattern": "octants"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "B",
+      "case": "sphere-default",
+      "params": {
+        "numberOfIterations": 20,
+        "passBand": 0.1,
+        "normalizeCoordinates": false,
+        "windowFunction": "nuttall",
+        "boundarySmoothing": true,
+        "nonManifoldSmoothing": false,
+        "weightNonManifoldEdges": true,
+        "edgeAngle": 15,
+        "featureEdgeSmoothing": false,
+        "input": "A/sphere/golden.extract.mesh.json"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "B",
+      "case": "sphere-slicer",
+      "params": {
+        "numberOfIterations": 40,
+        "passBand": 0.01,
+        "normalizeCoordinates": true,
+        "windowFunction": "nuttall",
+        "boundarySmoothing": false,
+        "nonManifoldSmoothing": true,
+        "weightNonManifoldEdges": true,
+        "edgeAngle": 15,
+        "featureEdgeSmoothing": false,
+        "input": "A/sphere/golden.extract.mesh.json"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "B",
+      "case": "sphere-hamming",
+      "params": {
+        "numberOfIterations": 20,
+        "passBand": 0.1,
+        "normalizeCoordinates": false,
+        "windowFunction": "hamming",
+        "boundarySmoothing": true,
+        "nonManifoldSmoothing": false,
+        "weightNonManifoldEdges": true,
+        "edgeAngle": 15,
+        "featureEdgeSmoothing": false,
+        "input": "A/sphere/golden.extract.mesh.json"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "B",
+      "case": "cubesphere-default",
+      "params": {
+        "numberOfIterations": 20,
+        "passBand": 0.1,
+        "normalizeCoordinates": false,
+        "windowFunction": "nuttall",
+        "boundarySmoothing": true,
+        "nonManifoldSmoothing": false,
+        "weightNonManifoldEdges": true,
+        "edgeAngle": 15,
+        "featureEdgeSmoothing": false,
+        "input": "generated"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "B",
+      "case": "cubesphere-hamming",
+      "params": {
+        "numberOfIterations": 20,
+        "passBand": 0.1,
+        "normalizeCoordinates": false,
+        "windowFunction": "hamming",
+        "boundarySmoothing": true,
+        "nonManifoldSmoothing": false,
+        "weightNonManifoldEdges": true,
+        "edgeAngle": 15,
+        "featureEdgeSmoothing": false,
+        "input": "generated"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "B",
+      "case": "torus-default",
+      "params": {
+        "numberOfIterations": 20,
+        "passBand": 0.1,
+        "normalizeCoordinates": false,
+        "windowFunction": "nuttall",
+        "boundarySmoothing": true,
+        "nonManifoldSmoothing": false,
+        "weightNonManifoldEdges": true,
+        "edgeAngle": 15,
+        "featureEdgeSmoothing": false,
+        "input": "generated"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "B",
+      "case": "torus-hamming",
+      "params": {
+        "numberOfIterations": 20,
+        "passBand": 0.1,
+        "normalizeCoordinates": false,
+        "windowFunction": "hamming",
+        "boundarySmoothing": true,
+        "nonManifoldSmoothing": false,
+        "weightNonManifoldEdges": true,
+        "edgeAngle": 15,
+        "featureEdgeSmoothing": false,
+        "input": "generated"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "B",
+      "case": "halfsphere-default",
+      "params": {
+        "numberOfIterations": 20,
+        "passBand": 0.1,
+        "normalizeCoordinates": false,
+        "windowFunction": "nuttall",
+        "boundarySmoothing": true,
+        "nonManifoldSmoothing": false,
+        "weightNonManifoldEdges": true,
+        "edgeAngle": 30,
+        "featureEdgeSmoothing": false,
+        "input": "generated"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "B",
+      "case": "halfsphere-noboundary",
+      "params": {
+        "numberOfIterations": 20,
+        "passBand": 0.1,
+        "normalizeCoordinates": false,
+        "windowFunction": "nuttall",
+        "boundarySmoothing": false,
+        "nonManifoldSmoothing": false,
+        "weightNonManifoldEdges": true,
+        "edgeAngle": 30,
+        "featureEdgeSmoothing": false,
+        "input": "generated"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "python-vtk",
+        "version": "9.6.2"
+      },
+      "algorithm": "B",
+      "case": "sliver-default",
+      "params": {
+        "numberOfIterations": 20,
+        "passBand": 0.1,
+        "normalizeCoordinates": false,
+        "windowFunction": "nuttall",
+        "boundarySmoothing": true,
+        "nonManifoldSmoothing": false,
+        "weightNonManifoldEdges": true,
+        "edgeAngle": 15,
+        "featureEdgeSmoothing": false,
+        "input": "generated"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "vtk-js",
+        "version": "36.4.1"
+      },
+      "algorithm": "B",
+      "case": "cubesphere-hamming",
+      "params": {
+        "numberOfIterations": 20,
+        "passBand": 0.1,
+        "normalizeCoordinates": false,
+        "windowFunction": "hamming",
+        "boundarySmoothing": true,
+        "nonManifoldSmoothing": false,
+        "weightNonManifoldEdges": true,
+        "edgeAngle": 15,
+        "featureEdgeSmoothing": false,
+        "input": "generated"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "vtk-js",
+        "version": "36.4.1"
+      },
+      "algorithm": "B",
+      "case": "torus-hamming",
+      "params": {
+        "numberOfIterations": 20,
+        "passBand": 0.1,
+        "normalizeCoordinates": false,
+        "windowFunction": "hamming",
+        "boundarySmoothing": true,
+        "nonManifoldSmoothing": false,
+        "weightNonManifoldEdges": true,
+        "edgeAngle": 15,
+        "featureEdgeSmoothing": false,
+        "input": "generated"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "vtk-js",
+        "version": "36.4.1"
+      },
+      "algorithm": "B",
+      "case": "sphere-hamming",
+      "params": {
+        "numberOfIterations": 20,
+        "passBand": 0.1,
+        "normalizeCoordinates": false,
+        "windowFunction": "hamming",
+        "boundarySmoothing": true,
+        "nonManifoldSmoothing": false,
+        "weightNonManifoldEdges": true,
+        "edgeAngle": 15,
+        "featureEdgeSmoothing": false,
+        "input": "A/sphere/golden.extract.mesh.json"
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "vtk-js",
+        "version": "36.4.1"
+      },
+      "algorithm": "F",
+      "case": "cube-axis",
+      "params": {
+        "inputMesh": "F/cube-axis/input.mesh.json",
+        "plane": {
+          "origin": [
+            1,
+            1,
+            1
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        "loopClosure": "off",
+        "outputMode": "polygons",
+        "calibration": {
+          "maxSymmetricDistance": 0
+        }
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "vtk-js",
+        "version": "36.4.1"
+      },
+      "algorithm": "F",
+      "case": "sphere-center",
+      "params": {
+        "inputMesh": "A/sphere/golden.mesh.json",
+        "plane": {
+          "origin": [
+            15.5,
+            15.5,
+            15.5
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        "loopClosure": "off",
+        "outputMode": "polygons",
+        "calibration": {
+          "maxSymmetricDistance": 0
+        }
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "vtk-js",
+        "version": "36.4.1"
+      },
+      "algorithm": "F",
+      "case": "sphere-oblique",
+      "params": {
+        "inputMesh": "A/sphere/golden.mesh.json",
+        "plane": {
+          "origin": [
+            15.5,
+            15.5,
+            15.5
+          ],
+          "xAxis": [
+            0.7071067811865476,
+            -0.7071067811865476,
+            0
+          ],
+          "yAxis": [
+            0.4082482904638631,
+            0.4082482904638631,
+            -0.8164965809277261
+          ],
+          "normal": [
+            0.5773502691896258,
+            0.5773502691896258,
+            0.5773502691896258
+          ]
+        },
+        "loopClosure": "off",
+        "outputMode": "polygons",
+        "calibration": {
+          "maxSymmetricDistance": 0
+        }
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "vtk-js",
+        "version": "36.4.1"
+      },
+      "algorithm": "F",
+      "case": "torus-two-loops",
+      "params": {
+        "inputMesh": "F/torus-two-loops/input.mesh.json",
+        "plane": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            0,
+            1,
+            0
+          ],
+          "yAxis": [
+            0,
+            0,
+            1
+          ],
+          "normal": [
+            1,
+            0,
+            0
+          ]
+        },
+        "loopClosure": "off",
+        "outputMode": "polygons",
+        "calibration": {
+          "maxSymmetricDistance": 0
+        }
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "vtk-js",
+        "version": "36.4.1"
+      },
+      "algorithm": "F",
+      "case": "octahedron-on-vertices",
+      "params": {
+        "inputMesh": "F/octahedron-on-vertices/input.mesh.json",
+        "plane": {
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        "loopClosure": "off",
+        "outputMode": "polygons",
+        "calibration": {
+          "maxSymmetricDistance": 0
+        }
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "vtk-js",
+        "version": "36.4.1"
+      },
+      "algorithm": "F",
+      "case": "sphere-miss",
+      "params": {
+        "inputMesh": "A/sphere/golden.mesh.json",
+        "plane": {
+          "origin": [
+            15.5,
+            15.5,
+            50
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ],
+          "yAxis": [
+            0,
+            1,
+            0
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        "loopClosure": "off",
+        "outputMode": "polygons",
+        "calibration": {
+          "maxSymmetricDistance": 0
+        }
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "icr-polyseg-wasm",
+        "version": "0.4.0"
+      },
+      "algorithm": "K",
+      "case": "cylinder",
+      "params": {
+        "shape": "cylinder",
+        "slices": 8,
+        "radius": 20,
+        "spacing": 1.5
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "icr-polyseg-wasm",
+        "version": "0.4.0"
+      },
+      "algorithm": "K",
+      "case": "sphere",
+      "params": {
+        "shape": "sphere",
+        "slices": 9,
+        "sphereRadius": 15,
+        "spacing": 3
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "icr-polyseg-wasm",
+        "version": "0.4.0"
+      },
+      "algorithm": "K",
+      "case": "cone",
+      "params": {
+        "shape": "cone",
+        "slices": 7,
+        "baseRadius": 18,
+        "tipRadius": 2,
+        "spacing": 2
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "icr-polyseg-wasm",
+        "version": "0.4.0"
+      },
+      "algorithm": "K",
+      "case": "branching",
+      "params": {
+        "shape": "branching",
+        "trunkSlices": 4,
+        "branchSlices": 4,
+        "spacing": 2
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "icr-polyseg-wasm",
+        "version": "0.4.0"
+      },
+      "algorithm": "K",
+      "case": "keyhole",
+      "params": {
+        "shape": "keyhole-annulus",
+        "slices": 6,
+        "outerRadius": 16,
+        "innerRadius": 8,
+        "spacing": 1.5
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "icr-polyseg-wasm",
+        "version": "0.4.0"
+      },
+      "algorithm": "K",
+      "case": "tilted",
+      "params": {
+        "shape": "tilted-cylinder",
+        "slices": 7,
+        "radius": 14,
+        "tiltDegrees": 20,
+        "spacing": 1.8
+      },
+      "seed": 0
+    }
+  ]
+}

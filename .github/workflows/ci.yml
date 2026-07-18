@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm test
+
+      - run: npm run build
+
+      # The tarball contents are part of the contract: dist plus notices, never
+      # src, test, oracles, or examples.
+      - run: npm pack --dry-run
+
+  # The oracle tier regenerates goldens live with the pinned oracle
+  # environment, so a VTK or PolySeg bump can never leave stale committed
+  # goldens silently passing. Kept out of `verify` so the default test run
+  # stays Python-free.
+  oracle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: oracles/py/uv.lock
+
+      - run: npm ci
+
+      - run: npm run test:oracle
