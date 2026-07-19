@@ -1,5 +1,7 @@
 {
   "radius": 10.0,
   "smoothingFactor": 0.5,
+  "passBand": 0.01,
+  "iterations": 40,
   "decimation": 0.0
 }

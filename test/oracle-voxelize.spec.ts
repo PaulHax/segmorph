@@ -10,9 +10,10 @@ import {
   readFixtureManifest,
   readMeshJson,
 } from './fixtures/loaders.js';
+import { fixtureUrl } from './fixtures/root.js';
 
 const fixture = (algorithm: string, name: string) => (
-  new URL(`./fixtures/${algorithm}/sphere/${name}`, import.meta.url)
+  fixtureUrl(`${algorithm}/sphere/${name}`)
 );
 
 describe('surface voxelization oracle', () => {
@@ -31,7 +32,7 @@ describe('surface voxelization oracle', () => {
 
   it('records the generating VTK oracle in the fixture manifest', async () => {
     const manifest = readFixtureManifest(
-      await readFile(new URL('./fixtures/manifest.json', import.meta.url), 'utf8'),
+      await readFile(fixtureUrl('manifest.json'), 'utf8'),
     );
 
     expect(findFixtureEntries(manifest, 'D', 'sphere').map((entry) => entry.oracle.name).sort())
@@ -65,7 +66,7 @@ describe('PolySeg voxelization oracle', () => {
 
   it('records the composed PolySeg oracle in the fixture manifest', async () => {
     const manifest = readFixtureManifest(
-      await readFile(new URL('./fixtures/manifest.json', import.meta.url), 'utf8'),
+      await readFile(fixtureUrl('manifest.json'), 'utf8'),
     );
 
     expect(findFixtureEntries(manifest, 'D', 'sphere').map((entry) => entry.oracle.name).sort())
@@ -104,12 +105,12 @@ describe('PolySeg voxelization oracle', () => {
 describe('oriented surface voxelization oracle', () => {
   const cases = ['oblique', 'anisotropic', 'oblique-anisotropic'] as const;
   const orientedFixture = (name: string, file: string) => (
-    new URL(`./fixtures/D/${name}/${file}`, import.meta.url)
+    fixtureUrl(`D/${name}/${file}`)
   );
 
   it('records each oriented VTK case in the fixture manifest', async () => {
     const manifest = readFixtureManifest(
-      await readFile(new URL('./fixtures/manifest.json', import.meta.url), 'utf8'),
+      await readFile(fixtureUrl('manifest.json'), 'utf8'),
     );
 
     for (const name of cases) {

@@ -23,6 +23,7 @@ import sys
 import numpy as np
 import itk
 
+from fixtures import fixtures_root, read_manifest, write_manifest
 from resample_cases import CASES, DTYPES, make_values, write_nrrd
 
 ORACLE_NAME = "itk"
@@ -66,8 +67,7 @@ def manifest_entry(name, case):
 
 
 def update_manifest(path):
-    manifest = json.loads(path.read_text())
-    assert manifest["schemaVersion"] == 1 and isinstance(manifest["fixtures"], list)
+    manifest = read_manifest(path)
     # Replace this generator's entries so regenerating after an oracle bump also
     # refreshes the recorded oracle version. The python-vtk goldens are kept.
     manifest["fixtures"] = [
@@ -75,21 +75,22 @@ def update_manifest(path):
         if not (entry["algorithm"] == "E" and entry["case"] in CASES
                 and entry["oracle"]["name"] == ORACLE_NAME)
     ] + [manifest_entry(name, case) for name, case in CASES.items()]
-    path.write_text(json.dumps(manifest, indent=2) + "\n")
+    write_manifest(path, manifest)
 
 
 def main():
     root = pathlib.Path(sys.argv[1]).resolve()
+    fixtures = fixtures_root(root)
     for name, case in CASES.items():
         dtype_name = case.get("dtype", "uint8")
         pattern = case.get("pattern", "counter")
-        fixture = root / "test" / "fixtures" / "E" / name
+        fixture = fixtures / "E" / name
         fixture.mkdir(parents=True, exist_ok=True)
         values = make_values(case["input"], pattern, DTYPES[dtype_name])
         golden = resample(values, case["input"], case["output"], case["fillValue"])
         write_nrrd(fixture / "golden.itk.nrrd", golden.astype(DTYPES[dtype_name]),
                    case["output"], dtype_name)
-    update_manifest(root / "test" / "fixtures" / "manifest.json")
+    update_manifest(fixtures / "manifest.json")
 
 
 if __name__ == "__main__":

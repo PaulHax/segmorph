@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { fillBetween } from '../src/convert/fillBetween.js';
 import type { OrientedImage } from '../src/image/orientedImage.js';
 import { dice } from './diff/image.js';
+import { fixtureUrl } from './fixtures/root.js';
 
 // Per-slice Dice thresholds against the @itk-wasm oracle (defaults: distance
 // transform median, label = 1). Calibration measured 2026-07-10 with itk-wasm
@@ -32,7 +33,7 @@ type ImageJson = {
 };
 
 function loadImage(caseName: string, file: string): OrientedImage<Uint8Array> {
-  const url = new URL(`./fixtures/H/${caseName}/${file}`, import.meta.url);
+  const url = fixtureUrl(`H/${caseName}/${file}`);
   const json: ImageJson = JSON.parse(readFileSync(url, 'utf8'));
   return {
     dims: json.dims,
@@ -44,7 +45,7 @@ function loadImage(caseName: string, file: string): OrientedImage<Uint8Array> {
 }
 
 function loadParams(caseName: string) {
-  const url = new URL(`./fixtures/H/${caseName}/params.json`, import.meta.url);
+  const url = fixtureUrl(`H/${caseName}/params.json`);
   return JSON.parse(readFileSync(url, 'utf8')) as {
     labelValue: number;
     axis: number;

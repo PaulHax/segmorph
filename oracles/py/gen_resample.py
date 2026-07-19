@@ -5,6 +5,7 @@ import sys
 import vtk
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
+from fixtures import fixtures_root, read_manifest, write_manifest
 from resample_cases import CASES, DTYPES, make_values, write_nrrd
 
 
@@ -57,8 +58,7 @@ def manifest_entry(name, case):
 
 
 def update_manifest(path):
-    manifest = json.loads(path.read_text())
-    assert manifest["schemaVersion"] == 1 and isinstance(manifest["fixtures"], list)
+    manifest = read_manifest(path)
     # Replace this generator's entries so regenerating after an oracle bump also
     # refreshes the recorded oracle version. Other oracles' entries are kept.
     manifest["fixtures"] = [
@@ -66,15 +66,16 @@ def update_manifest(path):
         if not (entry["algorithm"] == "E" and entry["case"] in CASES
                 and entry["oracle"]["name"] == "python-vtk")
     ] + [manifest_entry(name, case) for name, case in CASES.items()]
-    path.write_text(json.dumps(manifest, indent=2) + "\n")
+    write_manifest(path, manifest)
 
 
 def main():
     root = pathlib.Path(sys.argv[1]).resolve()
+    fixtures = fixtures_root(root)
     for name, case in CASES.items():
         dtype_name = case.get("dtype", "uint8")
         pattern = case.get("pattern", "counter")
-        fixture = root / "test" / "fixtures" / "E" / name
+        fixture = fixtures / "E" / name
         fixture.mkdir(parents=True, exist_ok=True)
         values = make_values(case["input"], pattern, DTYPES[dtype_name])
         image = make_input(case["input"], values)
@@ -84,7 +85,7 @@ def main():
         (fixture / "params.json").write_text(json.dumps({
             "input": case["input"], "output": case["output"], "fillValue": case["fillValue"],
         }, indent=2) + "\n")
-    update_manifest(root / "test" / "fixtures" / "manifest.json")
+    update_manifest(fixtures / "manifest.json")
 
 
 if __name__ == "__main__":

@@ -19,6 +19,8 @@ import numpy as np
 import vtk
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
+from fixtures import fixtures_root, read_manifest, write_manifest
+
 IDENTITY = ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
 
 
@@ -137,21 +139,21 @@ def write_mesh(path, mesh):
 
 
 def update_manifest(path, entries):
-    manifest = json.loads(path.read_text()) if path.exists() else {"schemaVersion": 1, "fixtures": []}
+    manifest = read_manifest(path)
     own = {(entry["algorithm"], entry["case"], entry["oracle"]["name"]) for entry in entries}
     manifest["fixtures"] = [
         fixture for fixture in manifest["fixtures"]
         if (fixture["algorithm"], fixture["case"], fixture["oracle"]["name"]) not in own
     ] + entries
-    path.write_text(json.dumps(manifest, indent=2) + "\n")
+    write_manifest(path, manifest)
 
 
 def main():
     root = pathlib.Path(sys.argv[1]).resolve()
-    fixtures = root / "test" / "fixtures" / "J"
+    fixtures = fixtures_root(root)
     vtk_version = vtk.vtkVersion.GetVTKVersion()
 
-    sphere_data, sphere_dims = read_nrrd(root / "test" / "fixtures" / "A" / "sphere" / "input.nrrd")
+    sphere_data, sphere_dims = read_nrrd(fixtures / "A" / "sphere" / "input.nrrd")
     assert sphere_dims == (32, 32, 32)
 
     oblique_direction = tuple(
@@ -218,7 +220,7 @@ def main():
 
     entries = []
     for case in cases:
-        directory = fixtures / case["case"]
+        directory = fixtures / "J" / case["case"]
         directory.mkdir(parents=True, exist_ok=True)
         image = make_image(case["data"], case["spacing"], case["origin"], case["direction"])
         smoothed = surface_nets(image, case["labelValue"], smoothing=True)
@@ -250,7 +252,7 @@ def main():
             "seed": 0,
         })
 
-    update_manifest(root / "test" / "fixtures" / "manifest.json", entries)
+    update_manifest(fixtures / "manifest.json", entries)
 
 
 if __name__ == "__main__":

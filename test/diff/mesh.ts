@@ -3,9 +3,9 @@ export type Mesh = {
   polys: Uint32Array;
 };
 
-type Point = readonly [number, number, number];
+export type Point = readonly [number, number, number];
 
-function vertices(mesh: Mesh) {
+export function vertices(mesh: Mesh) {
   if (mesh.points.length % 3 !== 0) {
     throw new RangeError('Mesh points must contain complete xyz coordinates');
   }
@@ -45,7 +45,7 @@ export function triangleIndices(mesh: Mesh) {
   return result;
 }
 
-function triangles(mesh: Mesh) {
+export function triangles(mesh: Mesh) {
   const points = vertices(mesh);
   return triangleIndices(mesh).map(([a, b, c]) => [points[a], points[b], points[c]] as const);
 }
@@ -72,7 +72,7 @@ function addScaled(origin: Point, direction: Point, t: number): Point {
 }
 
 // Closest-point regions from Real-Time Collision Detection, Christer Ericson.
-function squaredPointTriangleDistance(point: Point, [a, b, c]: readonly [Point, Point, Point]) {
+export function squaredPointTriangleDistance(point: Point, [a, b, c]: readonly [Point, Point, Point]) {
   const ab = subtract(b, a);
   const ac = subtract(c, a);
   const ap = subtract(point, a);

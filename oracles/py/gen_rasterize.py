@@ -37,6 +37,8 @@ import numpy as np
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy
 
+from fixtures import fixtures_root, read_manifest, write_manifest
+
 STENCIL_TOL = 7.62939453125e-06
 MIN_CENTER_CLEARANCE = 1e-3
 
@@ -297,18 +299,18 @@ def geometry_params(case):
 
 
 def update_manifest(path, entries):
-    manifest = json.loads(path.read_text())
+    manifest = read_manifest(path)
     mine = {(entry["algorithm"], entry["case"], entry["oracle"]["name"]) for entry in entries}
     manifest["fixtures"] = [
         fixture for fixture in manifest["fixtures"]
         if (fixture["algorithm"], fixture["case"], fixture["oracle"]["name"]) not in mine
     ] + entries
-    path.write_text(json.dumps(manifest, indent=2) + "\n")
+    write_manifest(path, manifest)
 
 
 def main():
     root = pathlib.Path(sys.argv[1]).resolve()
-    fixtures = root / "test" / "fixtures" / "G"
+    fixtures = fixtures_root(root)
     entries = []
     for case in CASES:
         if not case.get("skip_clearance_check"):
@@ -321,7 +323,7 @@ def main():
         golden = rasterize_case(case)
         print(f"{case['name']}: {int(golden.sum())} filled voxels")
 
-        case_dir = fixtures / case["name"]
+        case_dir = fixtures / "G" / case["name"]
         case_dir.mkdir(parents=True, exist_ok=True)
         (case_dir / "input.contours.json").write_text(json.dumps({
             "labelValue": 1,
@@ -345,7 +347,7 @@ def main():
             "seed": 0,
         })
 
-    update_manifest(root / "test" / "fixtures" / "manifest.json", entries)
+    update_manifest(fixtures / "manifest.json", entries)
 
 
 if __name__ == "__main__":

@@ -11,8 +11,9 @@ import {
   type Mesh,
 } from './diff/mesh.js';
 import { findFixtureEntries, readFixtureManifest, readMeshJson } from './fixtures/loaders.js';
+import { fixtureUrl } from './fixtures/root.js';
 
-const fixturesUrl = new URL('./fixtures/', import.meta.url);
+const fixturesUrl = fixtureUrl('');
 
 // Tolerance calibration, measured against the committed
 // golden.polyseg.mesh.json goldens (@icr/polyseg-wasm 0.4.0, which compiles

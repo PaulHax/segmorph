@@ -17,11 +17,12 @@ import {
   readFixtureManifest,
   readMeshJson,
 } from './fixtures/loaders.js';
+import { fixtureUrl } from './fixtures/root.js';
 
 const cases = ['isotropic', 'anisotropic', 'oblique'] as const;
 
 const fixture = (caseName: string, name: string) => (
-  new URL(`./fixtures/I/${caseName}/${name}`, import.meta.url)
+  fixtureUrl(`I/${caseName}/${name}`)
 );
 
 async function loadCase(caseName: string) {
@@ -51,7 +52,7 @@ function occupancyDifference(actual: ArrayLike<number>, expected: ArrayLike<numb
 describe('fractional labelmap oracle', () => {
   it('records the generating VTK oracle in the fixture manifest', async () => {
     const manifest = readFixtureManifest(
-      await readFile(new URL('./fixtures/manifest.json', import.meta.url), 'utf8'),
+      await readFile(fixtureUrl('manifest.json'), 'utf8'),
     );
     for (const caseName of cases) {
       expect(findFixtureEntries(manifest, 'I', caseName).map((entry) => entry.oracle.name))

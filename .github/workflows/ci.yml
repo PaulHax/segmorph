@@ -28,10 +28,12 @@ jobs:
       # src, test, oracles, or examples.
       - run: npm pack --dry-run
 
-  # The oracle tier regenerates goldens live with the pinned oracle
-  # environment, so a VTK or PolySeg bump can never leave stale committed
-  # goldens silently passing. Kept out of `verify` so the default test run
-  # stays Python-free.
+  # The oracle tier regenerates every algorithm's goldens live with the pinned
+  # oracle environment, so a VTK, PolySeg, or ITK bump can never leave stale
+  # committed goldens silently passing. It also runs the two live-only suites:
+  # the property-based sweep over seeded random blobs, and the clinical
+  # regression against Slicer's conversion on a real chest CT. Kept out of
+  # `verify` so the default test run stays Python-free.
   oracle:
     runs-on: ubuntu-latest
     steps:
@@ -46,6 +48,14 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: oracles/py/uv.lock
+
+      # The clinical oracle downloads LIDC2 once and reuses it from this cache.
+      # The key carries the dataset's pinned content hash, so a re-pin fetches
+      # fresh data instead of silently reusing the old volume.
+      - uses: actions/cache@v4
+        with:
+          path: oracles/.cache
+          key: clinical-dataset-lidc2-d697a46d
 
       - run: npm ci
 

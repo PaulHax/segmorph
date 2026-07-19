@@ -6,12 +6,11 @@
 //
 // Output goes to `--out <dir>` (default `test/fixtures`, the committed corpus).
 // The oracle test tier (`npm run test:oracle`) invokes this with
-// `--out test/generated` so migrated algorithms compare against goldens
-// computed live by the pinned oracles instead of committed files that can go
-// stale. Generators that honor the redirect read SEGMORPH_FIXTURES_DIR, which
-// this script exports; the rest still resolve `test/fixtures` from the repo
-// root passed as argv[1] and migrate over as their algorithms join the oracle
-// tier.
+// `--out test/generated` so specs compare against goldens computed live by the
+// pinned oracles instead of committed files that can go stale. Every generator
+// resolves both its output root and any golden it reads back as input through
+// SEGMORPH_FIXTURES_DIR, which this script exports, so a live run is
+// self-consistent and never mixes the committed corpus into fresh goldens.
 //
 // Requires uv (https://docs.astral.sh/uv/). The Python dependencies live in
 // oracles/py/pyproject.toml and are locked in oracles/py/uv.lock.
@@ -44,7 +43,23 @@ const oracles: Record<string, { py?: string[]; node?: string[] }> = {
   I: { py: ['gen_fractional.py'] },
   J: { py: ['gen_surfacenets.py'] },
   K: { node: [`${nodeDirectory}/polyseg.ts`, 'K'] },
+  // L is the clinical regression: a real chest CT converted by the rule Slicer
+  // ships. Oracle-tier only, and the only oracle that needs network access (it
+  // downloads the dataset once, then reads oracles/.cache).
+  L: { node: [`${nodeDirectory}/clinical.ts`] },
+  // P is the property-based sweep: seeded random blobs rather than hand-chosen
+  // shapes. Oracle-tier only, so it is never written into the committed corpus.
+  P: { py: ['gen_property.py'] },
 };
+
+// L and P belong to the oracle tier only: their corpora are regenerated for
+// every live run and never committed (see .gitignore). `npm run fixtures`
+// maintains the committed corpus, so a bulk run that targets it skips them --
+// otherwise regenerating fixtures would download a clinical dataset and write
+// megabytes of gitignored goldens for no reason. Naming one with --algo still
+// runs it wherever it is pointed.
+const liveOnlyAlgorithms = new Set(['L', 'P']);
+const targetsCommittedCorpus = outFlag === -1;
 
 const algorithmFlag = process.argv.indexOf('--algo');
 const requestedAlgorithm = algorithmFlag === -1 ? undefined : process.argv[algorithmFlag + 1];
@@ -53,7 +68,11 @@ if (requestedAlgorithm && !(requestedAlgorithm in oracles)) {
     `Unsupported fixture algorithm: ${requestedAlgorithm}. Expected one of ${Object.keys(oracles).join(', ')}`,
   );
 }
-const algorithms = requestedAlgorithm ? [requestedAlgorithm] : Object.keys(oracles);
+const algorithms = requestedAlgorithm
+  ? [requestedAlgorithm]
+  : Object.keys(oracles).filter(
+    (algorithm) => !(targetsCommittedCorpus && liveOnlyAlgorithms.has(algorithm)),
+  );
 
 function run(command: string, args: string[]) {
   const result = spawnSync(command, args, {

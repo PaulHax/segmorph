@@ -1,8 +1,8 @@
 """Golden fixtures for meshSmooth (algorithm B).
 
-Runs vtkWindowedSincPolyDataFilter (pinned python vtk) on committed inputs:
-the algorithm-A sphere extraction mesh plus small deterministic synthetic
-meshes generated here. Inputs and goldens are float32, matching the Mesh
+Runs vtkWindowedSincPolyDataFilter (pinned python vtk) on the algorithm-A
+sphere extraction mesh (read from the same fixture root this writes to) plus
+small deterministic synthetic meshes generated here. Inputs and goldens are float32, matching the Mesh
 contract. Deterministic: no randomness, no timestamps (seed 0).
 """
 
@@ -14,6 +14,8 @@ import sys
 import numpy as np
 import vtk
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
+
+from fixtures import fixtures_root, read_manifest, write_manifest
 
 
 ALGORITHM = "B"
@@ -220,7 +222,7 @@ def read_mesh(path):
 
 def main():
     root = pathlib.Path(sys.argv[1]).resolve()
-    fixtures = root / "test" / "fixtures"
+    fixtures = fixtures_root(root)
     sphere_points, sphere_polys = read_mesh(fixtures / "A" / "sphere" / "golden.extract.mesh.json")
 
     # The "-hamming" cases exist for the vtk.js second oracle: vtk.js's
@@ -248,7 +250,7 @@ def main():
     }
 
     manifest_path = fixtures / "manifest.json"
-    manifest = json.loads(manifest_path.read_text())
+    manifest = read_manifest(manifest_path)
     own_cases = set(synthetic) | set(sphere_cases)
     manifest["fixtures"] = [
         entry for entry in manifest["fixtures"]
@@ -289,7 +291,7 @@ def main():
         points, polys = generator()
         emit(case, params, points.astype(np.float32), polys, "generated")
 
-    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+    write_manifest(manifest_path, manifest)
 
 
 if __name__ == "__main__":

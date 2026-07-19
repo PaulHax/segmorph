@@ -6,6 +6,7 @@
 // Run: node oracles/node/fillbetween.ts
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 
 import { morphologicalContourInterpolationNode } from '@itk-wasm/morphological-contour-interpolation';
 import { Image, ImageType, IntTypes, PixelTypes } from 'itk-wasm';
@@ -127,9 +128,19 @@ function imageJson(data: ArrayLike<number>, geometry: Geometry) {
   })}\n`;
 }
 
-const fixturesUrl = new URL('../../test/fixtures/H/', import.meta.url);
-const manifestUrl = new URL('../../test/fixtures/manifest.json', import.meta.url);
-const manifest = JSON.parse(await readFile(manifestUrl, 'utf8'));
+// SEGMORPH_FIXTURES_DIR redirects the corpus root so a live regeneration run
+// can write into an empty tree instead of the committed fixtures.
+const corpusUrl = process.env.SEGMORPH_FIXTURES_DIR
+  ? pathToFileURL(`${process.env.SEGMORPH_FIXTURES_DIR}/`)
+  : new URL('../../test/fixtures/', import.meta.url);
+const fixturesUrl = new URL('H/', corpusUrl);
+const manifestUrl = new URL('manifest.json', corpusUrl);
+
+const manifestText = await readFile(manifestUrl, 'utf8').catch((error) => {
+  if (error.code !== 'ENOENT') throw error;
+  return JSON.stringify({ schemaVersion: 1, fixtures: [] });
+});
+const manifest = JSON.parse(manifestText);
 
 for (const c of cases) {
   const input = rasterize(c);
@@ -171,4 +182,5 @@ for (const c of cases) {
   console.log(`H/${c.name}: golden written`);
 }
 
+await mkdir(corpusUrl, { recursive: true });
 await writeFile(manifestUrl, `${JSON.stringify(manifest, null, 2)}\n`);

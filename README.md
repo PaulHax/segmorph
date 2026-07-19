@@ -252,13 +252,49 @@ Extents are inclusive bounds in `[xMin, xMax, yMin, yMax, zMin, zMax]` order.
 
 Every ported algorithm is verified by differential testing against the
 canonical implementation: dev-only oracles (Python `vtk`, `@icr/polyseg-wasm`,
-vtk.js) produce golden outputs, and vitest specs compare the TypeScript port
-to the goldens with geometric tolerances (Dice, Hausdorff, surface distance)
-rather than bit equality, plus oracle-free round-trip and structural
-invariants. The suite runs in two tiers: the default `npm test` needs neither
-Python nor WASM, while `npm run test:oracle` regenerates goldens live with the
-pinned oracle environment (its own CI job), so migrated algorithms can never
-silently drift from the oracles.
+vtk.js, `@itk-wasm/*`) produce golden outputs, and vitest specs compare the
+TypeScript port to the goldens with geometric tolerances (Dice, Hausdorff,
+surface distance) rather than bit equality, plus oracle-free round-trip and
+structural invariants.
+
+The suite runs in two tiers over the same specs and two different corpora:
+
+- **`npm test`** reads the committed goldens in `test/fixtures`, so the fast
+  tier needs neither Python nor WASM and still runs the full differential
+  suite.
+- **`npm run test:oracle`** regenerates *every* algorithm's goldens live with
+  the pinned oracle environment into `test/generated` and points the same specs
+  at them. This is the anti-staleness check, and it is its own CI job: an
+  upstream oracle that changes behavior fails here even though the committed
+  corpus still agrees with itself.
+
+Three things run only in the oracle tier, because their inputs are
+deliberately never committed:
+
+- **A property-based sweep** (`oracles/py/gen_property.py`): 32 labelmaps drawn
+  from a seeded random distribution — multi-component blobs, enclosed cavities,
+  one-voxel slabs, foreground running into the volume wall, anisotropic and
+  oblique geometry, and a distractor label packed against the target — each
+  compared against `vtkDiscreteFlyingEdges3D`. The named cases pin the shapes
+  someone thought to write down; the sweep covers the ones nobody did.
+- **A clinical regression** (`oracles/node/clinical.ts`): dense bone
+  thresholded out of LIDC2, a real chest CT, converted by the rule 3D Slicer
+  actually ships and compared against our chain at ~412k triangles. The
+  dataset is content-pinned by digest and cached, so the regression is against
+  a fixed volume rather than whatever upstream serves today.
+- **A scalable surface metric** (`test/diff/spatial.ts`): the exhaustive
+  metrics are quadratic and fine for the small named cases; the clinical mesh
+  needs a grid-indexed nearest-triangle search, which returns the same
+  distances.
+
+Where our port and an oracle legitimately differ, the specs assert the
+difference is *confined* rather than widening a tolerance until it fits. The
+clinical case is the worked example: our port pads the volume like VTK, so
+foreground touching a volume face closes half a voxel outside it and the mesh
+is watertight, while PolySeg leaves those faces open. The spec measures the
+interior tightly (Hausdorff 0.96 mm, mean 0.10 mm on a 1.4 x 1.4 x 2.5 mm
+grid) and separately asserts that every materially disagreeing vertex is a
+boundary vertex.
 
 ## License
 

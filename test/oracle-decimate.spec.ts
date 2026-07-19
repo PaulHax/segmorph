@@ -17,8 +17,9 @@ import {
   isWatertight,
 } from './diff/structure.js';
 import { findFixtureEntries, readFixtureManifest, readMeshJson } from './fixtures/loaders.js';
+import { fixtureUrl } from './fixtures/root.js';
 
-const fixturesUrl = new URL('./fixtures/', import.meta.url);
+const fixturesUrl = fixtureUrl('');
 
 // Tolerances calibrated 2026-07-10 against the committed python-vtk 9.6.2
 // goldens (vtkQuadricDecimation defaults) by measuring this port on every

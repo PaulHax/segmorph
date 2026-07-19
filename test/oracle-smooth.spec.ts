@@ -14,6 +14,7 @@ import {
   readFixtureManifest,
   readMeshJson,
 } from './fixtures/loaders.js';
+import { fixturesRoot } from './fixtures/root.js';
 
 // Windowed-sinc smoothing preserves vertex count and ordering, so the
 // comparison is per-vertex distance against the golden, not a sampled
@@ -31,7 +32,6 @@ import {
 // worst measured port deviation.
 const MAX_VERTEX_DISTANCE = 1e-5;
 
-const fixturesRoot = new URL('./fixtures/', import.meta.url);
 
 type SmoothCase = {
   name: string;

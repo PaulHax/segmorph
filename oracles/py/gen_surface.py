@@ -1,11 +1,12 @@
 import json
-import os
 import pathlib
 import sys
 
 import numpy as np
 import vtk
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
+
+from fixtures import fixtures_root, read_manifest, write_manifest
 
 
 DIMS = (32, 32, 32)
@@ -93,7 +94,7 @@ def write_mesh(path, mesh):
 
 
 def update_manifest(path):
-    manifest = json.loads(path.read_text()) if path.exists() else {"schemaVersion": 1, "fixtures": []}
+    manifest = read_manifest(path)
     entry = {
         "oracle": {"name": "python-vtk", "version": vtk.vtkVersion.GetVTKVersion()},
         "algorithm": "A",
@@ -113,12 +114,7 @@ def update_manifest(path):
         if not (fixture["algorithm"] == "A" and fixture["case"] == "sphere"
                 and fixture["oracle"]["name"] == "python-vtk")
     ] + [entry]
-    path.write_text(json.dumps(manifest, indent=2) + "\n")
-
-
-def fixtures_root(root):
-    override = os.environ.get("SEGMORPH_FIXTURES_DIR")
-    return pathlib.Path(override) if override else root / "test" / "fixtures"
+    write_manifest(path, manifest)
 
 
 def main():

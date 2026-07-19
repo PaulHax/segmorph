@@ -11,8 +11,9 @@ import {
   type Vector3,
 } from '../src/geometry/contour.js';
 import { findFixtureEntries, readFixtureManifest, readMeshJson } from './fixtures/loaders.js';
+import { fixtureUrl } from './fixtures/root.js';
 
-const fixturesUrl = new URL('./fixtures/', import.meta.url);
+const fixturesUrl = fixtureUrl('');
 
 // Tolerances, calibrated against the committed goldens:
 // - The two Python oracle paths (vtkCutter delegation vs a direct

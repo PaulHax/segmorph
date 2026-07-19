@@ -7,6 +7,7 @@ import { resampleNearest } from '../src/image/resample.js';
 import { readNrrd } from '../src/io/nrrd.js';
 import { mismatchCount, mismatchingVoxelCoordinates } from './diff/image.js';
 import { findFixtureEntries, readFixtureManifest } from './fixtures/loaders.js';
+import { fixtureUrl } from './fixtures/root.js';
 
 const cases = [
   'anisotropic-translated',
@@ -25,7 +26,7 @@ const cases = [
 const borderTiesCase = 'half-voxel-border-ties';
 
 const fixture = (caseName: string, name: string) => (
-  new URL(`./fixtures/E/${caseName}/${name}`, import.meta.url)
+  fixtureUrl(`E/${caseName}/${name}`)
 );
 
 const loadCase = async (caseName: string) => {
@@ -83,7 +84,7 @@ describe('oriented nearest-neighbor resample oracle', () => {
 
   it('records the Python VTK and ITK oracles for every case in the manifest', async () => {
     const manifest = readFixtureManifest(
-      await readFile(new URL('./fixtures/manifest.json', import.meta.url), 'utf8'),
+      await readFile(fixtureUrl('manifest.json'), 'utf8'),
     );
     const allCases = [...cases, borderTiesCase];
 

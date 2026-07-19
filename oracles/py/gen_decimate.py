@@ -7,6 +7,8 @@ import numpy as np
 import vtk
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
+from fixtures import fixtures_root, read_manifest, write_manifest
+
 
 TARGET_REDUCTIONS = (0.5, 0.9)
 
@@ -162,18 +164,18 @@ def reduction_label(reduction):
 
 
 def update_manifest(path, entries):
-    manifest = json.loads(path.read_text()) if path.exists() else {"schemaVersion": 1, "fixtures": []}
+    manifest = read_manifest(path)
     owned = {(entry["algorithm"], entry["case"], entry["oracle"]["name"]) for entry in entries}
     manifest["fixtures"] = [
         fixture for fixture in manifest["fixtures"]
         if (fixture["algorithm"], fixture["case"], fixture["oracle"]["name"]) not in owned
     ] + entries
-    path.write_text(json.dumps(manifest, indent=2) + "\n")
+    write_manifest(path, manifest)
 
 
 def main():
     root = pathlib.Path(sys.argv[1]).resolve()
-    fixtures = root / "test" / "fixtures"
+    fixtures = fixtures_root(root)
     version = vtk.vtkVersion.GetVTKVersion()
 
     ellipsoid_points, ellipsoid_triangles = ellipsoid_mesh()

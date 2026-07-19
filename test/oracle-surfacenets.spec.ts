@@ -9,6 +9,7 @@ import {
   isWatertight,
 } from './diff/structure.js';
 import { findFixtureEntries, readFixtureManifest, readMeshJson } from './fixtures/loaders.js';
+import { fixtureUrl } from './fixtures/root.js';
 
 const cases = [
   'sphere',
@@ -26,13 +27,13 @@ const cases = [
 const outwardCases = cases.filter((name) => name !== 'multilabel-label2');
 
 async function loadGolden(name: string, file: string) {
-  const url = new URL(`./fixtures/J/${name}/${file}`, import.meta.url);
+  const url = fixtureUrl(`J/${name}/${file}`);
   return readMeshJson(await readFile(url, 'utf8'));
 }
 
 describe('vtkSurfaceNets3D oracle fixtures', () => {
   it('registers every J case in the fixture manifest', async () => {
-    const url = new URL('./fixtures/manifest.json', import.meta.url);
+    const url = fixtureUrl('manifest.json');
     const manifest = readFixtureManifest(await readFile(url, 'utf8'));
     for (const name of cases) {
       const entries = findFixtureEntries(manifest, 'J', name);

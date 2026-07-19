@@ -2,5 +2,13 @@ node_modules/
 dist/
 logs/
 test/generated/
+# The property sweep (P) and the clinical regression (L) are regenerated live
+# for every oracle run and are never committed, so `npm run fixtures` must not
+# add them to the repository.
+test/fixtures/P/
+test/fixtures/L/
 __pycache__/
 .venv/
+
+# The clinical oracle caches its downloaded dataset here.
+oracles/.cache/

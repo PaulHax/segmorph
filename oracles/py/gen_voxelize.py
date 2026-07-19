@@ -6,6 +6,8 @@ import numpy as np
 import vtk
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
+from fixtures import fixtures_root, read_manifest, write_manifest
+
 
 IDENTITY = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
 # 3-4-5 rotation about z: orthonormal to within one ulp in doubles.
@@ -137,8 +139,7 @@ def manifest_entry(name, geometry):
 
 
 def update_manifest(path, geometries):
-    manifest = json.loads(path.read_text())
-    assert manifest["schemaVersion"] == 1 and isinstance(manifest["fixtures"], list)
+    manifest = read_manifest(path)
     # Replace this generator's entries so regenerating after an oracle bump also
     # refreshes the recorded oracle version. Other oracles' entries (including
     # the composed PolySeg one for the sphere case) are kept.
@@ -147,12 +148,13 @@ def update_manifest(path, geometries):
         if not (entry["algorithm"] == "D" and entry["case"] in geometries
                 and entry["oracle"]["name"] == "python-vtk")
     ] + [manifest_entry(name, geometry) for name, geometry in geometries.items()]
-    path.write_text(json.dumps(manifest, indent=2) + "\n")
+    write_manifest(path, manifest)
 
 
 def main():
     root = pathlib.Path(sys.argv[1]).resolve()
-    source_mesh = root / "test" / "fixtures" / "A" / "sphere" / "golden.mesh.json"
+    fixtures = fixtures_root(root)
+    source_mesh = fixtures / "A" / "sphere" / "golden.mesh.json"
     mesh_json = source_mesh.read_text()
     points, polys = read_points_and_mesh(source_mesh)
 
@@ -160,13 +162,13 @@ def main():
     for name, case in CASES.items():
         geometry = geometry_for(case, points)
         geometries[name] = geometry
-        fixture = root / "test" / "fixtures" / "D" / name
+        fixture = fixtures / "D" / name
         fixture.mkdir(parents=True, exist_ok=True)
         (fixture / "input.mesh.json").write_text(mesh_json)
         write_nrrd(fixture / "golden.nrrd", voxelize(points, polys, geometry), geometry)
         (fixture / "params.json").write_text(json.dumps(geometry, indent=2) + "\n")
 
-    update_manifest(root / "test" / "fixtures" / "manifest.json", geometries)
+    update_manifest(fixtures / "manifest.json", geometries)
 
 
 if __name__ == "__main__":

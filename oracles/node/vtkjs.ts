@@ -11,7 +11,8 @@
 //
 // Dev-only; never shipped. Run: node oracles/node/vtkjs.ts [B|F]
 
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 
 import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData.js';
 import vtkWindowedSincPolyDataFilter from '@kitware/vtk.js/Filters/General/WindowedSincPolyDataFilter.js';
@@ -33,7 +34,13 @@ const CUT_CASES = [
   'torus-two-loops', 'octahedron-on-vertices', 'sphere-miss',
 ];
 
-const fixturesUrl = new URL('../../test/fixtures/', import.meta.url);
+// SEGMORPH_FIXTURES_DIR redirects the whole corpus root, so a live regeneration
+// run reads its inputs from and writes its goldens into the same tree. Inputs
+// here (the B meshes, the F input meshes) come from the Python generators, so
+// mixing roots would cross-check a fresh golden against a stale input.
+const fixturesUrl = process.env.SEGMORPH_FIXTURES_DIR
+  ? pathToFileURL(`${process.env.SEGMORPH_FIXTURES_DIR}/`)
+  : new URL('../../test/fixtures/', import.meta.url);
 const manifestUrl = new URL('manifest.json', fixturesUrl);
 
 type ManifestEntry = {
@@ -98,6 +105,7 @@ async function generateSmooth(caseName: string) {
     : new URL(params.input, fixturesUrl);
 
   const golden = smooth(await readMesh(inputUrl), params);
+  await mkdir(caseUrl, { recursive: true });
   await writeFile(new URL('golden.vtkjs.mesh.json', caseUrl), `${JSON.stringify(golden)}\n`);
   written.push({ oracle: { name: ORACLE_NAME, version: VTKJS_VERSION }, algorithm: 'B', case: caseName, params, seed: 0 });
 }
@@ -108,6 +116,7 @@ async function generateCut(caseName: string) {
   const mesh = await readMesh(new URL(params.inputMesh, fixturesUrl));
 
   const golden = cut(mesh, params.plane);
+  await mkdir(caseUrl, { recursive: true });
   await writeFile(new URL('golden.vtkjs.contour.json', caseUrl), `${JSON.stringify(golden)}\n`);
   written.push({ oracle: { name: ORACLE_NAME, version: VTKJS_VERSION }, algorithm: 'F', case: caseName, params, seed: 0 });
 }
@@ -115,11 +124,16 @@ async function generateCut(caseName: string) {
 if (!requested || requested === 'B') for (const caseName of SMOOTH_CASES) await generateSmooth(caseName);
 if (!requested || requested === 'F') for (const caseName of CUT_CASES) await generateCut(caseName);
 
-const manifest = JSON.parse(await readFile(manifestUrl, 'utf8'));
+const manifestText = await readFile(manifestUrl, 'utf8').catch((error) => {
+  if (error.code !== 'ENOENT') throw error;
+  return JSON.stringify({ schemaVersion: 1, fixtures: [] });
+});
+const manifest = JSON.parse(manifestText);
 manifest.fixtures = manifest.fixtures.filter((fixture: ManifestEntry) => !written.some(
   (entry) => entry.algorithm === fixture.algorithm
     && entry.case === fixture.case
     && entry.oracle.name === fixture.oracle.name,
 ));
 manifest.fixtures.push(...written);
+await mkdir(fixturesUrl, { recursive: true });
 await writeFile(manifestUrl, `${JSON.stringify(manifest, null, 2)}\n`);

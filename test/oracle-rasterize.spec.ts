@@ -6,10 +6,11 @@ import { contourToLabelmap } from '../src/convert/contourToLabelmap.js';
 import { readNrrd } from '../src/io/nrrd.js';
 import { dice, mismatchCount, mismatchingVoxelCoordinates } from './diff/image.js';
 import { readContoursJson } from './fixtures/G/loaders.js';
+import { fixtureUrl } from './fixtures/root.js';
 import { findFixtureEntries, readFixtureManifest } from './fixtures/loaders.js';
 
 const fixture = (caseName: string, file: string) => (
-  new URL(`./fixtures/G/${caseName}/${file}`, import.meta.url)
+  fixtureUrl(`G/${caseName}/${file}`)
 );
 
 const loadCase = async (caseName: string) => {
@@ -44,7 +45,7 @@ const exactCases = [
 describe('contour rasterization oracle', () => {
   it('records the generating VTK oracle for every case in the manifest', async () => {
     const manifest = readFixtureManifest(
-      await readFile(new URL('./fixtures/manifest.json', import.meta.url), 'utf8'),
+      await readFile(fixtureUrl('manifest.json'), 'utf8'),
     );
     for (const caseName of [...exactCases, 'gridline']) {
       expect(findFixtureEntries(manifest, 'G', caseName).map((entry) => entry.oracle.name))

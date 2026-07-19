@@ -31,6 +31,8 @@ import numpy as np
 import vtk
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
+from fixtures import fixtures_root, read_manifest, write_manifest
+
 NUMBER_OF_OFFSETS = 6
 THRESHOLD = 0.5
 
@@ -245,7 +247,7 @@ def case_params(case):
 
 
 def update_manifest(path, names):
-    manifest = json.loads(path.read_text())
+    manifest = read_manifest(path)
     keep = [
         fixture for fixture in manifest["fixtures"]
         if not (fixture["algorithm"] == "I"
@@ -263,13 +265,14 @@ def update_manifest(path, names):
         for name in names
     ]
     manifest["fixtures"] = keep + entries
-    path.write_text(json.dumps(manifest, indent=2) + "\n")
+    write_manifest(path, manifest)
 
 
 def main():
     root = pathlib.Path(sys.argv[1]).resolve()
+    fixtures = fixtures_root(root)
     for name, case in CASES.items():
-        fixture = root / "test" / "fixtures" / "I" / name
+        fixture = fixtures / "I" / name
         fixture.mkdir(parents=True, exist_ok=True)
 
         mesh, points = sphere_mesh(case)
@@ -287,8 +290,7 @@ def main():
             json.dumps(case_params(case), indent=2) + "\n")
         print(name, "occupancy sum", float(occupancy.sum()))
 
-    update_manifest(root / "test" / "fixtures" / "manifest.json",
-                    list(CASES.keys()))
+    update_manifest(fixtures / "manifest.json", list(CASES.keys()))
 
 
 if __name__ == "__main__":

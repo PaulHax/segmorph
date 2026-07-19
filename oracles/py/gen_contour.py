@@ -6,7 +6,7 @@ polygon output. Calibration runs vtkPolyDataPlaneCutter directly as a second
 pipeline and records the spread between both oracle paths.
 
 Inputs are deterministic synthetic float32 meshes (no timestamps, no RNG)
-plus the committed A sphere golden mesh.
+plus the A sphere golden mesh, read from the same fixture root this writes to.
 """
 
 import json
@@ -16,8 +16,11 @@ import pathlib
 import numpy as np
 import vtk
 
+from fixtures import fixtures_root, read_manifest, write_manifest
+
 HERE = pathlib.Path(__file__).resolve().parent
-FIXTURES = HERE.parent.parent / "test" / "fixtures"
+# This generator takes no repo-root argument, so derive it from its own location.
+FIXTURES = fixtures_root(HERE.parent.parent)
 OUT_ROOT = FIXTURES / "F"
 
 
@@ -287,14 +290,13 @@ def append_manifest_entries(entries):
     # Append-only: preserve existing entries and the manifest's indent=2
     # formatting so regeneration produces a pure-append diff.
     manifest_path = FIXTURES / "manifest.json"
-    manifest = json.loads(manifest_path.read_text())
-    assert manifest["schemaVersion"] == 1
+    manifest = read_manifest(manifest_path)
     kept = [
         fixture for fixture in manifest["fixtures"]
         if fixture["algorithm"] != "F"
     ]
     manifest["fixtures"] = kept + entries
-    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+    write_manifest(manifest_path, manifest)
 
 
 def main():
