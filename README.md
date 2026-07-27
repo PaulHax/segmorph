@@ -19,11 +19,25 @@ npm install segmorph
 npm install
 npm run lint         # oxlint, then oxfmt --check
 npm run lint:fix     # apply the fixable lints, then format in place
-npm run typecheck    # tsc --noEmit
+npm run typecheck    # library and examples; builds dist/ first (see below)
 npm test             # fast tier: unit tests and invariants; no Python or WASM needed
 npm run test:oracle  # oracle tier: generates goldens live with the oracles; needs uv
 npm run build        # tsup -> dist/
 npm run fixtures     # dev only: regenerate the committed golden fixtures
+```
+
+The three apps under `examples/` are npm workspaces, so the root `npm install`
+installs them too and they import `segmorph` by name rather than by relative
+path. That name resolves to `dist/index.d.ts`, so they check the entry point a
+consumer gets rather than the source — which is why `npm run typecheck` covers
+them and builds `dist/` first. A type error in an example fails it.
+
+```sh
+npm run typecheck:library   # skip the examples and the build
+npm run typecheck:examples  # just the three, against whatever dist/ holds
+npm run build:examples      # their vite production builds
+
+npm run dev -w examples/dicom  # or basic, or advanced
 ```
 
 ## Data contracts

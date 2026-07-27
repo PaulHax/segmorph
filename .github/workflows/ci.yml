@@ -22,6 +22,10 @@ jobs:
       # rather than turning up as noise in the next diff.
       - run: npm run lint
 
+      # Covers the library and the three example workspaces. The examples
+      # import `segmorph` by name, so they resolve through dist/index.d.ts --
+      # the entry point a consumer gets, not the source -- which makes this a
+      # check on the published type surface and is why the script builds first.
       - run: npm run typecheck
 
       - run: npm test

@@ -47,15 +47,21 @@
     "access": "public",
     "provenance": true
   },
+  "workspaces": [
+    "examples/*"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean",
+    "build:examples": "npm run build --workspaces",
     "fixtures": "node oracles/generate.ts",
     "format": "oxfmt",
     "lint": "oxlint && oxfmt --check",
     "lint:fix": "oxlint --fix && oxfmt",
     "test": "vitest run --project unit",
     "test:oracle": "vitest run --project oracle",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "npm run build && tsc --noEmit && npm run typecheck --workspaces",
+    "typecheck:library": "tsc --noEmit",
+    "typecheck:examples": "npm run typecheck --workspaces"
   },
   "devDependencies": {
     "@icr/polyseg-wasm": "0.4.0",
