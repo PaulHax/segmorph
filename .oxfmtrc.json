@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "singleQuote": true,
+  "printWidth": 100,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "test/fixtures",
+    "test/generated",
+    "**/package-lock.json",
+    "THIRD_PARTY_LICENSES.md",
+    "oracles/py"
+  ]
+}

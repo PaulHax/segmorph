@@ -18,6 +18,10 @@ jobs:
 
       - run: npm ci
 
+      # `lint` is oxlint plus `oxfmt --check`, so an unformatted file fails here
+      # rather than turning up as noise in the next diff.
+      - run: npm run lint
+
       - run: npm run typecheck
 
       - run: npm test

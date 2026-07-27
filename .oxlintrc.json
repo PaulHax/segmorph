@@ -1,0 +1,74 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "oxc", "unicorn", "import", "vitest"],
+  "env": {
+    "es2022": true,
+    "node": true,
+    "browser": true
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "rules": {
+    // Every shape in this library is a `type` alias, never an `interface`, so
+    // that the published surface reads uniformly and stays closed to
+    // declaration merging.
+    "typescript/consistent-type-definitions": ["error", "type"],
+    "import/no-duplicates": "error",
+
+    // vtk.js and dcmjs both publish a default object whose members repeat the
+    // named exports, so `vtkPolyData.newInstance` is the documented call, not a
+    // mistake.
+    "import/no-named-as-default": "off",
+    "import/no-named-as-default-member": "off",
+    // The examples pull in stylesheets and vtk.js profile modules for effect.
+    "import/no-unassigned-import": "off",
+
+    // The oracle generators drive one external tool at a time on purpose;
+    // running them concurrently would interleave their stdout and their
+    // temp-directory use.
+    "no-await-in-loop": "off",
+    // vtk.js exposes `_`-prefixed fields on its instances.
+    "no-underscore-dangle": "off",
+    // The nested `Array.from((_, row) => Array.from((_, column) => ...))`
+    // builders shadow a placeholder that is never read.
+    "no-shadow": ["error", { "allow": ["_"] }],
+
+    // Conversions run over meshes with millions of elements, where sorting and
+    // reversing in place on a locally owned array is the point; `toSorted` and
+    // `toReversed` would copy it. `new Array(n)` is likewise a deliberate
+    // preallocation, and the `[...pointCells[pt]]` copies exist precisely so the
+    // loop body can mutate the original while iterating.
+    "unicorn/no-array-sort": "off",
+    "unicorn/no-array-reverse": "off",
+    "unicorn/no-new-array": "off",
+    "unicorn/no-useless-spread": "off",
+    // Local helpers stay next to the algorithm step they belong to.
+    "unicorn/consistent-function-scoping": "off",
+    // The advanced example talks to a worker over `onmessage`/`postMessage`.
+    "unicorn/prefer-add-event-listener": "off",
+    "unicorn/require-post-message-target-origin": "off",
+
+    // Vitest, unlike Jest, accepts `expect(value, message)`.
+    "vitest/valid-expect": "off",
+    // Table-driven suites title themselves from the case list.
+    "vitest/valid-title": ["error", { "ignoreTypeOfDescribeName": true }],
+    // Topology and geometry suites assert through shared expect-wrapping
+    // helpers rather than calling `expect` in the test body.
+    "vitest/expect-expect": [
+      "error",
+      {
+        "assertFunctionNames": ["expect", "expect*", "assert*", "verify*", "check*"]
+      }
+    ],
+    // A branch guarding an assertion is how the sweeps skip cases an oracle
+    // does not define.
+    "vitest/no-conditional-expect": "off",
+    "vitest/require-to-throw-message": "off",
+    "vitest/require-mock-type-parameters": "off",
+    "vitest/warn-todo": "off"
+  },
+  "ignorePatterns": ["dist", "test/generated", "examples/**/dist"]
+}

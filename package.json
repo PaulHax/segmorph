@@ -50,6 +50,9 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean",
     "fixtures": "node oracles/generate.ts",
+    "format": "oxfmt",
+    "lint": "oxlint && oxfmt --check",
+    "lint:fix": "oxlint --fix && oxfmt",
     "test": "vitest run --project unit",
     "test:oracle": "vitest run --project oracle",
     "typecheck": "tsc --noEmit"
@@ -61,6 +64,8 @@
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@types/node": "^26.1.1",
+    "oxfmt": "0.61.0",
+    "oxlint": "1.76.0",
     "semantic-release": "^24.2.9",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",

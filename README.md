@@ -17,6 +17,8 @@ npm install segmorph
 
 # development, from a checkout:
 npm install
+npm run lint         # oxlint, then oxfmt --check
+npm run lint:fix     # apply the fixable lints, then format in place
 npm run typecheck    # tsc --noEmit
 npm test             # fast tier: unit tests and invariants; no Python or WASM needed
 npm run test:oracle  # oracle tier: generates goldens live with the oracles; needs uv
@@ -79,11 +81,7 @@ the final vertex connects back to the first.
 ## Quick start: the labelmap round trip
 
 ```ts
-import {
-  createOrientedImage,
-  labelmapToSurface,
-  surfaceToLabelmap,
-} from "segmorph";
+import { createOrientedImage, labelmapToSurface, surfaceToLabelmap } from 'segmorph';
 
 // A tiny labelmap with one foreground voxel labeled 2.
 const data = new Uint8Array(27);
@@ -121,7 +119,7 @@ transferred rather than copied. This is the property vtk.js objects do not have.
 
 ```ts
 // worker.ts
-import { labelmapToSurface } from "segmorph";
+import { labelmapToSurface } from 'segmorph';
 
 self.onmessage = ({ data }) => {
   const mesh = labelmapToSurface(data.labelmap, {
@@ -262,7 +260,7 @@ The suite runs in two tiers over the same specs and two different corpora:
 - **`npm test`** reads the committed goldens in `test/fixtures`, so the fast
   tier needs neither Python nor WASM and still runs the full differential
   suite.
-- **`npm run test:oracle`** regenerates *every* algorithm's goldens live with
+- **`npm run test:oracle`** regenerates _every_ algorithm's goldens live with
   the pinned oracle environment into `test/generated` and points the same specs
   at them. This is the anti-staleness check, and it is its own CI job: an
   upstream oracle that changes behavior fails here even though the committed
@@ -288,7 +286,7 @@ deliberately never committed:
   distances.
 
 Where our port and an oracle legitimately differ, the specs assert the
-difference is *confined* rather than widening a tolerance until it fits. The
+difference is _confined_ rather than widening a tolerance until it fits. The
 clinical case is the worked example: our port pads the volume like VTK, so
 foreground touching a volume face closes half a voxel outside it and the mesh
 is watertight, while PolySeg leaves those faces open. The spec measures the
