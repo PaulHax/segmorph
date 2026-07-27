@@ -3,10 +3,10 @@
 segmorph is a pure TypeScript library for polymorphic medical image
 segmentations: overlapping, individually identified segments that hold multiple
 interchangeable representations (binary labelmap, closed surface, planar
-contour) with conversions between them. Algorithms are ported from VTK and
-PolySeg, proven correct by differential testing against those canonical
-libraries, and the published package ships zero runtime dependencies, no
-WebAssembly, and no Python. Data are plain records over typed arrays that map
+contour) with conversions between them. Algorithms are ported from VTK,
+PolySeg, and SlicerRT, proven correct by differential testing against those
+canonical libraries, and the published package ships zero runtime dependencies,
+no WebAssembly, and no Python. Data are plain records over typed arrays that map
 1:1 onto vtk.js structures without importing vtk.js, and all conversions are
 synchronous pure functions.
 
@@ -311,8 +311,9 @@ boundary vertex.
 ## License
 
 MIT, see [LICENSE](./LICENSE). Parts of the source are TypeScript ports of
-BSD-licensed VTK and PolySeg algorithms and remain under those licenses;
-upstream notices and license texts are collected in
+upstream algorithms and remain under their upstream licenses: VTK
+(BSD-3-Clause), PolySeg (BSD-2-Clause), and SlicerRT (MIT). Upstream notices
+and license texts are collected in
 [THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES.md), which ships inside the
-package. 3D Slicer is used as a behavior reference only, and no code is ported
-from it.
+package. The 3D Slicer application itself is used as a behavior reference only;
+no code is ported from the Slicer core repository.

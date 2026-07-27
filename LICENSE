@@ -23,7 +23,8 @@ SOFTWARE.
 ---
 
 Portions of this software are TypeScript ports of algorithms from permissively
-licensed upstream libraries (VTK, BSD-3-Clause; PolySeg, BSD-2-Clause). Those
+licensed upstream libraries (VTK, BSD-3-Clause; PolySeg, BSD-2-Clause;
+SlicerRT, MIT). Those
 files carry their upstream copyright notices, and the full upstream license
 texts are reproduced in THIRD_PARTY_LICENSES.md, which is distributed with this
 package.
