@@ -72,7 +72,7 @@
     "@types/node": "^26.1.1",
     "oxfmt": "0.61.0",
     "oxlint": "1.76.0",
-    "semantic-release": "^24.2.9",
+    "semantic-release": "^25.0.8",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^4.1.10"
