@@ -10,7 +10,7 @@
 
 import dcmjs from 'dcmjs';
 
-import { demoIdentity, readPart10, toList, uid, writePart10 } from './dicom';
+import { demoIdentity, readPart10, toList, uid, writePart10, type DicomItem } from './dicom';
 
 const { BitArray } = dcmjs.data;
 
@@ -171,9 +171,9 @@ export function decodeSeg(buffer: ArrayBuffer): Seg {
   const ny = Number(dataset.Rows);
   const frameCount = Number(dataset.NumberOfFrames);
 
-  const shared = toList<any>(dataset.SharedFunctionalGroupsSequence)[0];
-  const measures = toList<any>(shared.PixelMeasuresSequence)[0];
-  const orientation = toList<any>(shared.PlaneOrientationSequence)[0];
+  const shared = toList<DicomItem>(dataset.SharedFunctionalGroupsSequence)[0];
+  const measures = toList<DicomItem>(shared.PixelMeasuresSequence)[0];
+  const orientation = toList<DicomItem>(shared.PlaneOrientationSequence)[0];
   const iop = toList<number>(orientation.ImageOrientationPatient);
   const xAxis: Vec3 = [iop[0], iop[1], iop[2]];
   const yAxis: Vec3 = [iop[3], iop[4], iop[5]];
@@ -181,12 +181,12 @@ export function decodeSeg(buffer: ArrayBuffer): Seg {
   const pixelSpacing = toList<number>(measures.PixelSpacing);
 
   // Per-frame positions and segment assignment.
-  const frames = toList<any>(dataset.PerFrameFunctionalGroupsSequence).map((group, index) => {
+  const frames = toList<DicomItem>(dataset.PerFrameFunctionalGroupsSequence).map((group, index) => {
     const position = toList<number>(
-      toList<any>(group.PlanePositionSequence)[0].ImagePositionPatient,
+      toList<DicomItem>(group.PlanePositionSequence)[0].ImagePositionPatient,
     ) as Vec3;
     const segmentNumber = Number(
-      toList<any>(group.SegmentIdentificationSequence)[0].ReferencedSegmentNumber,
+      toList<DicomItem>(group.SegmentIdentificationSequence)[0].ReferencedSegmentNumber,
     );
     return {
       index,
@@ -231,7 +231,7 @@ export function decodeSeg(buffer: ArrayBuffer): Seg {
   const frameVoxels = nx * ny;
 
   const labels = new Map<number, string>(
-    toList<any>(dataset.SegmentSequence).map((segment) => [
+    toList<DicomItem>(dataset.SegmentSequence).map((segment) => [
       Number(segment.SegmentNumber),
       String(segment.SegmentLabel ?? `Segment ${segment.SegmentNumber}`),
     ]),

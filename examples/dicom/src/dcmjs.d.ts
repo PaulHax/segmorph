@@ -1,8 +1,8 @@
 // Minimal typings for the parts of dcmjs this example touches. dcmjs ships no
 // TypeScript declarations; naturalized datasets are inherently dynamic, so
-// they stay `any`-shaped here and the adapters narrow them at the edges.
+// their values arrive as `unknown` and the adapters narrow them at the edges.
 declare module 'dcmjs' {
-  export type NaturalizedDataset = Record<string, any>;
+  export type NaturalizedDataset = Record<string, unknown>;
 
   const dcmjs: {
     data: {

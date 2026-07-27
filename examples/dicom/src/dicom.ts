@@ -7,12 +7,22 @@ export const EXPLICIT_LITTLE_ENDIAN = '1.2.840.10008.1.2.1';
 export const uid = () => DicomMetaDictionary.uid();
 
 /**
- * dcmjs naturalization may return a single-item sequence as the item itself;
- * normalize every sequence read through this.
+ * A naturalized dataset or sequence item. dcmjs ships no declarations and the
+ * naturalized shape is keyed by whichever tags the file happens to carry, so
+ * every read lands as `unknown` and narrows where it is used.
  */
-export function toList<T>(value: T | T[] | undefined): T[] {
+export type DicomItem = Record<string, unknown>;
+
+/**
+ * dcmjs naturalization may return a single-item sequence as the item itself;
+ * normalize every sequence read through this. The parameter is `unknown`
+ * because the argument is always a dynamic tag read, and the caller names the
+ * element type it expects -- that expectation is the assumption being made
+ * about the file, so it is written down at each call site.
+ */
+export function toList<T>(value: unknown): T[] {
   if (value === undefined) return [];
-  return Array.isArray(value) ? value : [value];
+  return (Array.isArray(value) ? value : [value]) as T[];
 }
 
 /** Shared patient/study identity so both demo files land in one study. */
@@ -44,6 +54,6 @@ export function writePart10(dataset: Record<string, unknown>): ArrayBuffer {
 }
 
 /** Parse a part-10 DICOM byte stream into a naturalized dataset. */
-export function readPart10(buffer: ArrayBuffer): Record<string, any> {
+export function readPart10(buffer: ArrayBuffer): DicomItem {
   return DicomMetaDictionary.naturalizeDataset(DicomMessage.readFile(buffer).dict);
 }

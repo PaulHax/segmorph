@@ -8,7 +8,7 @@ import {
   editRepresentation,
   getOrCreateRepresentation,
   promoteRepresentationToSource,
-  type ConversionRule,
+  type StoredConversionRule,
 } from '../src/index.js';
 
 function segmentationWithRepresentations() {
@@ -40,7 +40,7 @@ describe('source-authoritative invalidation', () => {
     const aToB = vi.fn((value: string) => `${value}-b`);
     const bToC = vi.fn((value: string) => `${value}-c`);
     const direct = vi.fn((value: string) => `${value}-direct`);
-    const rules: ConversionRule<any, any>[] = [
+    const rules: StoredConversionRule[] = [
       { source: 'A', target: 'B', cost: 1, convert: aToB },
       { source: 'B', target: 'C', cost: 1, convert: bToC },
       { source: 'A', target: 'C', cost: 5, convert: direct },

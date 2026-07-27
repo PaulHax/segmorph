@@ -16,6 +16,10 @@
     // that the published surface reads uniformly and stays closed to
     // declaration merging.
     "typescript/consistent-type-definitions": ["error", "type"],
+    // `any` disables checking silently and spreads through every expression it
+    // touches. Where a type genuinely is not known, `unknown` says so and
+    // forces the narrowing to be written down.
+    "typescript/no-explicit-any": "error",
     "import/no-duplicates": "error",
 
     // vtk.js and dcmjs both publish a default object whose members repeat the

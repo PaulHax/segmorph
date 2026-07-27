@@ -3,9 +3,10 @@ import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { Mesh } from '../src/geometry/mesh.js';
 import type { ImageData, ImageGeometry, OrientedImage } from '../src/image/orientedImage.js';
 import {
+  applyConversionRule,
   findCheapestPath,
   registerConversionRule,
-  type ConversionRule,
+  type StoredConversionRule,
 } from '../src/model/graph.js';
 import {
   createDefaultConversionGraph,
@@ -62,8 +63,8 @@ function sphereLabelmap(labelValue: number) {
   return { ...geometry, data };
 }
 
-function applyPath(path: readonly ConversionRule<any, any>[], input: unknown) {
-  return path.reduce((value, rule) => rule.convert(value), input);
+function applyPath(path: readonly StoredConversionRule[], input: unknown) {
+  return path.reduce((value, rule) => applyConversionRule(rule, value), input);
 }
 
 describe('default conversion rules', () => {

@@ -83,8 +83,13 @@ export {
 export type { Segmentation } from './model/segmentation.js';
 export { assignSegmentToLayer, compactLayers, createLayerModel } from './model/layers.js';
 export type { LabelmapArray, LayerAssignment, LayerModel } from './model/layers.js';
-export { createConversionGraph, findCheapestPath, registerConversionRule } from './model/graph.js';
-export type { ConversionGraph, ConversionRule } from './model/graph.js';
+export {
+  applyConversionRule,
+  createConversionGraph,
+  findCheapestPath,
+  registerConversionRule,
+} from './model/graph.js';
+export type { ConversionGraph, ConversionRule, StoredConversionRule } from './model/graph.js';
 export {
   editRepresentation,
   getOrCreateRepresentation,

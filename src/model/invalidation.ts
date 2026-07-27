@@ -1,4 +1,4 @@
-import { findCheapestPath, type ConversionGraph } from './graph.js';
+import { applyConversionRule, findCheapestPath, type ConversionGraph } from './graph.js';
 import type { Segment } from './segment.js';
 import type { Segmentation } from './segmentation.js';
 
@@ -58,7 +58,7 @@ export function getOrCreateRepresentation(
   let representation = segment.representations[source];
   const representations = { ...segment.representations };
   for (const rule of path) {
-    representation = rule.convert(representation);
+    representation = applyConversionRule(rule, representation);
     representations[rule.target] = representation;
   }
 

@@ -4,7 +4,7 @@
 // encoding. The decoded `loops` are exactly what `contourToSurface` takes:
 // world-space closed polylines, interleaved xyz, implicit closure.
 
-import { demoIdentity, readPart10, toList, uid, writePart10 } from './dicom';
+import { demoIdentity, readPart10, toList, uid, writePart10, type DicomItem } from './dicom';
 
 const RTSTRUCT_SOP_CLASS = '1.2.840.10008.5.1.4.1.1.481.3';
 
@@ -77,14 +77,14 @@ export function decodeRtStruct(buffer: ArrayBuffer): RtStruct {
   }
 
   const roisByNumber = new Map<number, { name: string }>();
-  for (const item of toList<any>(dataset.StructureSetROISequence)) {
+  for (const item of toList<DicomItem>(dataset.StructureSetROISequence)) {
     roisByNumber.set(Number(item.ROINumber), { name: String(item.ROIName ?? 'ROI') });
   }
 
-  const rois = toList<any>(dataset.ROIContourSequence).map((roiContour): RtRoi => {
+  const rois = toList<DicomItem>(dataset.ROIContourSequence).map((roiContour): RtRoi => {
     const number = Number(roiContour.ReferencedROINumber);
     const color = toList<number>(roiContour.ROIDisplayColor);
-    const loops = toList<any>(roiContour.ContourSequence)
+    const loops = toList<DicomItem>(roiContour.ContourSequence)
       .filter((contour) => contour.ContourGeometricType === 'CLOSED_PLANAR')
       .map((contour) => Float64Array.from(toList<number>(contour.ContourData)));
     return {
