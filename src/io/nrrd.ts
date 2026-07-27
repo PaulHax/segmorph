@@ -88,8 +88,13 @@ export function readNrrd(bytes: Uint8Array): Nrrd {
       separatorLength = 2;
       break;
     }
-    if (index < bytes.length - 3 && bytes[index] === 13 && bytes[index + 1] === 10
-      && bytes[index + 2] === 13 && bytes[index + 3] === 10) {
+    if (
+      index < bytes.length - 3 &&
+      bytes[index] === 13 &&
+      bytes[index + 1] === 10 &&
+      bytes[index + 2] === 13 &&
+      bytes[index + 3] === 10
+    ) {
       headerEnd = index;
       separatorLength = 4;
       break;
@@ -113,23 +118,30 @@ export function readNrrd(bytes: Uint8Array): Nrrd {
   }
   const dims = (fields.get('sizes') ?? '').split(/\s+/).map(Number);
   const dimension = Number(fields.get('dimension'));
-  if (!Number.isInteger(dimension) || dims.length !== dimension
-    || dims.some((size) => !Number.isInteger(size) || size <= 0)) {
+  if (
+    !Number.isInteger(dimension) ||
+    dims.length !== dimension ||
+    dims.some((size) => !Number.isInteger(size) || size <= 0)
+  ) {
     throw new Error('Invalid NRRD dimension or sizes');
   }
 
   const directions = (fields.get('space directions') ?? '').match(/\([^)]*\)|none/gi);
-  if (!directions || directions.length !== dimension || directions.some((value) => value.toLowerCase() === 'none')) {
+  if (
+    !directions ||
+    directions.length !== dimension ||
+    directions.some((value) => value.toLowerCase() === 'none')
+  ) {
     throw new Error('NRRD space directions must contain one vector per dimension');
   }
   const spaceDirections = directions.map(parseVector);
   const spacing = spaceDirections.map((vector) => Math.hypot(...vector));
-  const normalizedDirections = spaceDirections.map((vector, axis) => (
-    vector.map((component) => component / spacing[axis])
-  ));
-  const direction = normalizedDirections[0].map((_, component) => (
-    normalizedDirections.map((axis) => axis[component])
-  ));
+  const normalizedDirections = spaceDirections.map((vector, axis) =>
+    vector.map((component) => component / spacing[axis]),
+  );
+  const direction = normalizedDirections[0].map((_, component) =>
+    normalizedDirections.map((axis) => axis[component]),
+  );
   const origin = parseVector(fields.get('space origin') ?? '');
 
   const scalar = scalarTypes[(fields.get('type') ?? '').toLowerCase()];

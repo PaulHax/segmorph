@@ -5,11 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { meshSmooth } from '../src/convert/meshSmooth.js';
 import { createMesh, type Mesh } from '../src/geometry/mesh.js';
 import { enclosedVolume } from './diff/mesh.js';
-import {
-  hasConsistentOutwardOrientation,
-  isManifold,
-  isWatertight,
-} from './diff/structure.js';
+import { hasConsistentOutwardOrientation, isManifold, isWatertight } from './diff/structure.js';
 import { readMeshJson } from './fixtures/loaders.js';
 
 const sphereUrl = new URL('./fixtures/A/sphere/golden.extract.mesh.json', import.meta.url);
@@ -21,13 +17,22 @@ async function loadSphere() {
 function octahedron() {
   return createMesh(
     [
-      [1, 0, 0], [-1, 0, 0],
-      [0, 1, 0], [0, -1, 0],
-      [0, 0, 1], [0, 0, -1],
+      [1, 0, 0],
+      [-1, 0, 0],
+      [0, 1, 0],
+      [0, -1, 0],
+      [0, 0, 1],
+      [0, 0, -1],
     ],
     [
-      [0, 2, 4], [2, 1, 4], [1, 3, 4], [3, 0, 4],
-      [2, 0, 5], [1, 2, 5], [3, 1, 5], [0, 3, 5],
+      [0, 2, 4],
+      [2, 1, 4],
+      [1, 3, 4],
+      [3, 0, 4],
+      [2, 0, 5],
+      [1, 2, 5],
+      [3, 1, 5],
+      [0, 3, 5],
     ],
   );
 }
@@ -184,26 +189,33 @@ describe('meshSmooth invariants', () => {
     // pair; corner vertices have two boundary edges too and may move.
     let boundaryShift = 0;
     for (const index of [1, 3, 5, 7]) {
-      boundaryShift = Math.max(boundaryShift, Math.hypot(
-        smoothed.points[index * 3] - mesh.points[index * 3],
-        smoothed.points[index * 3 + 1] - mesh.points[index * 3 + 1],
-        smoothed.points[index * 3 + 2] - mesh.points[index * 3 + 2],
-      ));
+      boundaryShift = Math.max(
+        boundaryShift,
+        Math.hypot(
+          smoothed.points[index * 3] - mesh.points[index * 3],
+          smoothed.points[index * 3 + 1] - mesh.points[index * 3 + 1],
+          smoothed.points[index * 3 + 2] - mesh.points[index * 3 + 2],
+        ),
+      );
     }
     expect(boundaryShift).toBeGreaterThan(1e-3);
   });
 
   it('handles a degenerate repeated-vertex triangle without crashing', () => {
-    const points = new Float32Array([
-      0, 0, 0,
-      1, 0, 0,
-      0, 1, 0,
-      1, 1, 0,
-    ]);
+    const points = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0]);
     const polys = new Uint32Array([
-      3, 0, 1, 2,
-      3, 1, 3, 2,
-      3, 3, 3, 2, // degenerate: repeated vertex
+      3,
+      0,
+      1,
+      2,
+      3,
+      1,
+      3,
+      2,
+      3,
+      3,
+      3,
+      2, // degenerate: repeated vertex
     ]);
     const smoothed = meshSmooth({ points, polys }, { numberOfIterations: 10 });
 
@@ -223,7 +235,9 @@ describe('meshSmooth invariants', () => {
   it('rejects invalid options instead of silently ignoring them', async () => {
     const sphere = await loadSphere();
 
-    expect(() => meshSmooth(sphere, { featureEdgeSmoothing: true })).toThrow(/featureEdgeSmoothing/);
+    expect(() => meshSmooth(sphere, { featureEdgeSmoothing: true })).toThrow(
+      /featureEdgeSmoothing/,
+    );
     expect(() => meshSmooth(sphere, { passBand: -0.1 })).toThrow(RangeError);
     expect(() => meshSmooth(sphere, { passBand: 2.5 })).toThrow(RangeError);
     expect(() => meshSmooth(sphere, { passBand: Number.NaN })).toThrow(RangeError);

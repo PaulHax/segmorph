@@ -7,16 +7,8 @@ import { createOrientedImage } from '../src/image/orientedImage.js';
 import { labelmapToSurface } from '../src/convert/labelmapToSurface.js';
 import { meshSmooth } from '../src/convert/meshSmooth.js';
 import { triangleCount, vertexCount } from '../src/geometry/mesh.js';
-import {
-  enclosedVolume,
-  meanSurfaceDistance,
-  symmetricHausdorffDistance,
-} from './diff/mesh.js';
-import {
-  hasConsistentOutwardOrientation,
-  isManifold,
-  isWatertight,
-} from './diff/structure.js';
+import { enclosedVolume, meanSurfaceDistance, symmetricHausdorffDistance } from './diff/mesh.js';
+import { hasConsistentOutwardOrientation, isManifold, isWatertight } from './diff/structure.js';
 import { readMeshJson } from './fixtures/loaders.js';
 import { fixtureUrl } from './fixtures/root.js';
 
@@ -67,7 +59,7 @@ describe('Python VTK surface oracle', () => {
 
   it('produces a closed, outward-oriented sphere with the expected volume', async () => {
     const mesh = readMeshJson(await readFile(goldenUrl, 'utf8'));
-    const analyticVolume = 4 / 3 * Math.PI * params.radius ** 3;
+    const analyticVolume = (4 / 3) * Math.PI * params.radius ** 3;
     const volume = enclosedVolume(mesh);
 
     expect(isWatertight(mesh)).toBe(true);
@@ -94,7 +86,7 @@ describe('Python VTK surface oracle', () => {
   it('bounds our smoothed port against the smoothed golden', async () => {
     const image = createOrientedImage(readNrrd(await readFile(inputUrl)));
     const golden = readMeshJson(await readFile(goldenUrl, 'utf8'));
-    const analyticVolume = 4 / 3 * Math.PI * params.radius ** 3;
+    const analyticVolume = (4 / 3) * Math.PI * params.radius ** 3;
 
     const mesh = labelmapToSurface(image, { labelValue: 1 });
 

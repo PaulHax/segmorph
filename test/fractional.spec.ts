@@ -14,19 +14,21 @@ import { readMeshJson } from './fixtures/loaders.js';
 
 const cases = ['isotropic', 'anisotropic', 'oblique'] as const;
 
-const fixture = (caseName: string, name: string) => (
-  new URL(`./fixtures/I/${caseName}/${name}`, import.meta.url)
-);
+const fixture = (caseName: string, name: string) =>
+  new URL(`./fixtures/I/${caseName}/${name}`, import.meta.url);
 
-const identityImage = (dims: readonly [number, number, number], data: Float32Array) => (
+const identityImage = (dims: readonly [number, number, number], data: Float32Array) =>
   createOrientedImage({
     dims,
     spacing: [1, 1, 1],
     origin: [0, 0, 0],
-    direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+    direction: [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ],
     data,
-  })
-);
+  });
 
 describe('surfaceToFractionalLabelmap', () => {
   it.each(cases)('conserves enclosed volume as summed occupancy on %s', async (caseName) => {
@@ -46,7 +48,7 @@ describe('surfaceToFractionalLabelmap', () => {
     const voxelVolume = geometry.spacing[0] * geometry.spacing[1] * geometry.spacing[2];
     // Measured ratios summed occupancy volume / mesh volume:
     // 1.000090 / 0.999726 / 0.999750 across the three grids.
-    expect(occupancySum * voxelVolume / enclosedVolume(mesh)).toBeCloseTo(1, 2);
+    expect((occupancySum * voxelVolume) / enclosedVolume(mesh)).toBeCloseTo(1, 2);
   });
 
   it('preserves the reference geometry on the output image', async () => {
@@ -70,7 +72,11 @@ describe('surfaceToFractionalLabelmap', () => {
       dims: [4, 4, 4],
       spacing: [1, 1, 1],
       origin: [500, 500, 500],
-      direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
     } as const;
     const fractional = surfaceToFractionalLabelmap(mesh, farAway, {});
     expect(fractional.data.every((value) => value === 0)).toBe(true);
@@ -83,12 +89,18 @@ describe('surfaceToFractionalLabelmap', () => {
       dims: [2, 2, 2],
       spacing: [1, 1, 1],
       origin: [0, 0, 0],
-      direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
     } as const;
-    expect(() => surfaceToFractionalLabelmap(mesh, geometry, { numberOfOffsets: 0 }))
-      .toThrow('numberOfOffsets');
-    expect(() => surfaceToFractionalLabelmap(mesh, geometry, { numberOfOffsets: 2.5 }))
-      .toThrow('numberOfOffsets');
+    expect(() => surfaceToFractionalLabelmap(mesh, geometry, { numberOfOffsets: 0 })).toThrow(
+      'numberOfOffsets',
+    );
+    expect(() => surfaceToFractionalLabelmap(mesh, geometry, { numberOfOffsets: 2.5 })).toThrow(
+      'numberOfOffsets',
+    );
   });
 });
 
@@ -104,9 +116,9 @@ describe('fractionalLabelmapToSurface', () => {
 
   it('shrinks the surface as the threshold rises', async () => {
     const image = readNrrd(await readFile(fixture('isotropic', 'golden.nrrd')));
-    const volumes = [0.25, 0.5, 0.75].map((threshold) => (
-      enclosedVolume(fractionalLabelmapToSurface(image, { threshold }))
-    ));
+    const volumes = [0.25, 0.5, 0.75].map((threshold) =>
+      enclosedVolume(fractionalLabelmapToSurface(image, { threshold })),
+    );
     expect(volumes[0]).toBeGreaterThan(volumes[1]);
     expect(volumes[1]).toBeGreaterThan(volumes[2]);
   });
@@ -129,7 +141,9 @@ describe('fractionalLabelmapToSurface', () => {
     const image = identityImage([2, 2, 2], new Float32Array(8));
     expect(() => fractionalLabelmapToSurface(image, { threshold: -0.1 })).toThrow('threshold');
     expect(() => fractionalLabelmapToSurface(image, { threshold: 1.1 })).toThrow('threshold');
-    expect(() => fractionalLabelmapToSurface(image, { threshold: Number.NaN })).toThrow('threshold');
+    expect(() => fractionalLabelmapToSurface(image, { threshold: Number.NaN })).toThrow(
+      'threshold',
+    );
   });
 
   it('rejects a zero threshold rather than returning an empty mesh', async () => {

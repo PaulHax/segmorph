@@ -12,14 +12,14 @@ import {
   meanSurfaceDistance,
   symmetricHausdorffDistance,
 } from './diff/mesh.js';
-import {
-  hasConsistentOutwardOrientation,
-  isManifold,
-  isWatertight,
-} from './diff/structure.js';
+import { hasConsistentOutwardOrientation, isManifold, isWatertight } from './diff/structure.js';
 import { readMeshJson } from './fixtures/loaders.js';
 
-const identity = [[1, 0, 0], [0, 1, 0], [0, 0, 1]] as const;
+const identity = [
+  [1, 0, 0],
+  [0, 1, 0],
+  [0, 0, 1],
+] as const;
 
 async function loadCase(name: string) {
   const directory = new URL(`./fixtures/J/${name}/`, import.meta.url);
@@ -67,7 +67,13 @@ const cases = [
   'multilabel-label2',
 ] as const;
 
-const outwardCases = new Set(['sphere', 'boundary-blob', 'anisotropic', 'oblique', 'multilabel-label1']);
+const outwardCases = new Set([
+  'sphere',
+  'boundary-blob',
+  'anisotropic',
+  'oblique',
+  'multilabel-label1',
+]);
 
 describe('surfaceNets vs python vtk 9.6.2 vtkSurfaceNets3D', () => {
   for (const name of cases) {
@@ -83,8 +89,9 @@ describe('surfaceNets vs python vtk 9.6.2 vtkSurfaceNets3D', () => {
       // (oblique); threshold 1e-4 gives ~50x headroom while staying far
       // below half a voxel.
       expect(maxNearestVertexDistance(mesh, unsmoothedGolden)).toBeLessThanOrEqual(1e-4);
-      expect(Math.abs(enclosedVolume(mesh) / enclosedVolume(unsmoothedGolden)) - 1)
-        .toBeLessThanOrEqual(1e-6);
+      expect(
+        Math.abs(enclosedVolume(mesh) / enclosedVolume(unsmoothedGolden)) - 1,
+      ).toBeLessThanOrEqual(1e-6);
     });
 
     it(`matches the smoothed golden for ${name}`, async () => {
@@ -98,8 +105,7 @@ describe('surfaceNets vs python vtk 9.6.2 vtkSurfaceNets3D', () => {
       // nearest-vertex distance across all six cases: 4.66e-6 (oblique);
       // threshold 1e-3 gives large headroom yet stays well below spacing.
       expect(maxNearestVertexDistance(mesh, golden)).toBeLessThanOrEqual(1e-3);
-      expect(Math.abs(enclosedVolume(mesh) / enclosedVolume(golden)) - 1)
-        .toBeLessThanOrEqual(1e-4);
+      expect(Math.abs(enclosedVolume(mesh) / enclosedVolume(golden)) - 1).toBeLessThanOrEqual(1e-4);
 
       if (outwardCases.has(name)) {
         expect(isWatertight(mesh)).toBe(true);
@@ -160,7 +166,11 @@ describe('surfaceNets unit behavior', () => {
       dims: [1, 1, 1],
       spacing: [2, 4, 6],
       origin: [10, 20, 30],
-      direction: [[diagonal, -diagonal, 0], [diagonal, diagonal, 0], [0, 0, 1]],
+      direction: [
+        [diagonal, -diagonal, 0],
+        [diagonal, diagonal, 0],
+        [0, 0, 1],
+      ],
     });
     const mesh = surfaceNets(image, { labelValue: 1, smoothing: false });
 

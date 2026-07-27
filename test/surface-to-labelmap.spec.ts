@@ -10,20 +10,30 @@ import {
 } from '../src/index.js';
 
 const triangles = [
-  [0, 2, 1], [0, 3, 2],
-  [4, 5, 6], [4, 6, 7],
-  [0, 1, 5], [0, 5, 4],
-  [3, 7, 6], [3, 6, 2],
-  [0, 4, 7], [0, 7, 3],
-  [1, 2, 6], [1, 6, 5],
+  [0, 2, 1],
+  [0, 3, 2],
+  [4, 5, 6],
+  [4, 6, 7],
+  [0, 1, 5],
+  [0, 5, 4],
+  [3, 7, 6],
+  [3, 6, 2],
+  [0, 4, 7],
+  [0, 7, 3],
+  [1, 2, 6],
+  [1, 6, 5],
 ] as const;
 
 function cube(geometry: ImageGeometry, minimum: number, maximum: number) {
   const indexPoints: Point[] = [
-    [minimum, minimum, minimum], [maximum, minimum, minimum],
-    [maximum, maximum, minimum], [minimum, maximum, minimum],
-    [minimum, minimum, maximum], [maximum, minimum, maximum],
-    [maximum, maximum, maximum], [minimum, maximum, maximum],
+    [minimum, minimum, minimum],
+    [maximum, minimum, minimum],
+    [maximum, maximum, minimum],
+    [minimum, maximum, minimum],
+    [minimum, minimum, maximum],
+    [maximum, minimum, maximum],
+    [maximum, maximum, maximum],
+    [minimum, maximum, maximum],
   ];
   const points = indexPoints.map((point) => indexToWorld(geometry, point));
   return createMesh(points, triangles);
@@ -32,8 +42,14 @@ function cube(geometry: ImageGeometry, minimum: number, maximum: number) {
 describe('surfaceToLabelmap', () => {
   it('fills samples inside a closed surface', () => {
     const geometry = {
-      dims: [4, 4, 4], spacing: [1, 1, 1], origin: [0, 0, 0],
-      direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+      dims: [4, 4, 4],
+      spacing: [1, 1, 1],
+      origin: [0, 0, 0],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
     } as const;
     const result = surfaceToLabelmap(cube(geometry, 0.5, 2.5), geometry, { labelValue: 1 });
     expect([...result.data].filter(Boolean)).toHaveLength(8);
@@ -43,8 +59,14 @@ describe('surfaceToLabelmap', () => {
 
   it('treats samples on the surface as foreground', () => {
     const geometry = {
-      dims: [3, 3, 3], spacing: [1, 1, 1], origin: [0, 0, 0],
-      direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+      dims: [3, 3, 3],
+      spacing: [1, 1, 1],
+      origin: [0, 0, 0],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
     } as const;
     const result = surfaceToLabelmap(cube(geometry, 0, 2), geometry, { labelValue: 1 });
     expect([...result.data]).toEqual(new Array(27).fill(1));
@@ -52,8 +74,14 @@ describe('surfaceToLabelmap', () => {
 
   it('uses oblique reference geometry', () => {
     const geometry = {
-      dims: [4, 4, 4], spacing: [2, 3, 4], origin: [10, -5, 7],
-      direction: [[0, -1, 0], [1, 0, 0], [0, 0, 1]],
+      dims: [4, 4, 4],
+      spacing: [2, 3, 4],
+      origin: [10, -5, 7],
+      direction: [
+        [0, -1, 0],
+        [1, 0, 0],
+        [0, 0, 1],
+      ],
     } as const;
     const result = surfaceToLabelmap(cube(geometry, 0.5, 2.5), geometry, { labelValue: 1 });
     expect([...result.data].filter(Boolean)).toHaveLength(8);
@@ -62,8 +90,14 @@ describe('surfaceToLabelmap', () => {
 
   it('preserves label values that require wider integer storage', () => {
     const geometry = {
-      dims: [3, 3, 3], spacing: [1, 1, 1], origin: [0, 0, 0],
-      direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+      dims: [3, 3, 3],
+      spacing: [1, 1, 1],
+      origin: [0, 0, 0],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
     } as const;
     const result = surfaceToLabelmap(cube(geometry, 0.5, 1.5), geometry, { labelValue: 256 });
 
@@ -73,8 +107,14 @@ describe('surfaceToLabelmap', () => {
 
   it('includes boundary samples with small anisotropic spacing', () => {
     const geometry = {
-      dims: [3, 3, 3], spacing: [0.001, 0.002, 0.004], origin: [20, -10, 3],
-      direction: [[0, -1, 0], [1, 0, 0], [0, 0, 1]],
+      dims: [3, 3, 3],
+      spacing: [0.001, 0.002, 0.004],
+      origin: [20, -10, 3],
+      direction: [
+        [0, -1, 0],
+        [1, 0, 0],
+        [0, 0, 1],
+      ],
     } as const;
     const result = surfaceToLabelmap(cube(geometry, 0, 2), geometry, { labelValue: 1 });
 
@@ -83,18 +123,31 @@ describe('surfaceToLabelmap', () => {
 
   it('returns an empty labelmap for an empty mesh', () => {
     const geometry = {
-      dims: [2, 2, 2], spacing: [1, 1, 1], origin: [0, 0, 0],
-      direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+      dims: [2, 2, 2],
+      spacing: [1, 1, 1],
+      origin: [0, 0, 0],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
     } as const;
 
-    expect(surfaceToLabelmap(createMesh([], []), geometry, { labelValue: 1 }).data)
-      .toEqual(new Uint8Array(8));
+    expect(surfaceToLabelmap(createMesh([], []), geometry, { labelValue: 1 }).data).toEqual(
+      new Uint8Array(8),
+    );
   });
 
   it('preserves the source element type through an A->D->composite round trip', () => {
     const geometry = {
-      dims: [5, 5, 5], spacing: [1, 1, 1], origin: [0, 0, 0],
-      direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+      dims: [5, 5, 5],
+      spacing: [1, 1, 1],
+      origin: [0, 0, 0],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
     } as const;
     // A source Uint16 labelmap with a solid interior block.
     const source = new Uint16Array(5 * 5 * 5);
@@ -126,16 +179,27 @@ describe('surfaceToLabelmap', () => {
 
   it('rejects malformed meshes and reference geometry', () => {
     const geometry = {
-      dims: [2, 2, 2], spacing: [1, 1, 1], origin: [0, 0, 0],
-      direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+      dims: [2, 2, 2],
+      spacing: [1, 1, 1],
+      origin: [0, 0, 0],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
     } as const;
-    expect(() => surfaceToLabelmap({
-      points: new Float32Array([0, 0, 0]), polys: new Uint32Array([3, 0, 1, 2]),
-    }, geometry, { labelValue: 1 })).toThrow();
-    expect(() => surfaceToLabelmap(
-      createMesh([], []),
-      { ...geometry, dims: [0, 2, 2] },
-      { labelValue: 1 },
-    )).toThrow();
+    expect(() =>
+      surfaceToLabelmap(
+        {
+          points: new Float32Array([0, 0, 0]),
+          polys: new Uint32Array([3, 0, 1, 2]),
+        },
+        geometry,
+        { labelValue: 1 },
+      ),
+    ).toThrow();
+    expect(() =>
+      surfaceToLabelmap(createMesh([], []), { ...geometry, dims: [0, 2, 2] }, { labelValue: 1 }),
+    ).toThrow();
   });
 });

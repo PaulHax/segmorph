@@ -9,9 +9,7 @@ import { readContoursJson } from './fixtures/G/loaders.js';
 import { fixtureUrl } from './fixtures/root.js';
 import { findFixtureEntries, readFixtureManifest } from './fixtures/loaders.js';
 
-const fixture = (caseName: string, file: string) => (
-  fixtureUrl(`G/${caseName}/${file}`)
-);
+const fixture = (caseName: string, file: string) => fixtureUrl(`G/${caseName}/${file}`);
 
 const loadCase = async (caseName: string) => {
   const [input, golden] = await Promise.all([
@@ -44,12 +42,11 @@ const exactCases = [
 
 describe('contour rasterization oracle', () => {
   it('records the generating VTK oracle for every case in the manifest', async () => {
-    const manifest = readFixtureManifest(
-      await readFile(fixtureUrl('manifest.json'), 'utf8'),
-    );
+    const manifest = readFixtureManifest(await readFile(fixtureUrl('manifest.json'), 'utf8'));
     for (const caseName of [...exactCases, 'gridline']) {
-      expect(findFixtureEntries(manifest, 'G', caseName).map((entry) => entry.oracle.name))
-        .toEqual(['python-vtk']);
+      expect(findFixtureEntries(manifest, 'G', caseName).map((entry) => entry.oracle.name)).toEqual(
+        ['python-vtk'],
+      );
     }
   });
 
@@ -84,8 +81,16 @@ describe('contour rasterization oracle', () => {
     // the 5x4 interior block (20 voxels). Measured disagreement: exactly
     // these 10 boundary voxels, all on the shared min-x/min-y boundary.
     expect(mismatchingVoxelCoordinates(actual.data, golden.data, dims)).toEqual([
-      [3, 2, 1], [4, 2, 1], [5, 2, 1], [6, 2, 1], [7, 2, 1], [8, 2, 1],
-      [3, 3, 1], [3, 4, 1], [3, 5, 1], [3, 6, 1],
+      [3, 2, 1],
+      [4, 2, 1],
+      [5, 2, 1],
+      [6, 2, 1],
+      [7, 2, 1],
+      [8, 2, 1],
+      [3, 3, 1],
+      [3, 4, 1],
+      [3, 5, 1],
+      [3, 6, 1],
     ]);
 
     // The port never fills a voxel the oracle leaves empty: interior equality.

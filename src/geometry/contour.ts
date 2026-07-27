@@ -31,19 +31,18 @@ export function validateContourPlane(plane: ContourPlane) {
   if (!hasThreeFiniteValues(plane.origin)) {
     throw new RangeError('Contour plane origin must contain three finite coordinates');
   }
-  if (!hasThreeFiniteValues(plane.xAxis) || !hasThreeFiniteValues(plane.yAxis)
-    || Math.abs(dot(plane.xAxis, plane.xAxis) - 1) > orthonormalTolerance
-    || Math.abs(dot(plane.yAxis, plane.yAxis) - 1) > orthonormalTolerance
-    || Math.abs(dot(plane.xAxis, plane.yAxis)) > orthonormalTolerance) {
+  if (
+    !hasThreeFiniteValues(plane.xAxis) ||
+    !hasThreeFiniteValues(plane.yAxis) ||
+    Math.abs(dot(plane.xAxis, plane.xAxis) - 1) > orthonormalTolerance ||
+    Math.abs(dot(plane.yAxis, plane.yAxis) - 1) > orthonormalTolerance ||
+    Math.abs(dot(plane.xAxis, plane.yAxis)) > orthonormalTolerance
+  ) {
     throw new RangeError('Contour plane axes must form an orthonormal basis');
   }
 }
 
-export function createContourPlane(
-  origin: Vector3,
-  xAxis: Vector3,
-  yAxis: Vector3,
-): ContourPlane {
+export function createContourPlane(origin: Vector3, xAxis: Vector3, yAxis: Vector3): ContourPlane {
   const plane = {
     origin: [...origin] as Vector3,
     xAxis: [...xAxis] as Vector3,

@@ -22,11 +22,7 @@ export function registerConversionRule(
   return { rules: [...graph.rules, rule] };
 }
 
-export function findCheapestPath(
-  graph: ConversionGraph,
-  source: string,
-  target: string,
-) {
+export function findCheapestPath(graph: ConversionGraph, source: string, target: string) {
   if (source === target) {
     return [];
   }

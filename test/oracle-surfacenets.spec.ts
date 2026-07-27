@@ -3,11 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 
 import { enclosedVolume } from './diff/mesh.js';
-import {
-  hasConsistentOutwardOrientation,
-  isManifold,
-  isWatertight,
-} from './diff/structure.js';
+import { hasConsistentOutwardOrientation, isManifold, isWatertight } from './diff/structure.js';
 import { findFixtureEntries, readFixtureManifest, readMeshJson } from './fixtures/loaders.js';
 import { fixtureUrl } from './fixtures/root.js';
 

@@ -12,7 +12,11 @@ import { indexToWorld, type ImageGeometry } from '../src/image/orientedImage.js'
  * two polygons sharing an edge never double-fill and never leave a gap.
  */
 
-const identityDirection = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+const identityDirection = [
+  [1, 0, 0],
+  [0, 1, 0],
+  [0, 0, 1],
+];
 
 const identityGeometry = (dims: readonly number[]): ImageGeometry => ({
   dims,
@@ -26,20 +30,22 @@ const sliceContour = (z: number, ...loops: readonly (readonly number[])[]): Plan
   loops: loops.map((points) => ({ points: Float64Array.from(points) })),
 });
 
-const rectangleLoop = (x0: number, y0: number, x1: number, y1: number) => (
-  [x0, y0, x1, y0, x1, y1, x0, y1]
-);
+const rectangleLoop = (x0: number, y0: number, x1: number, y1: number) => [
+  x0,
+  y0,
+  x1,
+  y0,
+  x1,
+  y1,
+  x0,
+  y1,
+];
 
-const regularLoop = (
-  cx: number,
-  cy: number,
-  radius: number,
-  sides: number,
-  phase: number,
-) => Array.from({ length: sides }, (_, vertex) => {
-  const angle = (2 * Math.PI * vertex) / sides + phase;
-  return [cx + radius * Math.cos(angle), cy + radius * Math.sin(angle)];
-}).flat();
+const regularLoop = (cx: number, cy: number, radius: number, sides: number, phase: number) =>
+  Array.from({ length: sides }, (_, vertex) => {
+    const angle = (2 * Math.PI * vertex) / sides + phase;
+    return [cx + radius * Math.cos(angle), cy + radius * Math.sin(angle)];
+  }).flat();
 
 const filledVoxels = (image: { data: ArrayLike<number>; dims: readonly number[] }) => {
   const [nx, ny, nz] = image.dims;
@@ -54,13 +60,11 @@ const filledVoxels = (image: { data: ArrayLike<number>; dims: readonly number[] 
   return voxels;
 };
 
-const gridVoxels = (xs: readonly number[], ys: readonly number[], z: number) => (
-  ys.flatMap((y) => xs.map((x): [number, number, number] => [x, y, z]))
-);
+const gridVoxels = (xs: readonly number[], ys: readonly number[], z: number) =>
+  ys.flatMap((y) => xs.map((x): [number, number, number] => [x, y, z]));
 
-const range = (first: number, last: number) => (
-  Array.from({ length: last - first + 1 }, (_, offset) => first + offset)
-);
+const range = (first: number, last: number) =>
+  Array.from({ length: last - first + 1 }, (_, offset) => first + offset);
 
 const count = (image: { data: ArrayLike<number> }) => {
   let total = 0;
@@ -70,9 +74,8 @@ const count = (image: { data: ArrayLike<number> }) => {
   return total;
 };
 
-const multiply = (a: number[][], b: number[][]) => a.map((row, i) => (
-  row.map((_, j) => a[i][0] * b[0][j] + a[i][1] * b[1][j] + a[i][2] * b[2][j])
-));
+const multiply = (a: number[][], b: number[][]) =>
+  a.map((row, i) => row.map((_, j) => a[i][0] * b[0][j] + a[i][1] * b[1][j] + a[i][2] * b[2][j]));
 
 const rotationX = (angle: number) => [
   [1, 0, 0],
@@ -86,9 +89,8 @@ const rotationZ = (angle: number) => [
   [0, 0, 1],
 ];
 
-const column = (matrix: readonly (readonly number[])[], index: number) => [
-  matrix[0][index], matrix[1][index], matrix[2][index],
-] as const;
+const column = (matrix: readonly (readonly number[])[], index: number) =>
+  [matrix[0][index], matrix[1][index], matrix[2][index]] as const;
 
 describe('contourToLabelmap boundary convention', () => {
   it('fills voxel centers inside a fractional rectangle', () => {
@@ -113,10 +115,7 @@ describe('contourToLabelmap boundary convention', () => {
 
   it('never double-fills or gaps adjacent polygons sharing an edge', () => {
     const image = contourToLabelmap(
-      [
-        sliceContour(1, rectangleLoop(2, 1, 5, 4)),
-        sliceContour(1, rectangleLoop(5, 1, 8, 4)),
-      ],
+      [sliceContour(1, rectangleLoop(2, 1, 5, 4)), sliceContour(1, rectangleLoop(5, 1, 8, 4))],
       identityGeometry([10, 8, 3]),
       { labelValue: 1 },
     );
@@ -203,9 +202,7 @@ describe('contourToLabelmap fill rule', () => {
 
   it('rasterizes sub-voxel polygons by center containment', () => {
     const image = contourToLabelmap(
-      [sliceContour(1,
-        [2.7, 2.8, 3.4, 2.7, 3.05, 3.45],
-        [5.45, 5.3, 5.8, 5.25, 5.6, 5.6])],
+      [sliceContour(1, [2.7, 2.8, 3.4, 2.7, 3.05, 3.45], [5.45, 5.3, 5.8, 5.25, 5.6, 5.6])],
       identityGeometry([8, 8, 3]),
       { labelValue: 1 },
     );
@@ -303,30 +300,24 @@ describe('contourToLabelmap slice alignment policy', () => {
       },
       loops: [{ points: Float64Array.from(loop) }],
     };
-    expect(() => contourToLabelmap([tilted], geometry, { labelValue: 1 }))
-      .toThrow(RangeError);
+    expect(() => contourToLabelmap([tilted], geometry, { labelValue: 1 })).toThrow(RangeError);
   });
 
   it('rejects parallel contour planes that land between slices', () => {
-    expect(() => contourToLabelmap([sliceContour(1.5, loop)], geometry, { labelValue: 1 }))
-      .toThrow(RangeError);
+    expect(() => contourToLabelmap([sliceContour(1.5, loop)], geometry, { labelValue: 1 })).toThrow(
+      RangeError,
+    );
   });
 
   it('snaps planes within the alignment tolerance onto the slice', () => {
-    const image = contourToLabelmap(
-      [sliceContour(1 + 5e-7, loop)],
-      geometry,
-      { labelValue: 1 },
-    );
+    const image = contourToLabelmap([sliceContour(1 + 5e-7, loop)], geometry, { labelValue: 1 });
     expect(filledVoxels(image)).toEqual(gridVoxels(range(2, 4), range(2, 4), 1));
   });
 
   it('ignores aligned planes outside the image extent', () => {
-    const image = contourToLabelmap(
-      [sliceContour(-1, loop), sliceContour(3, loop)],
-      geometry,
-      { labelValue: 1 },
-    );
+    const image = contourToLabelmap([sliceContour(-1, loop), sliceContour(3, loop)], geometry, {
+      labelValue: 1,
+    });
     expect(count(image)).toBe(0);
   });
 });
@@ -342,12 +333,15 @@ describe('contourToLabelmap label values', () => {
   });
 
   it('allocates the smallest sufficient scalar type', () => {
-    expect(contourToLabelmap([contour], geometry, { labelValue: 255 }).data)
-      .toBeInstanceOf(Uint8Array);
-    expect(contourToLabelmap([contour], geometry, { labelValue: 300 }).data)
-      .toBeInstanceOf(Uint16Array);
-    expect(contourToLabelmap([contour], geometry, { labelValue: 70_000 }).data)
-      .toBeInstanceOf(Uint32Array);
+    expect(contourToLabelmap([contour], geometry, { labelValue: 255 }).data).toBeInstanceOf(
+      Uint8Array,
+    );
+    expect(contourToLabelmap([contour], geometry, { labelValue: 300 }).data).toBeInstanceOf(
+      Uint16Array,
+    );
+    expect(contourToLabelmap([contour], geometry, { labelValue: 70_000 }).data).toBeInstanceOf(
+      Uint32Array,
+    );
   });
 
   it('rejects invalid label values', () => {
@@ -360,11 +354,9 @@ describe('contourToLabelmap label values', () => {
 describe('contourToLabelmap area invariant', () => {
   it('fills approximately polygon area per slice', () => {
     const loop = regularLoop(7.6, 7.4, 5.3, 7, 0.15);
-    const image = contourToLabelmap(
-      [sliceContour(0, loop)],
-      identityGeometry([16, 16, 1]),
-      { labelValue: 1 },
-    );
+    const image = contourToLabelmap([sliceContour(0, loop)], identityGeometry([16, 16, 1]), {
+      labelValue: 1,
+    });
 
     let area = 0;
     let perimeter = 0;

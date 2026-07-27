@@ -87,11 +87,16 @@ function pointToPolylineDistance(point: Vector3, loop: WorldLoop) {
     const lengthSquared = direction[0] ** 2 + direction[1] ** 2 + direction[2] ** 2;
     let closest = start;
     if (lengthSquared > 0) {
-      const t = Math.min(1, Math.max(0, (
-        (point[0] - start[0]) * direction[0]
-        + (point[1] - start[1]) * direction[1]
-        + (point[2] - start[2]) * direction[2]
-      ) / lengthSquared));
+      const t = Math.min(
+        1,
+        Math.max(
+          0,
+          ((point[0] - start[0]) * direction[0] +
+            (point[1] - start[1]) * direction[1] +
+            (point[2] - start[2]) * direction[2]) /
+            lengthSquared,
+        ),
+      );
       closest = [
         start[0] + t * direction[0],
         start[1] + t * direction[1],
@@ -115,8 +120,10 @@ function matchLoops(ours: WorldLoop[], golden: WorldLoop[]) {
     const ourCentroid = centroid(loop);
     let bestSlot = 0;
     for (let slot = 1; slot < remaining.length; slot += 1) {
-      if (distance(ourCentroid, centroid(remaining[slot].loop))
-        < distance(ourCentroid, centroid(remaining[bestSlot].loop))) {
+      if (
+        distance(ourCentroid, centroid(remaining[slot].loop)) <
+        distance(ourCentroid, centroid(remaining[bestSlot].loop))
+      ) {
         bestSlot = slot;
       }
     }
@@ -149,9 +156,7 @@ async function loadCase(caseName: string, inputMesh: string) {
   return { golden, mesh, plane };
 }
 
-const manifest = readFixtureManifest(
-  await readFile(new URL('manifest.json', fixturesUrl), 'utf8'),
-);
+const manifest = readFixtureManifest(await readFile(new URL('manifest.json', fixturesUrl), 'utf8'));
 
 const caseNames = [
   'sphere-center',
@@ -189,8 +194,9 @@ describe('Python VTK contour oracle', () => {
         const ourLoops = contourWorldLoops(plane, contour!.loops);
         const goldenLoops = goldenWorldLoops(golden);
         for (const pair of matchLoops(ourLoops, goldenLoops)) {
-          expect(symmetricLoopDistance(pair.ours, pair.golden))
-            .toBeLessThanOrEqual(maxLoopDistance);
+          expect(symmetricLoopDistance(pair.ours, pair.golden)).toBeLessThanOrEqual(
+            maxLoopDistance,
+          );
 
           const ourArea = enclosedArea(plane, pair.ours);
           const goldenArea = Math.abs(enclosedArea(plane, pair.golden));
@@ -210,9 +216,8 @@ describe('vtk.js contour oracle', () => {
   // intersection points it produces must match the python-vtk golden exactly, so
   // the golden our port is checked against is not a shared-VTK artifact. The
   // point set is order- and assembly-independent, so it needs no loop matching.
-  const roundKey = (x: number, y: number, z: number) => (
-    [x, y, z].map((value) => (Math.round(value * 1e6) / 1e6).toFixed(6)).join(',')
-  );
+  const roundKey = (x: number, y: number, z: number) =>
+    [x, y, z].map((value) => (Math.round(value * 1e6) / 1e6).toFixed(6)).join(',');
   const pointSet = (flat: readonly number[]) => {
     const set = new Set<string>();
     for (let offset = 0; offset < flat.length; offset += 3) {
@@ -223,8 +228,11 @@ describe('vtk.js contour oracle', () => {
 
   for (const caseName of caseNames) {
     it(`vtk.js cut points match the python-vtk golden for ${caseName}`, async () => {
-      expect(findFixtureEntries(manifest, 'F', caseName).map((entry) => entry.oracle.name).sort())
-        .toEqual(['python-vtk', 'vtk-js']);
+      expect(
+        findFixtureEntries(manifest, 'F', caseName)
+          .map((entry) => entry.oracle.name)
+          .sort(),
+      ).toEqual(['python-vtk', 'vtk-js']);
 
       const golden = readContourGolden(
         await readFile(new URL(`F/${caseName}/golden.contour.json`, fixturesUrl), 'utf8'),

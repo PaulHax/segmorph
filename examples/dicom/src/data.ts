@@ -33,9 +33,9 @@ function tumorRoi(): RtRoi {
   for (let slice = 0; slice < 9; slice += 1) {
     const z = -16 + slice * 4;
     const radius = Math.sqrt(18 ** 2 - z ** 2);
-    loops.push(Float64Array.from(
-      circleLoop(centerX, centerY, z, radius, 28, { radiusY: radius * 0.8 }),
-    ));
+    loops.push(
+      Float64Array.from(circleLoop(centerX, centerY, z, radius, 28, { radiusY: radius * 0.8 })),
+    );
   }
   return { number: 1, name: 'Tumor', color: [230, 120, 40], loops };
 }
@@ -110,12 +110,20 @@ export function buildSegData(): { geometry: SegGeometry; segments: SegSegment[] 
         if (dx * dx + dy * dy + dz * dz <= (radius * spacing[0]) ** 2 * 2.2) {
           sphere[index] = 1;
         }
-        const inBox = x >= boxMin[0] && x <= boxMax[0]
-          && y >= boxMin[1] && y <= boxMax[1]
-          && z >= boxMin[2] && z <= boxMax[2];
-        const inCore = x >= boxMin[0] + wall && x <= boxMax[0] - wall
-          && y >= boxMin[1] + wall && y <= boxMax[1] - wall
-          && z >= boxMin[2] + wall && z <= boxMax[2] - wall;
+        const inBox =
+          x >= boxMin[0] &&
+          x <= boxMax[0] &&
+          y >= boxMin[1] &&
+          y <= boxMax[1] &&
+          z >= boxMin[2] &&
+          z <= boxMax[2];
+        const inCore =
+          x >= boxMin[0] + wall &&
+          x <= boxMax[0] - wall &&
+          y >= boxMin[1] + wall &&
+          y <= boxMax[1] - wall &&
+          z >= boxMin[2] + wall &&
+          z <= boxMax[2] - wall;
         if (inBox && !inCore) shell[index] = 1;
       }
     }

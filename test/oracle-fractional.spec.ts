@@ -7,23 +7,13 @@ import {
   surfaceToFractionalLabelmap,
 } from '../src/convert/fractional.js';
 import { readNrrd } from '../src/io/nrrd.js';
-import {
-  enclosedVolume,
-  meanSurfaceDistance,
-  symmetricHausdorffDistance,
-} from './diff/mesh.js';
-import {
-  findFixtureEntries,
-  readFixtureManifest,
-  readMeshJson,
-} from './fixtures/loaders.js';
+import { enclosedVolume, meanSurfaceDistance, symmetricHausdorffDistance } from './diff/mesh.js';
+import { findFixtureEntries, readFixtureManifest, readMeshJson } from './fixtures/loaders.js';
 import { fixtureUrl } from './fixtures/root.js';
 
 const cases = ['isotropic', 'anisotropic', 'oblique'] as const;
 
-const fixture = (caseName: string, name: string) => (
-  fixtureUrl(`I/${caseName}/${name}`)
-);
+const fixture = (caseName: string, name: string) => fixtureUrl(`I/${caseName}/${name}`);
 
 async function loadCase(caseName: string) {
   const [meshJson, golden, surfaceJson] = await Promise.all([
@@ -51,12 +41,11 @@ function occupancyDifference(actual: ArrayLike<number>, expected: ArrayLike<numb
 
 describe('fractional labelmap oracle', () => {
   it('records the generating VTK oracle in the fixture manifest', async () => {
-    const manifest = readFixtureManifest(
-      await readFile(fixtureUrl('manifest.json'), 'utf8'),
-    );
+    const manifest = readFixtureManifest(await readFile(fixtureUrl('manifest.json'), 'utf8'));
     for (const caseName of cases) {
-      expect(findFixtureEntries(manifest, 'I', caseName).map((entry) => entry.oracle.name))
-        .toEqual(['python-vtk']);
+      expect(findFixtureEntries(manifest, 'I', caseName).map((entry) => entry.oracle.name)).toEqual(
+        ['python-vtk'],
+      );
     }
   });
 
@@ -84,8 +73,7 @@ describe('fractional labelmap oracle', () => {
     // 1.5e-7). 1e-3 of a voxel keeps triangulation drift visible while
     // ignoring float noise.
     const spacingScale = Math.max(...golden.spacing);
-    expect(symmetricHausdorffDistance(surface, goldenSurface))
-      .toBeLessThan(1e-3 * spacingScale);
+    expect(symmetricHausdorffDistance(surface, goldenSurface)).toBeLessThan(1e-3 * spacingScale);
     expect(meanSurfaceDistance(surface, goldenSurface)).toBeLessThan(1e-3 * spacingScale);
 
     // Measured volume ratios actual/golden: 0.99999999 / 1.00000000 / 1.00000002.

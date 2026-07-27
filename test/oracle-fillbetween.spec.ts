@@ -80,7 +80,10 @@ describe('fillBetween vs itk-wasm morphological contour interpolation', () => {
       it('leaves slices outside the segmented range empty', () => {
         for (let z = 0; z < nz; z += 1) {
           if (z >= first && z <= last) continue;
-          expect(slice(actual, z).every((v) => v === 0), `slice ${z}`).toBe(true);
+          expect(
+            slice(actual, z).every((v) => v === 0),
+            `slice ${z}`,
+          ).toBe(true);
         }
       });
 

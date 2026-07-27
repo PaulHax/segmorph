@@ -29,16 +29,12 @@ function dot(left: readonly number[], right: readonly number[]) {
  * within sliceAlignmentTolerance.
  */
 function matchSlice(contour: PlanarContour, geometry: ImageGeometry, contourIndex: number) {
-  const sliceAxis = [
-    geometry.direction[0][2],
-    geometry.direction[1][2],
-    geometry.direction[2][2],
-  ];
-  if (Math.abs(dot(contour.plane.xAxis, sliceAxis)) > sliceAlignmentTolerance
-    || Math.abs(dot(contour.plane.yAxis, sliceAxis)) > sliceAlignmentTolerance) {
-    throw new RangeError(
-      `Contour ${contourIndex} plane is not parallel to the image slice planes`,
-    );
+  const sliceAxis = [geometry.direction[0][2], geometry.direction[1][2], geometry.direction[2][2]];
+  if (
+    Math.abs(dot(contour.plane.xAxis, sliceAxis)) > sliceAlignmentTolerance ||
+    Math.abs(dot(contour.plane.yAxis, sliceAxis)) > sliceAlignmentTolerance
+  ) {
+    throw new RangeError(`Contour ${contourIndex} plane is not parallel to the image slice planes`);
   }
 
   const offset = [

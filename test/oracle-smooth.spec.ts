@@ -4,16 +4,8 @@ import { describe, expect, it } from 'vitest';
 
 import { meshSmooth, type MeshSmoothOptions } from '../src/convert/meshSmooth.js';
 import { enclosedVolume } from './diff/mesh.js';
-import {
-  hasConsistentOutwardOrientation,
-  isManifold,
-  isWatertight,
-} from './diff/structure.js';
-import {
-  findFixtureEntries,
-  readFixtureManifest,
-  readMeshJson,
-} from './fixtures/loaders.js';
+import { hasConsistentOutwardOrientation, isManifold, isWatertight } from './diff/structure.js';
+import { findFixtureEntries, readFixtureManifest, readMeshJson } from './fixtures/loaders.js';
 import { fixturesRoot } from './fixtures/root.js';
 
 // Windowed-sinc smoothing preserves vertex count and ordering, so the
@@ -31,7 +23,6 @@ import { fixturesRoot } from './fixtures/root.js';
 // 1e-5 sits just above the oracle's own precision spread and 3.5x above the
 // worst measured port deviation.
 const MAX_VERTEX_DISTANCE = 1e-5;
-
 
 type SmoothCase = {
   name: string;
@@ -66,11 +57,14 @@ function toOptions(params: Record<string, unknown>) {
 function maxVertexDistance(a: Float32Array, b: Float32Array) {
   let max = 0;
   for (let offset = 0; offset < a.length; offset += 3) {
-    max = Math.max(max, Math.hypot(
-      a[offset] - b[offset],
-      a[offset + 1] - b[offset + 1],
-      a[offset + 2] - b[offset + 2],
-    ));
+    max = Math.max(
+      max,
+      Math.hypot(
+        a[offset] - b[offset],
+        a[offset + 1] - b[offset + 1],
+        a[offset + 2] - b[offset + 2],
+      ),
+    );
   }
   return max;
 }
@@ -149,8 +143,11 @@ describe('meshSmooth vs vtk.js windowed-sinc oracle', () => {
   for (const name of hammingCases) {
     it(`agrees across python-vtk, vtk.js, and our port for ${name}`, async () => {
       const manifest = await loadManifest();
-      expect(findFixtureEntries(manifest, 'B', name).map((entry) => entry.oracle.name).sort())
-        .toEqual(['python-vtk', 'vtk-js']);
+      expect(
+        findFixtureEntries(manifest, 'B', name)
+          .map((entry) => entry.oracle.name)
+          .sort(),
+      ).toEqual(['python-vtk', 'vtk-js']);
 
       const [entry] = findFixtureEntries(manifest, 'B', name);
       const { inputPath, options } = toOptions(entry.params);

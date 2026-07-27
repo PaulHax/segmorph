@@ -14,11 +14,10 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 export default function setup() {
-  const result = spawnSync(
-    process.execPath,
-    ['oracles/generate.ts', '--out', 'test/generated'],
-    { cwd: root, stdio: 'inherit' },
-  );
+  const result = spawnSync(process.execPath, ['oracles/generate.ts', '--out', 'test/generated'], {
+    cwd: root,
+    stdio: 'inherit',
+  });
   if (result.error) throw result.error;
   if (result.status !== 0) {
     throw new Error(`oracle golden generation failed with status ${result.status}`);

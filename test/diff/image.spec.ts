@@ -1,28 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  dice,
-  iou,
-  mismatchCount,
-  mismatchingVoxelCoordinates,
-} from './image.js';
+import { dice, iou, mismatchCount, mismatchingVoxelCoordinates } from './image.js';
 
 const dims = [4, 4, 1] as const;
 
 describe('image metrics', () => {
   it('computes overlap metrics for hand-countable masks', () => {
-    const actual = new Uint8Array([
-      1, 1, 0, 0,
-      1, 1, 0, 0,
-      0, 0, 0, 0,
-      0, 0, 0, 0,
-    ]);
-    const expected = new Uint8Array([
-      0, 1, 1, 0,
-      0, 1, 1, 0,
-      0, 0, 0, 0,
-      0, 0, 0, 0,
-    ]);
+    const actual = new Uint8Array([1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    const expected = new Uint8Array([0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
     expect(dice(actual, expected, dims)).toBe(0.5);
     expect(iou(actual, expected, dims)).toBe(1 / 3);

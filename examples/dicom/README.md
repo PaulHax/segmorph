@@ -7,7 +7,7 @@ formats, rendered with vtk.js:
   [`src/rtstruct.ts`](./src/rtstruct.ts) encodes/decodes ROIs as world-space
   contour loops - exactly the input shape of segmorph's `contourToSurface`
   (the port of SlicerRT's planar-contour-to-closed-surface stitch). One demo
-  ROI is stored with the RTSTRUCT *keyhole* technique (a hole encoded via a
+  ROI is stored with the RTSTRUCT _keyhole_ technique (a hole encoded via a
   zero-width channel in a single loop), which the stitch splits back apart.
 - **DICOM SEG** (Segmentation IOD, BINARY): bit-packed multi-frame masks. The
   adapter in [`src/seg.ts`](./src/seg.ts) encodes/decodes each segment's

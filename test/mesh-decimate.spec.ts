@@ -3,16 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { meshDecimate } from '../src/convert/meshDecimate.js';
 import { triangleCount, validateMesh, vertexCount, type Mesh } from '../src/geometry/mesh.js';
 import { boundingBox, symmetricHausdorffDistance } from './diff/mesh.js';
-import {
-  hasConsistentOutwardOrientation,
-  isManifold,
-  isWatertight,
-} from './diff/structure.js';
+import { hasConsistentOutwardOrientation, isManifold, isWatertight } from './diff/structure.js';
 
 function uvSphere(radius: number, latBands: number, lonBands: number): Mesh {
-  const ringIndex = (ring: number, segment: number) => (
-    1 + (ring - 1) * lonBands + (segment % lonBands)
-  );
+  const ringIndex = (ring: number, segment: number) =>
+    1 + (ring - 1) * lonBands + (segment % lonBands);
   const southPole = 1 + (latBands - 1) * lonBands;
 
   const points = new Float32Array((southPole + 1) * 3);
@@ -21,11 +16,14 @@ function uvSphere(radius: number, latBands: number, lonBands: number): Mesh {
     const theta = (Math.PI * ring) / latBands;
     for (let segment = 0; segment < lonBands; segment += 1) {
       const phi = (2 * Math.PI * segment) / lonBands;
-      points.set([
-        radius * Math.sin(theta) * Math.cos(phi),
-        radius * Math.sin(theta) * Math.sin(phi),
-        radius * Math.cos(theta),
-      ], ringIndex(ring, segment) * 3);
+      points.set(
+        [
+          radius * Math.sin(theta) * Math.cos(phi),
+          radius * Math.sin(theta) * Math.sin(phi),
+          radius * Math.cos(theta),
+        ],
+        ringIndex(ring, segment) * 3,
+      );
     }
   }
   points.set([0, 0, -radius], southPole * 3);
@@ -44,7 +42,12 @@ function uvSphere(radius: number, latBands: number, lonBands: number): Mesh {
     }
   }
   for (let segment = 0; segment < lonBands; segment += 1) {
-    cells.push(3, southPole, ringIndex(latBands - 1, segment + 1), ringIndex(latBands - 1, segment));
+    cells.push(
+      3,
+      southPole,
+      ringIndex(latBands - 1, segment + 1),
+      ringIndex(latBands - 1, segment),
+    );
   }
 
   return { points, polys: new Uint32Array(cells) };

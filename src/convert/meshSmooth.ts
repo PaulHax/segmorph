@@ -50,8 +50,8 @@ const MAX_EDGE_COUNT = 255;
 const NEWTON_ERROR_TOLERANCE = 1e-3;
 
 const WINDOW_WEIGHTS: Record<SmoothingWindowFunction, (a: number) => number> = {
-  nuttall: (a) => 0.355768 + 0.487396 * Math.cos(a) + 0.144232 * Math.cos(2 * a)
-    + 0.012604 * Math.cos(3 * a),
+  nuttall: (a) =>
+    0.355768 + 0.487396 * Math.cos(a) + 0.144232 * Math.cos(2 * a) + 0.012604 * Math.cos(3 * a),
   blackman: (a) => 0.42 + 0.5 * Math.cos(a) + 0.08 * Math.cos(2 * a),
   hanning: (a) => 0.5 + 0.5 * Math.cos(a),
   hamming: (a) => 0.54 + 0.46 * Math.cos(a),
@@ -247,11 +247,7 @@ function buildO1Stencil(
   return FIXED;
 }
 
-function analyzePoints(
-  mesh: Mesh,
-  numPts: number,
-  options: ResolvedOptions,
-): Connectivity {
+function analyzePoints(mesh: Mesh, numPts: number, options: ResolvedOptions): Connectivity {
   const { offsets, edges } = buildIncidentEdges(mesh, numPts);
   const stencilSizes = new Uint8Array(numPts);
   const optLevel = options.boundarySmoothing || options.nonManifoldSmoothing ? 1 : 2;
@@ -270,7 +266,13 @@ function analyzePoints(
       stencilSizes[ptId] = buildO2Stencil(edges, start, nedges);
     } else {
       stencilSizes[ptId] = buildO1Stencil(
-        edges, start, nedges, ptId, mesh.points, options, cosEdgeAngle,
+        edges,
+        start,
+        nedges,
+        ptId,
+        mesh.points,
+        options,
+        cosEdgeAngle,
       );
     }
   }
@@ -348,11 +350,7 @@ function boundingBoxNormalization(points: Float32Array) {
   }
   // vtkPolyData::GetLength is the bounding-box diagonal; GetCenter its middle.
   const length = Math.hypot(max[0] - min[0], max[1] - min[1], max[2] - min[2]);
-  const center = [
-    (min[0] + max[0]) / 2,
-    (min[1] + max[1]) / 2,
-    (min[2] + max[2]) / 2,
-  ];
+  const center = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2];
   return { length, center };
 }
 
@@ -488,9 +486,7 @@ export function meshSmooth(mesh: Mesh, options: MeshSmoothOptions = {}): Mesh {
   const resolved = resolveOptions(options);
 
   const numPts = mesh.points.length / 3;
-  const passThrough = numPts < 1
-    || mesh.polys.length < 4
-    || resolved.numberOfIterations <= 0;
+  const passThrough = numPts < 1 || mesh.polys.length < 4 || resolved.numberOfIterations <= 0;
   if (passThrough) {
     return { points: new Float32Array(mesh.points), polys: new Uint32Array(mesh.polys) };
   }

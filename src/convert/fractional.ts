@@ -1,4 +1,12 @@
-import { createMesh, getPoint, iterateTriangles, validateMesh, type Mesh, type Point, type Triangle } from '../geometry/mesh.js';
+import {
+  createMesh,
+  getPoint,
+  iterateTriangles,
+  validateMesh,
+  type Mesh,
+  type Point,
+  type Triangle,
+} from '../geometry/mesh.js';
 import {
   createOrientedImage,
   directionDeterminant,
@@ -31,13 +39,23 @@ const defaultThreshold = 0.5;
 
 type IjkTriangle = {
   // Vertex coordinates in continuous index space.
-  x0: number; y0: number; z0: number;
-  x1: number; y1: number; z1: number;
-  x2: number; y2: number; z2: number;
-  minY: number; maxY: number;
-  minZ: number; maxZ: number;
+  x0: number;
+  y0: number;
+  z0: number;
+  x1: number;
+  y1: number;
+  z1: number;
+  x2: number;
+  y2: number;
+  z2: number;
+  minY: number;
+  maxY: number;
+  minZ: number;
+  maxZ: number;
   // Surface normal x component and plane offset for solving x at (y, z).
-  normalX: number; normalY: number; normalZ: number;
+  normalX: number;
+  normalY: number;
+  normalZ: number;
 };
 
 function prepareTriangles(mesh: Mesh, geometry: ImageGeometry) {
@@ -53,19 +71,35 @@ function prepareTriangles(mesh: Mesh, geometry: ImageGeometry) {
 
   const triangles: IjkTriangle[] = [];
   for (const [a, b, c] of iterateTriangles(mesh)) {
-    const x0 = ijk[a * 3]; const y0 = ijk[a * 3 + 1]; const z0 = ijk[a * 3 + 2];
-    const x1 = ijk[b * 3]; const y1 = ijk[b * 3 + 1]; const z1 = ijk[b * 3 + 2];
-    const x2 = ijk[c * 3]; const y2 = ijk[c * 3 + 1]; const z2 = ijk[c * 3 + 2];
+    const x0 = ijk[a * 3];
+    const y0 = ijk[a * 3 + 1];
+    const z0 = ijk[a * 3 + 2];
+    const x1 = ijk[b * 3];
+    const y1 = ijk[b * 3 + 1];
+    const z1 = ijk[b * 3 + 2];
+    const x2 = ijk[c * 3];
+    const y2 = ijk[c * 3 + 1];
+    const z2 = ijk[c * 3 + 2];
     const normalX = (y1 - y0) * (z2 - z0) - (z1 - z0) * (y2 - y0);
     const normalY = (z1 - z0) * (x2 - x0) - (x1 - x0) * (z2 - z0);
     const normalZ = (x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0);
     triangles.push({
-      x0, y0, z0, x1, y1, z1, x2, y2, z2,
+      x0,
+      y0,
+      z0,
+      x1,
+      y1,
+      z1,
+      x2,
+      y2,
+      z2,
       minY: Math.min(y0, y1, y2),
       maxY: Math.max(y0, y1, y2),
       minZ: Math.min(z0, z1, z2),
       maxZ: Math.max(z0, z1, z2),
-      normalX, normalY, normalZ,
+      normalX,
+      normalY,
+      normalZ,
     });
   }
   return triangles;
@@ -79,18 +113,16 @@ function prepareTriangles(mesh: Mesh, geometry: ImageGeometry) {
 function lineCrossing(triangle: IjkTriangle, y: number, z: number) {
   const { y0, z0, y1, z1, y2, z2 } = triangle;
   let inside = false;
-  if ((z0 > z) !== (z1 > z)
-    && y < y0 + ((z - z0) / (z1 - z0)) * (y1 - y0)) inside = !inside;
-  if ((z1 > z) !== (z2 > z)
-    && y < y1 + ((z - z1) / (z2 - z1)) * (y2 - y1)) inside = !inside;
-  if ((z2 > z) !== (z0 > z)
-    && y < y2 + ((z - z2) / (z0 - z2)) * (y0 - y2)) inside = !inside;
+  if (z0 > z !== z1 > z && y < y0 + ((z - z0) / (z1 - z0)) * (y1 - y0)) inside = !inside;
+  if (z1 > z !== z2 > z && y < y1 + ((z - z1) / (z2 - z1)) * (y2 - y1)) inside = !inside;
+  if (z2 > z !== z0 > z && y < y2 + ((z - z2) / (z0 - z2)) * (y0 - y2)) inside = !inside;
   if (!inside) return undefined;
   // Solve the plane equation for x; skip triangles seen edge-on.
   if (Math.abs(triangle.normalX) < 1e-12) return undefined;
-  return triangle.x0
-    - (triangle.normalY * (y - triangle.y0) + triangle.normalZ * (z - triangle.z0))
-    / triangle.normalX;
+  return (
+    triangle.x0 -
+    (triangle.normalY * (y - triangle.y0) + triangle.normalZ * (z - triangle.z0)) / triangle.normalX
+  );
 }
 
 /**
@@ -142,8 +174,8 @@ export function surfaceToFractionalLabelmap(
           const y = j + yOffset;
           crossings.length = 0;
           for (const triangle of triangles) {
-            if (y < triangle.minY || y > triangle.maxY
-              || z < triangle.minZ || z > triangle.maxZ) continue;
+            if (y < triangle.minY || y > triangle.maxY || z < triangle.minZ || z > triangle.maxZ)
+              continue;
             const crossing = lineCrossing(triangle, y, z);
             if (crossing !== undefined) crossings.push(crossing);
           }
@@ -213,29 +245,27 @@ export function fractionalLabelmapToSurface<T extends ImageData>(
   const pointIds = new Map<string, number>();
   const reverseWinding = directionDeterminant(image.direction) < 0;
 
-  const sample = (x: number, y: number, z: number) => (
+  const sample = (x: number, y: number, z: number) =>
     x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < depth
       ? image.data[x + width * (y + height * z)]
-      : 0
-  );
+      : 0;
 
   // Points are deduplicated by interpolated index position, not by edge:
   // samples exactly at the threshold put the interpolant on a shared corner,
   // and merging those coincident points (as vtkCleanPolyData does after the
   // rule's marching pass) keeps the mesh watertight once the resulting
   // zero-area triangles are skipped.
-  const getPointId = (corners: readonly (readonly [number, number, number])[],
-    left: number, right: number) => {
+  const getPointId = (
+    corners: readonly (readonly [number, number, number])[],
+    left: number,
+    right: number,
+  ) => {
     const [ax, ay, az] = corners[left];
     const [bx, by, bz] = corners[right];
     const valueA = sample(ax, ay, az);
     const valueB = sample(bx, by, bz);
     const t = (threshold - valueA) / (valueB - valueA);
-    const position = [
-      ax + t * (bx - ax),
-      ay + t * (by - ay),
-      az + t * (bz - az),
-    ] as const;
+    const position = [ax + t * (bx - ax), ay + t * (by - ay), az + t * (bz - az)] as const;
     const key = `${position[0]},${position[1]},${position[2]}`;
     const existing = pointIds.get(key);
     if (existing !== undefined) return existing;
@@ -249,9 +279,7 @@ export function fractionalLabelmapToSurface<T extends ImageData>(
   for (let z = -1; z < depth; z += 1) {
     for (let y = -1; y < height; y += 1) {
       for (let x = -1; x < width; x += 1) {
-        const corners = voxelCornerOffsets.map(
-          ([dx, dy, dz]) => [x + dx, y + dy, z + dz] as const,
-        );
+        const corners = voxelCornerOffsets.map(([dx, dy, dz]) => [x + dx, y + dy, z + dz] as const);
         let caseIndex = 0;
         for (let corner = 0; corner < corners.length; corner += 1) {
           const [cx, cy, cz] = corners[corner];

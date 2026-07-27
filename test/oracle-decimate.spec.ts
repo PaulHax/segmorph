@@ -11,11 +11,7 @@ import {
   triangleIndices,
   type Mesh,
 } from './diff/mesh.js';
-import {
-  hasConsistentOutwardOrientation,
-  isManifold,
-  isWatertight,
-} from './diff/structure.js';
+import { hasConsistentOutwardOrientation, isManifold, isWatertight } from './diff/structure.js';
 import { findFixtureEntries, readFixtureManifest, readMeshJson } from './fixtures/loaders.js';
 import { fixtureUrl } from './fixtures/root.js';
 
@@ -50,7 +46,11 @@ const cases = [
 function eulerCharacteristic(mesh: Mesh) {
   const edges = new Set<string>();
   for (const [a, b, c] of triangleIndices(mesh)) {
-    for (const [from, to] of [[a, b], [b, c], [c, a]]) {
+    for (const [from, to] of [
+      [a, b],
+      [b, c],
+      [c, a],
+    ]) {
       edges.add(from < to ? `${from}:${to}` : `${to}:${from}`);
     }
   }
@@ -75,40 +75,42 @@ async function loadCase(caseName: string) {
 }
 
 describe('quadric decimation vs python-vtk oracle', () => {
-  it.each(cases)('matches VTK on $name', async ({
-    name, hausdorff, mean, volumeBand, euler,
-  }) => {
-    const { entry, input, golden } = await loadCase(name);
-    const targetReduction = entry.params.targetReduction as number;
-    const result = meshDecimate(input, { targetReduction });
+  it.each(cases)(
+    'matches VTK on $name',
+    async ({ name, hausdorff, mean, volumeBand, euler }) => {
+      const { entry, input, golden } = await loadCase(name);
+      const targetReduction = entry.params.targetReduction as number;
+      const result = meshDecimate(input, { targetReduction });
 
-    // Both stop at the first collapse that reaches the target reduction;
-    // measured count difference was 0 on every case.
-    expect(Math.abs(triangleCount(result) - triangleCount(golden))).toBeLessThanOrEqual(4);
+      // Both stop at the first collapse that reaches the target reduction;
+      // measured count difference was 0 on every case.
+      expect(Math.abs(triangleCount(result) - triangleCount(golden))).toBeLessThanOrEqual(4);
 
-    expect(symmetricHausdorffDistance(result, golden)).toBeLessThanOrEqual(hausdorff);
-    expect(meanSurfaceDistance(result, golden)).toBeLessThanOrEqual(mean);
+      expect(symmetricHausdorffDistance(result, golden)).toBeLessThanOrEqual(hausdorff);
+      expect(meanSurfaceDistance(result, golden)).toBeLessThanOrEqual(mean);
 
-    const volumeRatio = enclosedVolume(result) / enclosedVolume(input);
-    expect(volumeRatio).toBeGreaterThanOrEqual(1 - volumeBand);
-    expect(volumeRatio).toBeLessThanOrEqual(1 + volumeBand);
+      const volumeRatio = enclosedVolume(result) / enclosedVolume(input);
+      expect(volumeRatio).toBeGreaterThanOrEqual(1 - volumeBand);
+      expect(volumeRatio).toBeLessThanOrEqual(1 + volumeBand);
 
-    // Closed inputs must stay closed, manifold, outward oriented, and keep
-    // their genus (Euler characteristic 2 for spheres, 0 for the torus).
-    expect(isWatertight(result)).toBe(true);
-    expect(isManifold(result)).toBe(true);
-    expect(hasConsistentOutwardOrientation(result)).toBe(true);
-    expect(eulerCharacteristic(result)).toBe(euler);
-  }, 60000);
+      // Closed inputs must stay closed, manifold, outward oriented, and keep
+      // their genus (Euler characteristic 2 for spheres, 0 for the torus).
+      expect(isWatertight(result)).toBe(true);
+      expect(isManifold(result)).toBe(true);
+      expect(hasConsistentOutwardOrientation(result)).toBe(true);
+      expect(eulerCharacteristic(result)).toBe(euler);
+    },
+    60000,
+  );
 
   it('records every decimation case in the fixture manifest', async () => {
     const manifest = readFixtureManifest(
       await readFile(new URL('manifest.json', fixturesUrl), 'utf8'),
     );
     for (const { name } of cases) {
-      expect(
-        findFixtureEntries(manifest, 'C', name).map((entry) => entry.oracle.name),
-      ).toEqual(['python-vtk']);
+      expect(findFixtureEntries(manifest, 'C', name).map((entry) => entry.oracle.name)).toEqual([
+        'python-vtk',
+      ]);
     }
   });
 });

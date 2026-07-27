@@ -11,22 +11,34 @@ import {
 function cube(offsetX = 0) {
   return {
     points: new Float32Array([
-      offsetX, 0, 0,
-      offsetX + 1, 0, 0,
-      offsetX + 1, 1, 0,
-      offsetX, 1, 0,
-      offsetX, 0, 1,
-      offsetX + 1, 0, 1,
-      offsetX + 1, 1, 1,
-      offsetX, 1, 1,
+      offsetX,
+      0,
+      0,
+      offsetX + 1,
+      0,
+      0,
+      offsetX + 1,
+      1,
+      0,
+      offsetX,
+      1,
+      0,
+      offsetX,
+      0,
+      1,
+      offsetX + 1,
+      0,
+      1,
+      offsetX + 1,
+      1,
+      1,
+      offsetX,
+      1,
+      1,
     ]),
     polys: new Uint32Array([
-      3, 0, 2, 1, 3, 0, 3, 2,
-      3, 4, 5, 6, 3, 4, 6, 7,
-      3, 0, 1, 5, 3, 0, 5, 4,
-      3, 3, 7, 6, 3, 3, 6, 2,
-      3, 0, 4, 7, 3, 0, 7, 3,
-      3, 1, 2, 6, 3, 1, 6, 5,
+      3, 0, 2, 1, 3, 0, 3, 2, 3, 4, 5, 6, 3, 4, 6, 7, 3, 0, 1, 5, 3, 0, 5, 4, 3, 3, 7, 6, 3, 3, 6,
+      2, 3, 0, 4, 7, 3, 0, 7, 3, 3, 1, 2, 6, 3, 1, 6, 5,
     ]),
   };
 }
@@ -64,12 +76,7 @@ describe('mesh metrics', () => {
     // along the 0-2 diagonal, the other along 1-3. Every vertex is shared, so
     // sampling vertices alone reports zero distance, yet the interior surfaces
     // diverge. Centroid sampling exposes the difference.
-    const points = new Float32Array([
-      0, 0, 0,
-      1, 0, 1,
-      1, 1, 0,
-      0, 1, 1,
-    ]);
+    const points = new Float32Array([0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1]);
     const diagonal02 = { points, polys: new Uint32Array([3, 0, 1, 2, 3, 0, 2, 3]) };
     const diagonal13 = { points, polys: new Uint32Array([3, 1, 2, 3, 3, 1, 3, 0]) };
 

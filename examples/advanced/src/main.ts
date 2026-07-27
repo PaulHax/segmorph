@@ -25,11 +25,15 @@ const strideInput = query<HTMLSelectElement>('#stride');
 // its own label value. Segments are addressed by id rather than by the voxel
 // value they happen to occupy, which is what lets them overlap.
 const segmentation = SEGMENT_SEEDS.reduce(
-  (acc, seed) => addSegment(acc, createSegment({
-    id: seed.id,
-    name: seed.name,
-    color: seed.color,
-  })),
+  (acc, seed) =>
+    addSegment(
+      acc,
+      createSegment({
+        id: seed.id,
+        name: seed.name,
+        color: seed.color,
+      }),
+    ),
   createSegmentation('labelmap'),
 );
 
@@ -40,11 +44,12 @@ const sliceView = createSliceView(query('#slice-view'), SEGMENT_SEEDS);
 
 const scheduler = createConversionScheduler({
   debounceMs: 150,
-  getSegments: () => SEGMENT_SEEDS.map((seed, index) => ({
-    id: seed.id,
-    labelValue: index + 1,
-    window: seed.window,
-  })),
+  getSegments: () =>
+    SEGMENT_SEEDS.map((seed, index) => ({
+      id: seed.id,
+      labelValue: index + 1,
+      window: seed.window,
+    })),
   getPipeline: () => ({
     smoothIterations: Number(smoothInput.value),
     targetReduction: Number(decimateInput.value) / 100,
@@ -66,8 +71,9 @@ const scheduler = createConversionScheduler({
     // Each number sits next to the control that changes it: mesh counts by the
     // smoothing and decimation sliders, loop counts by the slice slider.
     const reduction = extracted > 0 ? Math.round((1 - final / extracted) * 100) : 0;
-    meshStat.textContent = `${extracted.toLocaleString()} -> ${final.toLocaleString()} tris`
-      + ` (${reduction}% fewer), ${(response.durationMs / 1000).toFixed(1)}s`;
+    meshStat.textContent =
+      `${extracted.toLocaleString()} -> ${final.toLocaleString()} tris` +
+      ` (${reduction}% fewer), ${(response.durationMs / 1000).toFixed(1)}s`;
     updateLoopStat();
   },
 });

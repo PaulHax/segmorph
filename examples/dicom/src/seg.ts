@@ -70,13 +70,15 @@ export function encodeSeg(
         (segmentIndex * sliceCount + slice) * frameVoxels,
       );
       perFrameGroups.push({
-        PlanePositionSequence: [{
-          ImagePositionPatient: [
-            origin[0] + slice * spacing[2] * zAxis[0],
-            origin[1] + slice * spacing[2] * zAxis[1],
-            origin[2] + slice * spacing[2] * zAxis[2],
-          ],
-        }],
+        PlanePositionSequence: [
+          {
+            ImagePositionPatient: [
+              origin[0] + slice * spacing[2] * zAxis[0],
+              origin[1] + slice * spacing[2] * zAxis[1],
+              origin[2] + slice * spacing[2] * zAxis[2],
+            ],
+          },
+        ],
         SegmentIdentificationSequence: [{ ReferencedSegmentNumber: segment.number }],
       });
     }
@@ -105,35 +107,49 @@ export function encodeSeg(
     PixelRepresentation: 0,
     PhotometricInterpretation: 'MONOCHROME2',
     LossyImageCompression: '00',
-    SharedFunctionalGroupsSequence: [{
-      PixelMeasuresSequence: [{
-        // PixelSpacing is row spacing then column spacing.
-        PixelSpacing: [spacing[1], spacing[0]],
-        SpacingBetweenSlices: spacing[2],
-        SliceThickness: spacing[2],
-      }],
-      PlaneOrientationSequence: [{
-        ImageOrientationPatient: [
-          direction[0][0], direction[1][0], direction[2][0],
-          direction[0][1], direction[1][1], direction[2][1],
+    SharedFunctionalGroupsSequence: [
+      {
+        PixelMeasuresSequence: [
+          {
+            // PixelSpacing is row spacing then column spacing.
+            PixelSpacing: [spacing[1], spacing[0]],
+            SpacingBetweenSlices: spacing[2],
+            SliceThickness: spacing[2],
+          },
         ],
-      }],
-    }],
+        PlaneOrientationSequence: [
+          {
+            ImageOrientationPatient: [
+              direction[0][0],
+              direction[1][0],
+              direction[2][0],
+              direction[0][1],
+              direction[1][1],
+              direction[2][1],
+            ],
+          },
+        ],
+      },
+    ],
     PerFrameFunctionalGroupsSequence: perFrameGroups,
     SegmentSequence: segments.map((segment) => ({
       SegmentNumber: segment.number,
       SegmentLabel: segment.label,
       SegmentAlgorithmType: 'MANUAL',
-      SegmentedPropertyCategoryCodeSequence: [{
-        CodeValue: 'T-D0050',
-        CodingSchemeDesignator: 'SRT',
-        CodeMeaning: 'Tissue',
-      }],
-      SegmentedPropertyTypeCodeSequence: [{
-        CodeValue: 'T-D0050',
-        CodingSchemeDesignator: 'SRT',
-        CodeMeaning: 'Tissue',
-      }],
+      SegmentedPropertyCategoryCodeSequence: [
+        {
+          CodeValue: 'T-D0050',
+          CodingSchemeDesignator: 'SRT',
+          CodeMeaning: 'Tissue',
+        },
+      ],
+      SegmentedPropertyTypeCodeSequence: [
+        {
+          CodeValue: 'T-D0050',
+          CodingSchemeDesignator: 'SRT',
+          CodeMeaning: 'Tissue',
+        },
+      ],
     })),
     PixelData: packed.buffer.slice(packed.byteOffset, packed.byteOffset + packed.byteLength),
     _vrMap: { PixelData: 'OB' },
@@ -172,7 +188,12 @@ export function decodeSeg(buffer: ArrayBuffer): Seg {
     const segmentNumber = Number(
       toList<any>(group.SegmentIdentificationSequence)[0].ReferencedSegmentNumber,
     );
-    return { index, position, segmentNumber, z: position[0] * zAxis[0] + position[1] * zAxis[1] + position[2] * zAxis[2] };
+    return {
+      index,
+      position,
+      segmentNumber,
+      z: position[0] * zAxis[0] + position[1] * zAxis[1] + position[2] * zAxis[2],
+    };
   });
   if (frames.length !== frameCount) {
     throw new Error(`Expected ${frameCount} per-frame groups, found ${frames.length}`);
@@ -188,9 +209,10 @@ export function decodeSeg(buffer: ArrayBuffer): Seg {
   const firstSegmentSlices = frames
     .filter((frame) => frame.segmentNumber === first.segmentNumber)
     .sort((a, b) => a.z - b.z);
-  const sliceGap = firstSegmentSlices.length > 1
-    ? firstSegmentSlices[1].z - firstSegmentSlices[0].z
-    : Number(measures.SpacingBetweenSlices ?? measures.SliceThickness ?? 1);
+  const sliceGap =
+    firstSegmentSlices.length > 1
+      ? firstSegmentSlices[1].z - firstSegmentSlices[0].z
+      : Number(measures.SpacingBetweenSlices ?? measures.SliceThickness ?? 1);
 
   const geometry: SegGeometry = {
     dims: [nx, ny, nz],

@@ -6,7 +6,11 @@ import { createOrientedImage } from '../src/image/orientedImage.js';
 // Dev-only benchmark, excluded from `npm test`. Run with:
 //   npx vitest bench --run test/labelmap-to-surface.bench.ts
 
-const identity = [[1, 0, 0], [0, 1, 0], [0, 0, 1]] as const;
+const identity = [
+  [1, 0, 0],
+  [0, 1, 0],
+  [0, 0, 1],
+] as const;
 
 function sphereImage(dim: number, radius: number, labelValue: number) {
   const data = new Uint8Array(dim * dim * dim);

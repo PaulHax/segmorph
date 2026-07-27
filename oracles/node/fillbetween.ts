@@ -173,11 +173,14 @@ for (const c of cases) {
     params: { ...params, ...c.geometry },
     seed: 0,
   };
-  manifest.fixtures = manifest.fixtures.filter((fixture: { algorithm: string; case: string; oracle: { name: string } }) => !(
-    fixture.algorithm === entry.algorithm
-    && fixture.case === entry.case
-    && fixture.oracle.name === entry.oracle.name
-  ));
+  manifest.fixtures = manifest.fixtures.filter(
+    (fixture: { algorithm: string; case: string; oracle: { name: string } }) =>
+      !(
+        fixture.algorithm === entry.algorithm &&
+        fixture.case === entry.case &&
+        fixture.oracle.name === entry.oracle.name
+      ),
+  );
   manifest.fixtures.push(entry);
   console.log(`H/${c.name}: golden written`);
 }

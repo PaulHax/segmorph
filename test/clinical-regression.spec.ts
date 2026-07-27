@@ -13,11 +13,7 @@ import {
   nearestTriangleDistance,
   sampledSurfaceDistances,
 } from './diff/spatial.js';
-import {
-  hasConsistentOutwardOrientation,
-  isManifold,
-  isWatertight,
-} from './diff/structure.js';
+import { hasConsistentOutwardOrientation, isManifold, isWatertight } from './diff/structure.js';
 import { findFixtureEntries, readFixtureManifest, readMeshJson } from './fixtures/loaders.js';
 import { fixtureUrl } from './fixtures/root.js';
 
@@ -69,27 +65,27 @@ type ClinicalParams = {
   goldenTriangleCount: number;
 };
 
-const params: ClinicalParams = JSON.parse(
-  await readFile(new URL('params.json', caseUrl), 'utf8'),
-);
+const params: ClinicalParams = JSON.parse(await readFile(new URL('params.json', caseUrl), 'utf8'));
 
 // World-space extent of the sample points, so "on the volume boundary" is a
 // geometric statement rather than an index one.
 const maxWorld = [0, 1, 2].map((axis) => (params.dims[axis] - 1) * params.spacing[axis]);
-const isInterior = (margin: number) => (point: Point) => [0, 1, 2].every((axis) => (
-  point[axis] > margin * params.spacing[axis]
-  && point[axis] < maxWorld[axis] - margin * params.spacing[axis]
-));
+const isInterior = (margin: number) => (point: Point) =>
+  [0, 1, 2].every(
+    (axis) =>
+      point[axis] > margin * params.spacing[axis] &&
+      point[axis] < maxWorld[axis] - margin * params.spacing[axis],
+  );
 
 async function loadInputs() {
   const [image, golden] = await Promise.all([
     readFile(new URL('input.nrrd', caseUrl)).then((bytes) => createOrientedImage(readNrrd(bytes))),
     readFile(new URL('golden.polyseg.mesh.json', caseUrl), 'utf8').then(readMeshJson),
   ]);
-  const ours = meshSmooth(
-    labelmapToSurface(image, { labelValue: params.labelValue }),
-    { passBand: params.passBand, numberOfIterations: params.iterations },
-  );
+  const ours = meshSmooth(labelmapToSurface(image, { labelValue: params.labelValue }), {
+    passBand: params.passBand,
+    numberOfIterations: params.iterations,
+  });
   return { image, golden, ours };
 }
 

@@ -37,11 +37,7 @@ function circle(
   const loop: number[] = [];
   for (let index = 0; index < count; index += 1) {
     const angle = startAngle + index * step;
-    loop.push(
-      f(centerX + radius * Math.cos(angle)),
-      f(centerY + radiusY * Math.sin(angle)),
-      f(z),
-    );
+    loop.push(f(centerX + radius * Math.cos(angle)), f(centerY + radiusY * Math.sin(angle)), f(z));
   }
   return loop;
 }

@@ -13,11 +13,7 @@ export type NumericTypedArray =
 
 export type VoxelCoordinate = readonly [number, number, number];
 
-function voxelCount(
-  actual: NumericTypedArray,
-  expected: NumericTypedArray,
-  dims: ImageDimensions,
-) {
+function voxelCount(actual: NumericTypedArray, expected: NumericTypedArray, dims: ImageDimensions) {
   if (dims.some((size) => !Number.isInteger(size) || size < 0)) {
     throw new RangeError('Image dimensions must be non-negative integers');
   }
@@ -74,11 +70,7 @@ export function dice(
   return foregroundTotal === 0 ? NaN : (2 * intersection) / foregroundTotal;
 }
 
-export function iou(
-  actual: NumericTypedArray,
-  expected: NumericTypedArray,
-  dims: ImageDimensions,
-) {
+export function iou(actual: NumericTypedArray, expected: NumericTypedArray, dims: ImageDimensions) {
   const { actualForeground, expectedForeground, intersection } = overlapCounts(
     actual,
     expected,

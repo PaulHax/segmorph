@@ -46,7 +46,11 @@ const SCALARS_SHA256 = 'd697a46dadafc1b2e08b9c088e7e78b905c3ddfa602f397992f54cd5
 const DIMS = [256, 256, 133];
 const SPACING = [1.40625, 1.40625, 2.5];
 const ORIGIN = [0, 0, 0];
-const DIRECTION = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+const DIRECTION = [
+  [1, 0, 0],
+  [0, 1, 0],
+  [0, 0, 1],
+];
 
 // Dense bone in this volume's 8-bit window. Measured occupancy: 101742 voxels.
 const THRESHOLD = 128;
@@ -77,8 +81,8 @@ async function loadScalars() {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(
-      `Clinical oracle could not download LIDC2 (${response.status} ${response.statusText}) from ${url}. `
-      + 'The oracle tier needs network access for this dataset.',
+      `Clinical oracle could not download LIDC2 (${response.status} ${response.statusText}) from ${url}. ` +
+        'The oracle tier needs network access for this dataset.',
     );
   }
   const scalars = new Uint8Array(gunzipSync(new Uint8Array(await response.arrayBuffer())));
@@ -88,9 +92,9 @@ async function loadScalars() {
 }
 
 function writeNrrdBytes(data: Uint8Array) {
-  const columns = [0, 1, 2].map((axis) => (
-    `(${[0, 1, 2].map((row) => DIRECTION[row][axis] * SPACING[axis]).join(',')})`
-  ));
+  const columns = [0, 1, 2].map(
+    (axis) => `(${[0, 1, 2].map((row) => DIRECTION[row][axis] * SPACING[axis]).join(',')})`,
+  );
   const header = [
     'NRRD0005',
     'type: uint8',
@@ -121,8 +125,8 @@ if (scalars.length !== expectedLength) {
 const digest = createHash('sha256').update(scalars).digest('hex');
 if (digest !== SCALARS_SHA256) {
   throw new Error(
-    `LIDC2 payload digest ${digest} does not match the pinned ${SCALARS_SHA256}. `
-    + 'The upstream dataset changed; re-calibrate the clinical goldens before updating the pin.',
+    `LIDC2 payload digest ${digest} does not match the pinned ${SCALARS_SHA256}. ` +
+      'The upstream dataset changed; re-calibrate the clinical goldens before updating the pin.',
   );
 }
 
@@ -185,11 +189,14 @@ const manifestText = await readFile(manifestUrl, 'utf8').catch((error) => {
 });
 const manifest = JSON.parse(manifestText);
 type ManifestEntry = { algorithm: string; case: string; oracle: { name: string } };
-manifest.fixtures = manifest.fixtures.filter((fixture: ManifestEntry) => !(
-  fixture.algorithm === ALGORITHM
-  && fixture.case === CASE
-  && fixture.oracle.name === ORACLE_NAME
-));
+manifest.fixtures = manifest.fixtures.filter(
+  (fixture: ManifestEntry) =>
+    !(
+      fixture.algorithm === ALGORITHM &&
+      fixture.case === CASE &&
+      fixture.oracle.name === ORACLE_NAME
+    ),
+);
 manifest.fixtures.push({
   oracle: { name: ORACLE_NAME, version: POLYSEG_VERSION },
   algorithm: ALGORITHM,
@@ -200,6 +207,6 @@ manifest.fixtures.push({
 await writeFile(manifestUrl, `${JSON.stringify(manifest, null, 2)}\n`);
 
 console.log(
-  `L/${CASE}: voxels=${voxelCount} goldenPoints=${params.goldenPointCount} `
-  + `goldenTriangles=${params.goldenTriangleCount}`,
+  `L/${CASE}: voxels=${voxelCount} goldenPoints=${params.goldenPointCount} ` +
+    `goldenTriangles=${params.goldenTriangleCount}`,
 );

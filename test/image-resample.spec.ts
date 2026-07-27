@@ -38,25 +38,26 @@ describe('nearest-neighbor oriented-image resampling', () => {
       ...geometry({ dims: [2, 1, 1] }),
       data: new Uint8Array([7, 9]),
     };
-    const output = resampleNearest(input, geometry({
-      dims: [1, 2, 1],
-      direction: [
-        [0, 1, 0],
-        [-1, 0, 0],
-        [0, 0, 1],
-      ],
-    }));
+    const output = resampleNearest(
+      input,
+      geometry({
+        dims: [1, 2, 1],
+        direction: [
+          [0, 1, 0],
+          [-1, 0, 0],
+          [0, 0, 1],
+        ],
+      }),
+    );
 
     expect(output.data).toEqual(new Uint8Array([7, 9]));
   });
 
   it('uses the requested fill value outside the input geometry', () => {
     const input = { ...geometry({ dims: [1, 1, 1] }), data: new Int16Array([5]) };
-    const output = resampleNearest(
-      input,
-      geometry({ dims: [2, 1, 1], origin: [-1, 0, 0] }),
-      { fillValue: -2 },
-    );
+    const output = resampleNearest(input, geometry({ dims: [2, 1, 1], origin: [-1, 0, 0] }), {
+      fillValue: -2,
+    });
 
     expect(output.data).toBeInstanceOf(Int16Array);
     expect(output.data).toEqual(new Int16Array([-2, 5]));

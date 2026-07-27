@@ -57,7 +57,10 @@ export function renameSegment(segmentation: Segmentation, id: string, name: stri
   };
 }
 
-export function reorderSegments(segmentation: Segmentation, order: readonly string[]): Segmentation {
+export function reorderSegments(
+  segmentation: Segmentation,
+  order: readonly string[],
+): Segmentation {
   const uniqueIds = new Set(order);
   if (
     order.length !== segmentation.order.length ||

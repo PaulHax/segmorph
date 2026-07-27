@@ -29,9 +29,14 @@ function resolveExtent(dims: readonly number[], extent?: Extent3D): Extent3D {
   if (resolved[0] > resolved[1] || resolved[2] > resolved[3] || resolved[4] > resolved[5]) {
     throw new Error('extent bounds must be ordered');
   }
-  if (resolved[0] < 0 || resolved[1] >= dims[0]
-    || resolved[2] < 0 || resolved[3] >= dims[1]
-    || resolved[4] < 0 || resolved[5] >= dims[2]) {
+  if (
+    resolved[0] < 0 ||
+    resolved[1] >= dims[0] ||
+    resolved[2] < 0 ||
+    resolved[3] >= dims[1] ||
+    resolved[4] < 0 ||
+    resolved[5] >= dims[2]
+  ) {
     throw new Error('extent must be within image dimensions');
   }
   return resolved;

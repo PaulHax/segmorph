@@ -4,11 +4,7 @@ import { contourToSurface } from '../src/convert/contourToSurface.js';
 import { surfaceToContour } from '../src/convert/surfaceToContour.js';
 import { createContourPlane } from '../src/geometry/contour.js';
 import { contourToSurfaceCases } from './contourToSurfaceCases.js';
-import {
-  hasConsistentOutwardOrientation,
-  isManifold,
-  isWatertight,
-} from './diff/structure.js';
+import { hasConsistentOutwardOrientation, isManifold, isWatertight } from './diff/structure.js';
 import { boundingBox } from './diff/mesh.js';
 
 describe('contourToSurface validation', () => {
@@ -46,11 +42,7 @@ describe('contourToSurface structural invariants', () => {
 
 const axialPlane = (z: number) => createContourPlane([0, 0, z], [1, 0, 0], [0, 1, 0]);
 
-function loopRadialRange(
-  loop: { points: Float64Array },
-  centerX: number,
-  centerY: number,
-) {
+function loopRadialRange(loop: { points: Float64Array }, centerX: number, centerY: number) {
   let minimum = Infinity;
   let maximum = -Infinity;
   for (let offset = 0; offset < loop.points.length; offset += 2) {
@@ -66,8 +58,9 @@ function loopArea(loop: { points: Float64Array }) {
   const count = loop.points.length / 2;
   for (let index = 0; index < count; index += 1) {
     const next = (index + 1) % count;
-    area += loop.points[index * 2] * loop.points[next * 2 + 1]
-      - loop.points[next * 2] * loop.points[index * 2 + 1];
+    area +=
+      loop.points[index * 2] * loop.points[next * 2 + 1] -
+      loop.points[next * 2] * loop.points[index * 2 + 1];
   }
   return area / 2;
 }
@@ -143,9 +136,7 @@ describe('end capping modes', () => {
     expect(bounds.max[2]).toBeCloseTo(contourMaxZ + spacing / 2, 5);
     // Straight caps keep the source circle's footprint; smooth caps shrink it.
     const smooth = boundingBox(contourToSurface(loops));
-    expect(bounds.max[0] - bounds.min[0]).toBeGreaterThanOrEqual(
-      smooth.max[0] - smooth.min[0],
-    );
+    expect(bounds.max[0] - bounds.min[0]).toBeGreaterThanOrEqual(smooth.max[0] - smooth.min[0]);
   });
 
   it('defaultSliceThickness drives the caps when only one plane exists', () => {

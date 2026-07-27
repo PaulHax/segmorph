@@ -81,13 +81,15 @@ function convertSegment(
   // Marching cubes leaves voxel-staircase facets. Smoothing relaxes them
   // without changing the vertex count; decimation then removes the vertices
   // the flattened regions no longer need.
-  const smoothed: Mesh = pipeline.smoothIterations > 0
-    ? meshSmooth(extracted, { numberOfIterations: pipeline.smoothIterations })
-    : extracted;
+  const smoothed: Mesh =
+    pipeline.smoothIterations > 0
+      ? meshSmooth(extracted, { numberOfIterations: pipeline.smoothIterations })
+      : extracted;
 
-  const mesh: Mesh = pipeline.targetReduction > 0
-    ? meshDecimate(smoothed, { targetReduction: pipeline.targetReduction })
-    : smoothed;
+  const mesh: Mesh =
+    pipeline.targetReduction > 0
+      ? meshDecimate(smoothed, { targetReduction: pipeline.targetReduction })
+      : smoothed;
 
   return {
     id: segment.id,
@@ -101,8 +103,8 @@ function convert(request: ConvertRequest, source: Uint8Array, imageGeometry: Ima
   const start = performance.now();
   const volume = workingVolume(request.stride, source, imageGeometry);
 
-  const segments = request.segments.map(
-    (segment) => convertSegment(segment, request.pipeline, volume),
+  const segments = request.segments.map((segment) =>
+    convertSegment(segment, request.pipeline, volume),
   );
 
   const response: ConvertResponse = {

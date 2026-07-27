@@ -24,11 +24,11 @@ type SurfaceToLabelmapRule = Extract<Rules[number], { source: 'surface'; target:
 type ContourToSurfaceRule = Extract<Rules[number], { source: 'contour'; target: 'surface' }>;
 
 expectTypeOf<LabelmapToSurfaceRule['convert']>()
-  .parameter(0).toEqualTypeOf<OrientedImage<ImageData>>();
+  .parameter(0)
+  .toEqualTypeOf<OrientedImage<ImageData>>();
 expectTypeOf<LabelmapToSurfaceRule['convert']>().returns.toEqualTypeOf<Mesh>();
 expectTypeOf<SurfaceToLabelmapRule['convert']>().parameter(0).toEqualTypeOf<Mesh>();
-expectTypeOf<SurfaceToLabelmapRule['convert']>().returns
-  .toEqualTypeOf<OrientedImage<ImageData>>();
+expectTypeOf<SurfaceToLabelmapRule['convert']>().returns.toEqualTypeOf<OrientedImage<ImageData>>();
 expectTypeOf<ContourToSurfaceRule['convert']>().returns.toEqualTypeOf<Mesh>();
 
 const identity = [
@@ -96,8 +96,9 @@ describe('default conversion rules', () => {
     expect(output.spacing).toEqual(geometry.spacing);
     expect(output.origin).toEqual(geometry.origin);
     expect(output.direction).toEqual(geometry.direction);
-    expect(dice(output.data, input.data, geometry.dims as [number, number, number]))
-      .toBeGreaterThanOrEqual(0.95);
+    expect(
+      dice(output.data, input.data, geometry.dims as [number, number, number]),
+    ).toBeGreaterThanOrEqual(0.95);
   });
 
   it('reaches the contour representation from a labelmap', () => {
@@ -138,17 +139,16 @@ describe('default conversion rules', () => {
     expect(toContour).toBeDefined();
     expect(toLabelmap).toBeDefined();
 
-    const output = applyPath(
-      toLabelmap!,
-      applyPath(toContour!, input),
-    ) as ReturnType<typeof sphereLabelmap>;
-    expect(dice(output.data, input.data, geometry.dims as [number, number, number]))
-      .toBeGreaterThanOrEqual(0.9);
+    const output = applyPath(toLabelmap!, applyPath(toContour!, input)) as ReturnType<
+      typeof sphereLabelmap
+    >;
+    expect(
+      dice(output.data, input.data, geometry.dims as [number, number, number]),
+    ).toBeGreaterThanOrEqual(0.9);
   });
 
   it('returns undefined for an unreachable representation', () => {
-    expect(findCheapestPath(graph, defaultRepresentations.labelmap, 'fractional'))
-      .toBeUndefined();
+    expect(findCheapestPath(graph, defaultRepresentations.labelmap, 'fractional')).toBeUndefined();
   });
 
   it('registers additional rules immutably', () => {

@@ -19,10 +19,7 @@ const quarterTurn = [
 
 // Rodrigues rotation of `angleDeg` degrees about the (non-axis) unit vector `axis`,
 // giving a genuinely tilted orthonormal direction cosine matrix.
-function rotationDirection(
-  angleDeg: number,
-  axis: readonly [number, number, number],
-) {
+function rotationDirection(angleDeg: number, axis: readonly [number, number, number]) {
   const norm = Math.hypot(...axis);
   const [kx, ky, kz] = axis.map((value) => value / norm);
   const angle = (angleDeg * Math.PI) / 180;
@@ -43,10 +40,7 @@ function flatIndex(x: number, y: number, z: number, dims: readonly number[]) {
   return x + dims[0] * (y + dims[1] * z);
 }
 
-function labelmap(
-  geometry: ImageGeometry,
-  includes: (x: number, y: number, z: number) => boolean,
-) {
+function labelmap(geometry: ImageGeometry, includes: (x: number, y: number, z: number) => boolean) {
   const data = new Uint8Array(geometry.dims[0] * geometry.dims[1] * geometry.dims[2]);
   for (let z = 0; z < geometry.dims[2]; z += 1) {
     for (let y = 0; y < geometry.dims[1]; y += 1) {
@@ -77,9 +71,8 @@ describe('labelmap -> surface -> labelmap acceptance', () => {
         origin: [-4, 8, 12],
         direction: identity,
       },
-      includes: (x: number, y: number, z: number) => (
-        x >= 2 && x <= 4 && y >= 2 && y <= 4 && z >= 2 && z <= 4
-      ),
+      includes: (x: number, y: number, z: number) =>
+        x >= 2 && x <= 4 && y >= 2 && y <= 4 && z >= 2 && z <= 4,
     },
     {
       name: 'concave L-shape in an oblique geometry',
@@ -89,11 +82,10 @@ describe('labelmap -> surface -> labelmap acceptance', () => {
         origin: [17, -9, 3],
         direction: quarterTurn,
       },
-      includes: (x: number, y: number, z: number) => (
-        z >= 1 && z <= 3
-        && ((x >= 1 && x <= 2 && y >= 1 && y <= 6)
-          || (x >= 1 && x <= 5 && y >= 1 && y <= 2))
-      ),
+      includes: (x: number, y: number, z: number) =>
+        z >= 1 &&
+        z <= 3 &&
+        ((x >= 1 && x <= 2 && y >= 1 && y <= 6) || (x >= 1 && x <= 5 && y >= 1 && y <= 2)),
     },
     {
       name: 'interior cube in a fully tilted anisotropic geometry',
@@ -103,9 +95,8 @@ describe('labelmap -> surface -> labelmap acceptance', () => {
         origin: [3, -5, 7],
         direction: tilted,
       },
-      includes: (x: number, y: number, z: number) => (
-        x >= 2 && x <= 6 && y >= 2 && y <= 6 && z >= 2 && z <= 6
-      ),
+      includes: (x: number, y: number, z: number) =>
+        x >= 2 && x <= 6 && y >= 2 && y <= 6 && z >= 2 && z <= 6,
     },
   ])('$name', ({ geometry, includes }) => {
     const input = labelmap(geometry, includes);
@@ -116,9 +107,9 @@ describe('labelmap -> surface -> labelmap acceptance', () => {
     expectGeometry(output, geometry);
     // Measured: the round trip is voxel-exact for every case above (mismatchCount 0,
     // Dice 1), so assert exactness rather than a padded fraction.
-    expect(mismatchCount(output.data, input.data, geometry.dims as [number, number, number]))
-      .toBe(0);
-    expect(dice(output.data, input.data, geometry.dims as [number, number, number]))
-      .toBe(1);
+    expect(mismatchCount(output.data, input.data, geometry.dims as [number, number, number])).toBe(
+      0,
+    );
+    expect(dice(output.data, input.data, geometry.dims as [number, number, number])).toBe(1);
   });
 });

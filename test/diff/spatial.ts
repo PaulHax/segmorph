@@ -41,22 +41,23 @@ export function buildTriangleGrid(mesh: Mesh): TriangleGrid {
   const volume = Math.max(extent[0], 1e-9) * Math.max(extent[1], 1e-9) * Math.max(extent[2], 1e-9);
   const cellSize = Math.max(Math.cbrt((volume * 4) / faces.length), 1e-9);
 
-  const counts = extent.map((length) => (
-    Math.max(1, Math.ceil(length / cellSize) + 1)
-  )) as [number, number, number];
+  const counts = extent.map((length) => Math.max(1, Math.ceil(length / cellSize) + 1)) as [
+    number,
+    number,
+    number,
+  ];
 
   const cells = new Map<number, Face[]>();
-  const index = (value: number, axis: number) => (
-    Math.min(counts[axis] - 1, Math.max(0, Math.floor((value - min[axis]) / cellSize)))
-  );
+  const index = (value: number, axis: number) =>
+    Math.min(counts[axis] - 1, Math.max(0, Math.floor((value - min[axis]) / cellSize)));
 
   for (const triangle of faces) {
-    const lo = [0, 1, 2].map((axis) => index(
-      Math.min(triangle[0][axis], triangle[1][axis], triangle[2][axis]), axis,
-    ));
-    const hi = [0, 1, 2].map((axis) => index(
-      Math.max(triangle[0][axis], triangle[1][axis], triangle[2][axis]), axis,
-    ));
+    const lo = [0, 1, 2].map((axis) =>
+      index(Math.min(triangle[0][axis], triangle[1][axis], triangle[2][axis]), axis),
+    );
+    const hi = [0, 1, 2].map((axis) =>
+      index(Math.max(triangle[0][axis], triangle[1][axis], triangle[2][axis]), axis),
+    );
     for (let z = lo[2]; z <= hi[2]; z += 1) {
       for (let y = lo[1]; y <= hi[1]; y += 1) {
         for (let x = lo[0]; x <= hi[0]; x += 1) {
@@ -74,9 +75,9 @@ export function buildTriangleGrid(mesh: Mesh): TriangleGrid {
 
 export function nearestTriangleDistance(grid: TriangleGrid, point: Point) {
   const { cellSize, min, counts, cells } = grid;
-  const home = [0, 1, 2].map((axis) => (
-    Math.min(counts[axis] - 1, Math.max(0, Math.floor((point[axis] - min[axis]) / cellSize)))
-  ));
+  const home = [0, 1, 2].map((axis) =>
+    Math.min(counts[axis] - 1, Math.max(0, Math.floor((point[axis] - min[axis]) / cellSize))),
+  );
 
   let bestSquared = Infinity;
   const maxRing = Math.max(...counts);
@@ -97,10 +98,11 @@ export function nearestTriangleDistance(grid: TriangleGrid, point: Point) {
         for (let x = home[0] - ring; x <= home[0] + ring; x += 1) {
           if (x < 0 || x >= counts[0]) continue;
           // Only the shell of the box is new on this ring.
-          const onShell = ring === 0
-            || Math.abs(x - home[0]) === ring
-            || Math.abs(y - home[1]) === ring
-            || Math.abs(z - home[2]) === ring;
+          const onShell =
+            ring === 0 ||
+            Math.abs(x - home[0]) === ring ||
+            Math.abs(y - home[1]) === ring ||
+            Math.abs(z - home[2]) === ring;
           if (!onShell) continue;
           searchedAny = true;
 
@@ -142,9 +144,10 @@ function sampleVertices(
   if (points.length <= maxSamples) return points;
   const random = mulberry32(seed);
   const stride = points.length / maxSamples;
-  return Array.from({ length: maxSamples }, (_, index) => (
-    points[Math.min(points.length - 1, Math.floor((index + random()) * stride))]
-  ));
+  return Array.from(
+    { length: maxSamples },
+    (_, index) => points[Math.min(points.length - 1, Math.floor((index + random()) * stride))],
+  );
 }
 
 /**
@@ -168,10 +171,12 @@ export function sampledSurfaceDistances(
   const gridA = buildTriangleGrid(a);
   const gridB = buildTriangleGrid(b);
   const distances = [
-    ...sampleVertices(a, maxSamples, seed, accept)
-      .map((point) => nearestTriangleDistance(gridB, point)),
-    ...sampleVertices(b, maxSamples, seed + 1, accept)
-      .map((point) => nearestTriangleDistance(gridA, point)),
+    ...sampleVertices(a, maxSamples, seed, accept).map((point) =>
+      nearestTriangleDistance(gridB, point),
+    ),
+    ...sampleVertices(b, maxSamples, seed + 1, accept).map((point) =>
+      nearestTriangleDistance(gridA, point),
+    ),
   ];
 
   return {

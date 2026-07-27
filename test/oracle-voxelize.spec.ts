@@ -5,16 +5,10 @@ import { describe, expect, it } from 'vitest';
 import { surfaceToLabelmap } from '../src/convert/surfaceToLabelmap.js';
 import { readNrrd } from '../src/io/nrrd.js';
 import { dice, mismatchCount } from './diff/image.js';
-import {
-  findFixtureEntries,
-  readFixtureManifest,
-  readMeshJson,
-} from './fixtures/loaders.js';
+import { findFixtureEntries, readFixtureManifest, readMeshJson } from './fixtures/loaders.js';
 import { fixtureUrl } from './fixtures/root.js';
 
-const fixture = (algorithm: string, name: string) => (
-  fixtureUrl(`${algorithm}/sphere/${name}`)
-);
+const fixture = (algorithm: string, name: string) => fixtureUrl(`${algorithm}/sphere/${name}`);
 
 describe('surface voxelization oracle', () => {
   it('regenerates the smoothed sphere close to its source labelmap', async () => {
@@ -31,12 +25,13 @@ describe('surface voxelization oracle', () => {
   });
 
   it('records the generating VTK oracle in the fixture manifest', async () => {
-    const manifest = readFixtureManifest(
-      await readFile(fixtureUrl('manifest.json'), 'utf8'),
-    );
+    const manifest = readFixtureManifest(await readFile(fixtureUrl('manifest.json'), 'utf8'));
 
-    expect(findFixtureEntries(manifest, 'D', 'sphere').map((entry) => entry.oracle.name).sort())
-      .toEqual(['icr-polyseg-wasm', 'python-vtk']);
+    expect(
+      findFixtureEntries(manifest, 'D', 'sphere')
+        .map((entry) => entry.oracle.name)
+        .sort(),
+    ).toEqual(['icr-polyseg-wasm', 'python-vtk']);
   });
 
   it('matches the VTK voxelization fixture', async () => {
@@ -65,12 +60,13 @@ describe('PolySeg voxelization oracle', () => {
   };
 
   it('records the composed PolySeg oracle in the fixture manifest', async () => {
-    const manifest = readFixtureManifest(
-      await readFile(fixtureUrl('manifest.json'), 'utf8'),
-    );
+    const manifest = readFixtureManifest(await readFile(fixtureUrl('manifest.json'), 'utf8'));
 
-    expect(findFixtureEntries(manifest, 'D', 'sphere').map((entry) => entry.oracle.name).sort())
-      .toEqual(['icr-polyseg-wasm', 'python-vtk']);
+    expect(
+      findFixtureEntries(manifest, 'D', 'sphere')
+        .map((entry) => entry.oracle.name)
+        .sort(),
+    ).toEqual(['icr-polyseg-wasm', 'python-vtk']);
   });
 
   it('agrees with the Python VTK golden within the cross-implementation spread', async () => {
@@ -104,33 +100,34 @@ describe('PolySeg voxelization oracle', () => {
 // bug in voxelization can no longer hide behind the trivial identity case.
 describe('oriented surface voxelization oracle', () => {
   const cases = ['oblique', 'anisotropic', 'oblique-anisotropic'] as const;
-  const orientedFixture = (name: string, file: string) => (
-    fixtureUrl(`D/${name}/${file}`)
-  );
+  const orientedFixture = (name: string, file: string) => fixtureUrl(`D/${name}/${file}`);
 
   it('records each oriented VTK case in the fixture manifest', async () => {
-    const manifest = readFixtureManifest(
-      await readFile(fixtureUrl('manifest.json'), 'utf8'),
-    );
+    const manifest = readFixtureManifest(await readFile(fixtureUrl('manifest.json'), 'utf8'));
 
     for (const name of cases) {
-      expect(findFixtureEntries(manifest, 'D', name).map((entry) => entry.oracle.name))
-        .toEqual(['python-vtk']);
+      expect(findFixtureEntries(manifest, 'D', name).map((entry) => entry.oracle.name)).toEqual([
+        'python-vtk',
+      ]);
     }
   });
 
-  it.each(cases)('matches the VTK voxelization on the %s grid', async (name) => {
-    const [meshJson, golden] = await Promise.all([
-      readFile(orientedFixture(name, 'input.mesh.json'), 'utf8'),
-      readNrrd(await readFile(orientedFixture(name, 'golden.nrrd'))),
-    ]);
-    const actual = surfaceToLabelmap(readMeshJson(meshJson), golden, { labelValue: 1 });
-    const dims = golden.dims as [number, number, number];
+  it.each(cases)(
+    'matches the VTK voxelization on the %s grid',
+    async (name) => {
+      const [meshJson, golden] = await Promise.all([
+        readFile(orientedFixture(name, 'input.mesh.json'), 'utf8'),
+        readNrrd(await readFile(orientedFixture(name, 'golden.nrrd'))),
+      ]);
+      const actual = surfaceToLabelmap(readMeshJson(meshJson), golden, { labelValue: 1 });
+      const dims = golden.dims as [number, number, number];
 
-    // Our world-space rasterizer reproduces vtkPolyDataToImageStencil voxel for
-    // voxel on every oriented grid; any residual mismatch would be a transform
-    // or bounds bug, so the tolerance is exact.
-    expect(dice(actual.data, golden.data, dims)).toBe(1);
-    expect(mismatchCount(actual.data, golden.data, dims)).toBe(0);
-  }, 15_000);
+      // Our world-space rasterizer reproduces vtkPolyDataToImageStencil voxel for
+      // voxel on every oriented grid; any residual mismatch would be a transform
+      // or bounds bug, so the tolerance is exact.
+      expect(dice(actual.data, golden.data, dims)).toBe(1);
+      expect(mismatchCount(actual.data, golden.data, dims)).toBe(0);
+    },
+    15_000,
+  );
 });

@@ -37,9 +37,18 @@ const zIntersection = 8;
 // Each intersected voxel-cell edge activates its two adjacent cell faces,
 // faces ordered -x,+x,-y,+y,-z,+z (GetFaceCase, vtkSurfaceNets3D.cxx:238-293).
 const edgeFaces = [
-  [2, 4], [3, 4], [2, 5], [3, 5],
-  [0, 4], [1, 4], [0, 5], [1, 5],
-  [0, 2], [1, 2], [0, 3], [1, 3],
+  [2, 4],
+  [3, 4],
+  [2, 5],
+  [3, 5],
+  [0, 4],
+  [1, 4],
+  [0, 5],
+  [1, 5],
+  [0, 2],
+  [1, 2],
+  [0, 3],
+  [1, 3],
 ] as const;
 
 function popcount(value: number) {
@@ -65,9 +74,10 @@ const stencilTable = new Uint8Array(4096).map((_, edgeCase) => {
     }
   }
   if (Math.max(...faceCounts) <= 2) return faceCase;
-  return faceCounts.reduce((junctions, count, face) => (
-    count > 2 ? junctions | (1 << face) : junctions
-  ), 0);
+  return faceCounts.reduce(
+    (junctions, count, face) => (count > 2 ? junctions | (1 << face) : junctions),
+    0,
+  );
 });
 
 // Constrained Laplacian smoothing (vtkConstrainedSmoothingFilter.cxx:134-350):
@@ -157,9 +167,11 @@ function triangulateQuads(points: Float32Array, quads: readonly number[]) {
   const distance2 = (a: number, b: number) => {
     const i = a * 3;
     const j = b * 3;
-    return (points[i] - points[j]) ** 2
-      + (points[i + 1] - points[j + 1]) ** 2
-      + (points[i + 2] - points[j + 2]) ** 2;
+    return (
+      (points[i] - points[j]) ** 2 +
+      (points[i + 1] - points[j + 1]) ** 2 +
+      (points[i + 2] - points[j + 2]) ** 2
+    );
   };
 
   const quadCount = quads.length / 4;
@@ -203,9 +215,7 @@ export function surfaceNets(image: OrientedImage, options: SurfaceNetsOptions): 
   const tdz = mz + 2;
   const triads = new Uint8Array(tdx * tdy * tdz);
   const triadAt = (tx: number, ty: number, tz: number) => triads[tx + tdx * (ty + tdy * tz)];
-  const splits = (v0: number, v1: number) => (
-    (v0 === labelValue || v1 === labelValue) && v0 !== v1
-  );
+  const splits = (v0: number, v1: number) => (v0 === labelValue || v1 === labelValue) && v0 !== v1;
   for (let pz = 0; pz < mz; pz += 1) {
     for (let py = 0; py < my; py += 1) {
       for (let px = 0; px < mx; px += 1) {
@@ -214,7 +224,7 @@ export function surfaceNets(image: OrientedImage, options: SurfaceNetsOptions): 
         if (px + 1 < mx && splits(value, valueAt(px + 1, py, pz))) triad |= xIntersection;
         if (py + 1 < my && splits(value, valueAt(px, py + 1, pz))) triad |= yIntersection;
         if (pz + 1 < mz && splits(value, valueAt(px, py, pz + 1))) triad |= zIntersection;
-        if (triad) triads[(px + 1) + tdx * ((py + 1) + tdy * (pz + 1))] = triad;
+        if (triad) triads[px + 1 + tdx * (py + 1 + tdy * (pz + 1))] = triad;
       }
     }
   }
@@ -242,18 +252,19 @@ export function surfaceNets(image: OrientedImage, options: SurfaceNetsOptions): 
         const t011 = triadAt(cx, cy + 1, cz + 1);
         // vtkVoxel edge numbering: four x-edges, four y-edges, four z-edges
         // (GetEdgeCase, vtkSurfaceNets3D.cxx:199-232).
-        const edgeCase = ((t000 & xIntersection) >> 1)
-          | (t010 & xIntersection)
-          | ((t001 & xIntersection) << 1)
-          | ((t011 & xIntersection) << 2)
-          | ((t000 & yIntersection) << 2)
-          | ((t100 & yIntersection) << 3)
-          | ((t001 & yIntersection) << 4)
-          | ((t101 & yIntersection) << 5)
-          | ((t000 & zIntersection) << 5)
-          | ((t100 & zIntersection) << 6)
-          | ((t010 & zIntersection) << 7)
-          | ((t110 & zIntersection) << 8);
+        const edgeCase =
+          ((t000 & xIntersection) >> 1) |
+          (t010 & xIntersection) |
+          ((t001 & xIntersection) << 1) |
+          ((t011 & xIntersection) << 2) |
+          ((t000 & yIntersection) << 2) |
+          ((t100 & yIntersection) << 3) |
+          ((t001 & yIntersection) << 4) |
+          ((t101 & yIntersection) << 5) |
+          ((t000 & zIntersection) << 5) |
+          ((t100 & zIntersection) << 6) |
+          ((t010 & zIntersection) << 7) |
+          ((t110 & zIntersection) << 8);
         if (edgeCase === 0) continue;
         cellPointIds[cellIndex(cx, cy, cz)] = pointCells.length;
         pointCells.push(cellIndex(cx, cy, cz));
@@ -272,9 +283,7 @@ export function surfaceNets(image: OrientedImage, options: SurfaceNetsOptions): 
   // (or foreground) label outward (GenerateQuadsImpl,
   // vtkSurfaceNets3D.cxx:743-827).
   const quads: number[] = [];
-  const pushQuad = (
-    c0: number, c1: number, c2: number, c3: number, s0: number, s1: number,
-  ) => {
+  const pushQuad = (c0: number, c1: number, c2: number, c3: number, s0: number, s1: number) => {
     if (s0 === backgroundLabel || (s1 !== backgroundLabel && s0 > s1)) {
       quads.push(c0, c3, c2, c1);
     } else {
@@ -286,29 +295,39 @@ export function surfaceNets(image: OrientedImage, options: SurfaceNetsOptions): 
       for (let tx = 1; tx <= mx; tx += 1) {
         const triad = triadAt(tx, ty, tz);
         if ((triad & (xIntersection | yIntersection | zIntersection)) === 0) continue;
-        const point = (cx: number, cy: number, cz: number) => (
-          cellPointIds[cellIndex(cx, cy, cz)]
-        );
+        const point = (cx: number, cy: number, cz: number) => cellPointIds[cellIndex(cx, cy, cz)];
         const s0 = valueAt(tx - 1, ty - 1, tz - 1);
-        if (triad & zIntersection) { // x-y quad
+        if (triad & zIntersection) {
+          // x-y quad
           pushQuad(
-            point(tx, ty, tz), point(tx - 1, ty, tz),
-            point(tx - 1, ty - 1, tz), point(tx, ty - 1, tz),
-            s0, valueAt(tx - 1, ty - 1, tz),
+            point(tx, ty, tz),
+            point(tx - 1, ty, tz),
+            point(tx - 1, ty - 1, tz),
+            point(tx, ty - 1, tz),
+            s0,
+            valueAt(tx - 1, ty - 1, tz),
           );
         }
-        if (triad & yIntersection) { // x-z quad
+        if (triad & yIntersection) {
+          // x-z quad
           pushQuad(
-            point(tx, ty, tz), point(tx, ty, tz - 1),
-            point(tx - 1, ty, tz - 1), point(tx - 1, ty, tz),
-            s0, valueAt(tx - 1, ty, tz - 1),
+            point(tx, ty, tz),
+            point(tx, ty, tz - 1),
+            point(tx - 1, ty, tz - 1),
+            point(tx - 1, ty, tz),
+            s0,
+            valueAt(tx - 1, ty, tz - 1),
           );
         }
-        if (triad & xIntersection) { // y-z quad
+        if (triad & xIntersection) {
+          // y-z quad
           pushQuad(
-            point(tx, ty, tz), point(tx, ty - 1, tz),
-            point(tx, ty - 1, tz - 1), point(tx, ty, tz - 1),
-            s0, valueAt(tx, ty - 1, tz - 1),
+            point(tx, ty, tz),
+            point(tx, ty - 1, tz),
+            point(tx, ty - 1, tz - 1),
+            point(tx, ty, tz - 1),
+            s0,
+            valueAt(tx, ty - 1, tz - 1),
           );
         }
       }
@@ -354,14 +373,14 @@ export function surfaceNets(image: OrientedImage, options: SurfaceNetsOptions): 
   const smoothing = (options.smoothing ?? true) && iterations > 0;
   const points = smoothing
     ? smoothPoints(
-      worldPoints,
-      stencilOffsets,
-      new Int32Array(stencilConn),
-      iterations,
-      options.relaxationFactor ?? 0.5,
-      options.constraintDistance
-        ?? Math.hypot(image.spacing[0], image.spacing[1], image.spacing[2]),
-    )
+        worldPoints,
+        stencilOffsets,
+        new Int32Array(stencilConn),
+        iterations,
+        options.relaxationFactor ?? 0.5,
+        options.constraintDistance ??
+          Math.hypot(image.spacing[0], image.spacing[1], image.spacing[2]),
+      )
     : worldPoints;
 
   return { points, polys: triangulateQuads(points, quads) };

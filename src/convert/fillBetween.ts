@@ -143,7 +143,12 @@ function align(fixed: Mask, moving: Mask): [number, number] {
   }
   for (let iteration = 0; iteration < 100; iteration += 1) {
     let improved = false;
-    for (const [du, dv] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+    for (const [du, dv] of [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ] as const) {
       const candidate: [number, number] = [best[0] + du, best[1] + dv];
       const score = overlapScore(fixed, moving, candidate[0], candidate[1]);
       if (score > bestScore) {
@@ -440,8 +445,13 @@ function interpolateBetweenTwo(
       const b = [...bs][0];
       if ((jCounts.get(b) ?? 0) === 1) {
         interpolate1to1(
-          out, view, labelValue,
-          iIdx, aMask, jIdx, componentMask(jConn.labels, b, nu, nv),
+          out,
+          view,
+          labelValue,
+          iIdx,
+          aMask,
+          jIdx,
+          componentMask(jConn.labels, b, nu, nv),
         );
       } else {
         const list = pendingByJ.get(b) ?? [];
@@ -483,9 +493,10 @@ export function fillBetween<T extends ImageData>(
 
   const out = new (image.data.constructor as new (length: number) => T)(image.data.length);
   const slicesPerAxis = detectSegmentedSlices(image, labelValue);
-  const axes = options.axis !== undefined
-    ? [options.axis]
-    : [0, 1, 2].filter((a) => slicesPerAxis[a].size > 1);
+  const axes =
+    options.axis !== undefined
+      ? [options.axis]
+      : [0, 1, 2].filter((a) => slicesPerAxis[a].size > 1);
 
   for (const axis of axes) {
     const sliceIndices = [...slicesPerAxis[axis]].sort((a, b) => a - b);

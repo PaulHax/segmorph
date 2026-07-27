@@ -4,12 +4,7 @@ import vtkGenericRenderWindow from '@kitware/vtk.js/Rendering/Misc/GenericRender
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData';
 
-import {
-  contourToSurface,
-  createOrientedImage,
-  labelmapToSurface,
-  type Mesh,
-} from 'segmorph';
+import { contourToSurface, createOrientedImage, labelmapToSurface, type Mesh } from 'segmorph';
 
 import { buildRtStructRois, buildSegData, SEG_COLORS } from './data';
 import { decodeRtStruct, encodeRtStruct } from './rtstruct';
@@ -39,9 +34,7 @@ const segBytes = encodeSeg(segSource.geometry, segSource.segments);
 
 const download = (id: string, bytes: ArrayBuffer, filename: string) => {
   const anchor = query<HTMLAnchorElement>(id);
-  anchor.href = URL.createObjectURL(
-    new Blob([bytes], { type: 'application/dicom' }),
-  );
+  anchor.href = URL.createObjectURL(new Blob([bytes], { type: 'application/dicom' }));
   anchor.download = filename;
   anchor.textContent = `${filename} (${(bytes.byteLength / 1024).toFixed(1)} KB)`;
 };
@@ -134,6 +127,7 @@ renderer.resetCameraClippingRange();
 renderWindow.render();
 window.addEventListener('resize', () => grw.resize());
 
-statusLine.textContent = `${rtStruct.rois.length} RTSTRUCT ROIs + `
-  + `${seg.segments.length} SEG segments decoded from `
-  + `${((rtBytes.byteLength + segBytes.byteLength) / 1024).toFixed(1)} KB of DICOM`;
+statusLine.textContent =
+  `${rtStruct.rois.length} RTSTRUCT ROIs + ` +
+  `${seg.segments.length} SEG segments decoded from ` +
+  `${((rtBytes.byteLength + segBytes.byteLength) / 1024).toFixed(1)} KB of DICOM`;

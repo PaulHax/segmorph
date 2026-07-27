@@ -16,21 +16,38 @@ type GridPoint = readonly [number, number, number];
 
 // VTK_VOXEL point ordering: x varies fastest, followed by y and z.
 const cornerOffsets: readonly GridPoint[] = [
-  [0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0],
-  [0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1],
+  [0, 0, 0],
+  [1, 0, 0],
+  [0, 1, 0],
+  [1, 1, 0],
+  [0, 0, 1],
+  [1, 0, 1],
+  [0, 1, 1],
+  [1, 1, 1],
 ];
 
 // VTK's VoxelCases edge numbering from vtkVoxel.cxx.
 const edges = [
-  [0, 1], [1, 3], [2, 3], [0, 2],
-  [4, 5], [5, 7], [6, 7], [4, 6],
-  [0, 4], [1, 5], [2, 6], [3, 7],
+  [0, 1],
+  [1, 3],
+  [2, 3],
+  [0, 2],
+  [4, 5],
+  [5, 7],
+  [6, 7],
+  [4, 6],
+  [0, 4],
+  [1, 5],
+  [2, 6],
+  [3, 7],
 ] as const;
 
 function determinant(direction: readonly (readonly number[])[]) {
-  return direction[0][0] * (direction[1][1] * direction[2][2] - direction[1][2] * direction[2][1])
-    - direction[0][1] * (direction[1][0] * direction[2][2] - direction[1][2] * direction[2][0])
-    + direction[0][2] * (direction[1][0] * direction[2][1] - direction[1][1] * direction[2][0]);
+  return (
+    direction[0][0] * (direction[1][1] * direction[2][2] - direction[1][2] * direction[2][1]) -
+    direction[0][1] * (direction[1][0] * direction[2][2] - direction[1][2] * direction[2][0]) +
+    direction[0][2] * (direction[1][0] * direction[2][1] - direction[1][1] * direction[2][0])
+  );
 }
 
 function edgeKey(left: GridPoint, right: GridPoint) {
@@ -48,8 +65,11 @@ export function labelmapToSurfaceBase<T extends ImageData>(
   options: { labelValue: number },
 ) {
   const image = createOrientedImage(input);
-  if (!Number.isInteger(options.labelValue)
-    || options.labelValue < 1 || options.labelValue > 0xffff_ffff) {
+  if (
+    !Number.isInteger(options.labelValue) ||
+    options.labelValue < 1 ||
+    options.labelValue > 0xffff_ffff
+  ) {
     throw new Error('labelValue must be an integer between 1 and 4294967295');
   }
   const [width, height, depth] = image.dims;
@@ -58,10 +78,14 @@ export function labelmapToSurfaceBase<T extends ImageData>(
   const pointIds = new Map<string, number>();
   const reverseWinding = determinant(image.direction) < 0;
 
-  const isForeground = ([x, y, z]: GridPoint) => (
-    x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < depth
-      && image.data[x + width * (y + height * z)] === options.labelValue
-  );
+  const isForeground = ([x, y, z]: GridPoint) =>
+    x >= 0 &&
+    x < width &&
+    y >= 0 &&
+    y < height &&
+    z >= 0 &&
+    z < depth &&
+    image.data[x + width * (y + height * z)] === options.labelValue;
 
   const getPointId = (left: GridPoint, right: GridPoint) => {
     const key = edgeKey(left, right);

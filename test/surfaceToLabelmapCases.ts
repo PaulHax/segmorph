@@ -1,22 +1,41 @@
-import { createMesh, indexToWorld, type ImageGeometry, type Mesh, type Point } from '../src/index.js';
+import {
+  createMesh,
+  indexToWorld,
+  type ImageGeometry,
+  type Mesh,
+  type Point,
+} from '../src/index.js';
 
 const cubeTriangles = [
-  [0, 2, 1], [0, 3, 2],
-  [4, 5, 6], [4, 6, 7],
-  [0, 1, 5], [0, 5, 4],
-  [3, 7, 6], [3, 6, 2],
-  [0, 4, 7], [0, 7, 3],
-  [1, 2, 6], [1, 6, 5],
+  [0, 2, 1],
+  [0, 3, 2],
+  [4, 5, 6],
+  [4, 6, 7],
+  [0, 1, 5],
+  [0, 5, 4],
+  [3, 7, 6],
+  [3, 6, 2],
+  [0, 4, 7],
+  [0, 7, 3],
+  [1, 2, 6],
+  [1, 6, 5],
 ] as const;
 
 export function cubeMesh(geometry: ImageGeometry, minimum: number, maximum: number) {
   const indexPoints: Point[] = [
-    [minimum, minimum, minimum], [maximum, minimum, minimum],
-    [maximum, maximum, minimum], [minimum, maximum, minimum],
-    [minimum, minimum, maximum], [maximum, minimum, maximum],
-    [maximum, maximum, maximum], [minimum, maximum, maximum],
+    [minimum, minimum, minimum],
+    [maximum, minimum, minimum],
+    [maximum, maximum, minimum],
+    [minimum, maximum, minimum],
+    [minimum, minimum, maximum],
+    [maximum, minimum, maximum],
+    [maximum, maximum, maximum],
+    [minimum, maximum, maximum],
   ];
-  return createMesh(indexPoints.map((point) => indexToWorld(geometry, point)), cubeTriangles);
+  return createMesh(
+    indexPoints.map((point) => indexToWorld(geometry, point)),
+    cubeTriangles,
+  );
 }
 
 function spherePointsAndTriangles(
@@ -40,7 +59,8 @@ function spherePointsAndTriangles(
   }
   points.push([center[0], center[1], center[2] - radius]);
 
-  const ring = (row: number, column: number) => 1 + (row - 1) * azimuthSteps + (column % azimuthSteps);
+  const ring = (row: number, column: number) =>
+    1 + (row - 1) * azimuthSteps + (column % azimuthSteps);
   const south = points.length - 1;
   const triangles: (readonly [number, number, number])[] = [];
   for (let column = 0; column < azimuthSteps; column += 1) {
@@ -56,13 +76,24 @@ function spherePointsAndTriangles(
   return { points, triangles };
 }
 
-export function sphereMesh(center: Point, radius: number, polarSteps: number, azimuthSteps: number) {
+export function sphereMesh(
+  center: Point,
+  radius: number,
+  polarSteps: number,
+  azimuthSteps: number,
+) {
   const { points, triangles } = spherePointsAndTriangles(center, radius, polarSteps, azimuthSteps);
   return createMesh(points, triangles);
 }
 
 /** Two concentric sphere surfaces forming a thin closed shell. */
-export function shellMesh(center: Point, outerRadius: number, innerRadius: number, polarSteps: number, azimuthSteps: number) {
+export function shellMesh(
+  center: Point,
+  outerRadius: number,
+  innerRadius: number,
+  polarSteps: number,
+  azimuthSteps: number,
+) {
   const outer = spherePointsAndTriangles(center, outerRadius, polarSteps, azimuthSteps);
   const inner = spherePointsAndTriangles(center, innerRadius, polarSteps, azimuthSteps);
   const offset = outer.points.length;
@@ -85,23 +116,47 @@ export type RegressionCase = {
 };
 
 const anisotropicGeometry: ImageGeometry = {
-  dims: [24, 20, 16], spacing: [0.5, 1, 1.5], origin: [1, 2, 3],
-  direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+  dims: [24, 20, 16],
+  spacing: [0.5, 1, 1.5],
+  origin: [1, 2, 3],
+  direction: [
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+  ],
 };
 
 const obliqueGeometry: ImageGeometry = {
-  dims: [20, 20, 20], spacing: [1, 1.25, 0.75], origin: [-4, 6, 2],
-  direction: [[cos30, -0.5, 0], [0.5, cos30, 0], [0, 0, 1]],
+  dims: [20, 20, 20],
+  spacing: [1, 1.25, 0.75],
+  origin: [-4, 6, 2],
+  direction: [
+    [cos30, -0.5, 0],
+    [0.5, cos30, 0],
+    [0, 0, 1],
+  ],
 };
 
 const boundaryGeometry: ImageGeometry = {
-  dims: [8, 8, 8], spacing: [1, 1, 1], origin: [0, 0, 0],
-  direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+  dims: [8, 8, 8],
+  spacing: [1, 1, 1],
+  origin: [0, 0, 0],
+  direction: [
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+  ],
 };
 
 const shellGeometry: ImageGeometry = {
-  dims: [32, 32, 32], spacing: [0.5, 0.5, 0.5], origin: [0, 0, 0],
-  direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+  dims: [32, 32, 32],
+  spacing: [0.5, 0.5, 0.5],
+  origin: [0, 0, 0],
+  direction: [
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+  ],
 };
 
 export const regressionCases: RegressionCase[] = [

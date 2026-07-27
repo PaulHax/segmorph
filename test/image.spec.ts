@@ -49,16 +49,24 @@ describe('oriented images', () => {
     expect(() => validateImageGeometry({ ...obliqueGeometry, origin: [0, NaN, 0] })).toThrow(
       'origin must contain three finite numbers',
     );
-    expect(() => validateImageGeometry({
-      ...obliqueGeometry,
-      direction: [[1, 0, 0], [1, 0, 0], [0, 0, 1]],
-    })).toThrow('direction must be an orthonormal 3x3 matrix');
+    expect(() =>
+      validateImageGeometry({
+        ...obliqueGeometry,
+        direction: [
+          [1, 0, 0],
+          [1, 0, 0],
+          [0, 0, 1],
+        ],
+      }),
+    ).toThrow('direction must be an orthonormal 3x3 matrix');
   });
 
   it('rejects image data whose length does not match its dimensions', () => {
-    expect(() => createOrientedImage({
-      ...obliqueGeometry,
-      data: new Uint8Array(23),
-    })).toThrow('Image data length 23 does not match dimensions (expected 24)');
+    expect(() =>
+      createOrientedImage({
+        ...obliqueGeometry,
+        data: new Uint8Array(23),
+      }),
+    ).toThrow('Image data length 23 does not match dimensions (expected 24)');
   });
 });

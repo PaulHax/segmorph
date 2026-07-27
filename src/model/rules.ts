@@ -10,12 +10,7 @@ import {
 } from '../geometry/contour.js';
 import type { Mesh } from '../geometry/mesh.js';
 import { indexToWorld } from '../image/orientedImage.js';
-import type {
-  ImageData,
-  ImageGeometry,
-  OrientedImage,
-  Vector3,
-} from '../image/orientedImage.js';
+import type { ImageData, ImageGeometry, OrientedImage, Vector3 } from '../image/orientedImage.js';
 import { createConversionGraph } from './graph.js';
 
 /**
@@ -101,7 +96,8 @@ function referenceSlicePlanes(geometry: ImageGeometry) {
     geometry.direction[2][1],
   ];
   return Array.from({ length: geometry.dims[2] }, (_, slice) =>
-    createContourPlane(indexToWorld(geometry, [0, 0, slice]), xAxis, yAxis));
+    createContourPlane(indexToWorld(geometry, [0, 0, slice]), xAxis, yAxis),
+  );
 }
 
 /**
@@ -149,9 +145,10 @@ export function createDefaultRules(options: DefaultRuleOptions) {
       source: defaultRepresentations.surface,
       target: defaultRepresentations.contour,
       cost: surfaceToContourCost,
-      convert: (input) => referenceSlicePlanes(referenceGeometry)
-        .map((plane) => surfaceToContour(input, plane))
-        .filter((contour) => contour !== undefined),
+      convert: (input) =>
+        referenceSlicePlanes(referenceGeometry)
+          .map((plane) => surfaceToContour(input, plane))
+          .filter((contour) => contour !== undefined),
     }),
     representationRule({
       source: defaultRepresentations.contour,

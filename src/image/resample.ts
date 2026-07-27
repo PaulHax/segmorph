@@ -7,14 +7,14 @@ import {
 import type { ImageData, ImageGeometry, OrientedImage } from './orientedImage.js';
 
 type ImageDataConstructor<T extends ImageData> = {
-  new(length: number): T;
+  new (length: number): T;
 };
 
 // vtkInterpolationMath::Round biases the half-integer rounding boundary so a
 // continuous index within this distance below a half-integer rounds UP rather
 // than DOWN. Matches VTK_INTERPOLATE_FLOOR_TOL in
 // reference-repos/vtk/Imaging/Core/vtkInterpolationMath.h.
-const FLOOR_TOL = 7.62939453125e-06;
+const FLOOR_TOL = 7.62939453125e-6;
 
 // vtkImageReslice default BorderThickness (Border=on) is the interpolator
 // tolerance used to accept sub-voxel-edge samples before clamping. See
@@ -66,9 +66,9 @@ export function resampleNearest<T extends ImageData>(
   const clamp = options.border !== 'fill';
   // vtkAbstractImageInterpolator raises the tolerance to 0.5 + FLOOR_TOL on
   // single-slice axes (extent min == max); other axes use BORDER_THICKNESS.
-  const tol = [0, 1, 2].map((axis) => (
-    input.dims[axis] === 1 ? BORDER_THICKNESS + FLOOR_TOL : BORDER_THICKNESS
-  ));
+  const tol = [0, 1, 2].map((axis) =>
+    input.dims[axis] === 1 ? BORDER_THICKNESS + FLOOR_TOL : BORDER_THICKNESS,
+  );
 
   for (let z = 0; z < reference.dims[2]; z += 1) {
     for (let y = 0; y < reference.dims[1]; y += 1) {
@@ -81,9 +81,15 @@ export function resampleNearest<T extends ImageData>(
         if (clamp) {
           // Accept indices within tolerance of the extent, then clamp the
           // rounded index to the edge voxel (VTK Border=on clamp semantics).
-          if (p[0] < -tol[0] || p[0] > (input.dims[0] - 1) + tol[0]
-            || p[1] < -tol[1] || p[1] > (input.dims[1] - 1) + tol[1]
-            || p[2] < -tol[2] || p[2] > (input.dims[2] - 1) + tol[2]) continue;
+          if (
+            p[0] < -tol[0] ||
+            p[0] > input.dims[0] - 1 + tol[0] ||
+            p[1] < -tol[1] ||
+            p[1] > input.dims[1] - 1 + tol[1] ||
+            p[2] < -tol[2] ||
+            p[2] > input.dims[2] - 1 + tol[2]
+          )
+            continue;
           inputX = clampIndex(nearestIndex(p[0]), input.dims[0] - 1);
           inputY = clampIndex(nearestIndex(p[1]), input.dims[1] - 1);
           inputZ = clampIndex(nearestIndex(p[2]), input.dims[2] - 1);
@@ -91,14 +97,19 @@ export function resampleNearest<T extends ImageData>(
           inputX = nearestIndex(p[0]);
           inputY = nearestIndex(p[1]);
           inputZ = nearestIndex(p[2]);
-          if (inputX < 0 || inputX >= input.dims[0]
-            || inputY < 0 || inputY >= input.dims[1]
-            || inputZ < 0 || inputZ >= input.dims[2]) continue;
+          if (
+            inputX < 0 ||
+            inputX >= input.dims[0] ||
+            inputY < 0 ||
+            inputY >= input.dims[1] ||
+            inputZ < 0 ||
+            inputZ >= input.dims[2]
+          )
+            continue;
         }
 
-        data[flatIndex(reference.dims, x, y, z)] = input.data[
-          flatIndex(input.dims, inputX, inputY, inputZ)
-        ];
+        data[flatIndex(reference.dims, x, y, z)] =
+          input.data[flatIndex(input.dims, inputX, inputY, inputZ)];
       }
     }
   }

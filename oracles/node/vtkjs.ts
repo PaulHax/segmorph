@@ -30,8 +30,12 @@ if (requested && !['B', 'F'].includes(requested)) {
 // The Hamming-windowed B cases (see gen_smooth.py).
 const SMOOTH_CASES = ['cubesphere-hamming', 'torus-hamming', 'sphere-hamming'];
 const CUT_CASES = [
-  'cube-axis', 'sphere-center', 'sphere-oblique',
-  'torus-two-loops', 'octahedron-on-vertices', 'sphere-miss',
+  'cube-axis',
+  'sphere-center',
+  'sphere-oblique',
+  'torus-two-loops',
+  'octahedron-on-vertices',
+  'sphere-miss',
 ];
 
 // SEGMORPH_FIXTURES_DIR redirects the whole corpus root, so a live regeneration
@@ -68,7 +72,10 @@ function toPolyData(mesh: { points: Float32Array; polys: Uint32Array }) {
   return polydata;
 }
 
-function smooth(mesh: { points: Float32Array; polys: Uint32Array }, params: Record<string, unknown>) {
+function smooth(
+  mesh: { points: Float32Array; polys: Uint32Array },
+  params: Record<string, unknown>,
+) {
   const filter = vtkWindowedSincPolyDataFilter.newInstance({
     numberOfIterations: params.numberOfIterations,
     passBand: params.passBand,
@@ -100,14 +107,21 @@ function cut(mesh: { points: Float32Array; polys: Uint32Array }, plane: Record<s
 async function generateSmooth(caseName: string) {
   const caseUrl = new URL(`B/${caseName}/`, fixturesUrl);
   const params = JSON.parse(await readFile(new URL('params.json', caseUrl), 'utf8'));
-  const inputUrl = params.input === 'generated'
-    ? new URL('input.mesh.json', caseUrl)
-    : new URL(params.input, fixturesUrl);
+  const inputUrl =
+    params.input === 'generated'
+      ? new URL('input.mesh.json', caseUrl)
+      : new URL(params.input, fixturesUrl);
 
   const golden = smooth(await readMesh(inputUrl), params);
   await mkdir(caseUrl, { recursive: true });
   await writeFile(new URL('golden.vtkjs.mesh.json', caseUrl), `${JSON.stringify(golden)}\n`);
-  written.push({ oracle: { name: ORACLE_NAME, version: VTKJS_VERSION }, algorithm: 'B', case: caseName, params, seed: 0 });
+  written.push({
+    oracle: { name: ORACLE_NAME, version: VTKJS_VERSION },
+    algorithm: 'B',
+    case: caseName,
+    params,
+    seed: 0,
+  });
 }
 
 async function generateCut(caseName: string) {
@@ -118,10 +132,17 @@ async function generateCut(caseName: string) {
   const golden = cut(mesh, params.plane);
   await mkdir(caseUrl, { recursive: true });
   await writeFile(new URL('golden.vtkjs.contour.json', caseUrl), `${JSON.stringify(golden)}\n`);
-  written.push({ oracle: { name: ORACLE_NAME, version: VTKJS_VERSION }, algorithm: 'F', case: caseName, params, seed: 0 });
+  written.push({
+    oracle: { name: ORACLE_NAME, version: VTKJS_VERSION },
+    algorithm: 'F',
+    case: caseName,
+    params,
+    seed: 0,
+  });
 }
 
-if (!requested || requested === 'B') for (const caseName of SMOOTH_CASES) await generateSmooth(caseName);
+if (!requested || requested === 'B')
+  for (const caseName of SMOOTH_CASES) await generateSmooth(caseName);
 if (!requested || requested === 'F') for (const caseName of CUT_CASES) await generateCut(caseName);
 
 const manifestText = await readFile(manifestUrl, 'utf8').catch((error) => {
@@ -129,11 +150,15 @@ const manifestText = await readFile(manifestUrl, 'utf8').catch((error) => {
   return JSON.stringify({ schemaVersion: 1, fixtures: [] });
 });
 const manifest = JSON.parse(manifestText);
-manifest.fixtures = manifest.fixtures.filter((fixture: ManifestEntry) => !written.some(
-  (entry) => entry.algorithm === fixture.algorithm
-    && entry.case === fixture.case
-    && entry.oracle.name === fixture.oracle.name,
-));
+manifest.fixtures = manifest.fixtures.filter(
+  (fixture: ManifestEntry) =>
+    !written.some(
+      (entry) =>
+        entry.algorithm === fixture.algorithm &&
+        entry.case === fixture.case &&
+        entry.oracle.name === fixture.oracle.name,
+    ),
+);
 manifest.fixtures.push(...written);
 await mkdir(fixturesUrl, { recursive: true });
 await writeFile(manifestUrl, `${JSON.stringify(manifest, null, 2)}\n`);

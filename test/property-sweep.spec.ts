@@ -9,11 +9,7 @@ import { readNrrd } from '../src/io/nrrd.js';
 import { triangleCount, vertexCount } from '../src/geometry/mesh.js';
 import { dice, mismatchCount } from './diff/image.js';
 import { meanSurfaceDistance, symmetricHausdorffDistance } from './diff/mesh.js';
-import {
-  hasConsistentOutwardOrientation,
-  isManifold,
-  isWatertight,
-} from './diff/structure.js';
+import { hasConsistentOutwardOrientation, isManifold, isWatertight } from './diff/structure.js';
 import { findFixtureEntries, readFixtureManifest, readMeshJson } from './fixtures/loaders.js';
 import { fixtureUrl } from './fixtures/root.js';
 
@@ -54,15 +50,15 @@ async function loadCase(seed: number) {
   const directory = fixtureUrl(`P/${caseName(seed)}/`);
   const [params, image, golden] = await Promise.all([
     readFile(new URL('params.json', directory), 'utf8').then(JSON.parse) as Promise<CaseParams>,
-    readFile(new URL('input.nrrd', directory)).then((bytes) => createOrientedImage(readNrrd(bytes))),
+    readFile(new URL('input.nrrd', directory)).then((bytes) =>
+      createOrientedImage(readNrrd(bytes)),
+    ),
     readFile(new URL('golden.extract.mesh.json', directory), 'utf8').then(readMeshJson),
   ]);
   return { params, image, golden };
 }
 
-const manifest = readFixtureManifest(
-  await readFile(fixtureUrl('manifest.json'), 'utf8'),
-);
+const manifest = readFixtureManifest(await readFile(fixtureUrl('manifest.json'), 'utf8'));
 const seeds = manifest.fixtures
   .filter((entry) => entry.algorithm === 'P')
   .map((entry) => entry.seed)
@@ -71,60 +67,75 @@ const seeds = manifest.fixtures
 describe('labelmapToSurface property sweep vs VTK discrete flying edges', () => {
   it('generated a non-trivial sweep', () => {
     expect(seeds.length).toBeGreaterThanOrEqual(32);
-    expect(findFixtureEntries(manifest, 'P', caseName(seeds[0])).map((entry) => entry.oracle.name))
-      .toEqual(['python-vtk']);
+    expect(
+      findFixtureEntries(manifest, 'P', caseName(seeds[0])).map((entry) => entry.oracle.name),
+    ).toEqual(['python-vtk']);
 
     // A sweep of empty or identical blobs would pass everything below while
     // testing nothing, so assert the distribution actually varied.
-    const geometries = new Set(manifest.fixtures
-      .filter((entry) => entry.algorithm === 'P')
-      .map((entry) => (entry.params as unknown as CaseParams).geometry));
+    const geometries = new Set(
+      manifest.fixtures
+        .filter((entry) => entry.algorithm === 'P')
+        .map((entry) => (entry.params as unknown as CaseParams).geometry),
+    );
     expect([...geometries].sort()).toEqual(['anisotropic', 'identity', 'oblique']);
   });
 
-  it.each(seeds)('matches the VTK extraction for seed %i', async (seed) => {
-    const { params, image, golden } = await loadCase(seed);
+  it.each(seeds)(
+    'matches the VTK extraction for seed %i',
+    async (seed) => {
+      const { params, image, golden } = await loadCase(seed);
 
-    // Guard the fixture itself: a degenerate blob would make the comparison
-    // below vacuous.
-    expect(params.voxelCount).toBeGreaterThan(0);
-    expect(vertexCount(golden)).toBeGreaterThan(0);
+      // Guard the fixture itself: a degenerate blob would make the comparison
+      // below vacuous.
+      expect(params.voxelCount).toBeGreaterThan(0);
+      expect(vertexCount(golden)).toBeGreaterThan(0);
 
-    const mesh = labelmapToSurface(image, { labelValue: params.labelValue });
+      const mesh = labelmapToSurface(image, { labelValue: params.labelValue });
 
-    expect(vertexCount(mesh)).toBe(vertexCount(golden));
-    expect(triangleCount(mesh)).toBe(triangleCount(golden));
-    expect(symmetricHausdorffDistance(mesh, golden)).toBeLessThan(MAX_HAUSDORFF);
-    expect(meanSurfaceDistance(mesh, golden)).toBeLessThan(MAX_HAUSDORFF);
-  }, 30_000);
+      expect(vertexCount(mesh)).toBe(vertexCount(golden));
+      expect(triangleCount(mesh)).toBe(triangleCount(golden));
+      expect(symmetricHausdorffDistance(mesh, golden)).toBeLessThan(MAX_HAUSDORFF);
+      expect(meanSurfaceDistance(mesh, golden)).toBeLessThan(MAX_HAUSDORFF);
+    },
+    30_000,
+  );
 
-  it.each(seeds)('extracts a closed, outward-oriented surface for seed %i', async (seed) => {
-    const { params, image } = await loadCase(seed);
+  it.each(seeds)(
+    'extracts a closed, outward-oriented surface for seed %i',
+    async (seed) => {
+      const { params, image } = await loadCase(seed);
 
-    const mesh = labelmapToSurface(image, { labelValue: params.labelValue });
+      const mesh = labelmapToSurface(image, { labelValue: params.labelValue });
 
-    expect(isWatertight(mesh)).toBe(true);
-    expect(isManifold(mesh)).toBe(true);
-    expect(hasConsistentOutwardOrientation(mesh)).toBe(true);
-  }, 30_000);
+      expect(isWatertight(mesh)).toBe(true);
+      expect(isManifold(mesh)).toBe(true);
+      expect(hasConsistentOutwardOrientation(mesh)).toBe(true);
+    },
+    30_000,
+  );
 
   // The distractor label sits in the shell one voxel outside the target, so a
   // port that thresholds on "nonzero" instead of matching the requested label
   // produces a strictly larger mesh. Round-tripping back to a labelmap is what
   // makes that visible as an exact voxel count rather than a tolerance.
-  it.each(seeds)('round-trips to the original voxel set for seed %i', async (seed) => {
-    const { params, image } = await loadCase(seed);
+  it.each(seeds)(
+    'round-trips to the original voxel set for seed %i',
+    async (seed) => {
+      const { params, image } = await loadCase(seed);
 
-    const mesh = labelmapToSurface(image, { labelValue: params.labelValue });
-    const voxelized = surfaceToLabelmap(mesh, image, { labelValue: params.labelValue });
+      const mesh = labelmapToSurface(image, { labelValue: params.labelValue });
+      const voxelized = surfaceToLabelmap(mesh, image, { labelValue: params.labelValue });
 
-    const target = new Uint8Array(image.data.length);
-    for (let index = 0; index < target.length; index += 1) {
-      target[index] = image.data[index] === params.labelValue ? params.labelValue : 0;
-    }
+      const target = new Uint8Array(image.data.length);
+      for (let index = 0; index < target.length; index += 1) {
+        target[index] = image.data[index] === params.labelValue ? params.labelValue : 0;
+      }
 
-    const dims = image.dims as [number, number, number];
-    expect(dice(target, voxelized.data, dims)).toBe(1);
-    expect(mismatchCount(target, voxelized.data, dims)).toBe(0);
-  }, 30_000);
+      const dims = image.dims as [number, number, number];
+      expect(dice(target, voxelized.data, dims)).toBe(1);
+      expect(mismatchCount(target, voxelized.data, dims)).toBe(0);
+    },
+    30_000,
+  );
 });

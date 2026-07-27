@@ -64,15 +64,14 @@ function squaredDistance(a: Point, b: Point) {
 }
 
 function addScaled(origin: Point, direction: Point, t: number): Point {
-  return [
-    origin[0] + t * direction[0],
-    origin[1] + t * direction[1],
-    origin[2] + t * direction[2],
-  ];
+  return [origin[0] + t * direction[0], origin[1] + t * direction[1], origin[2] + t * direction[2]];
 }
 
 // Closest-point regions from Real-Time Collision Detection, Christer Ericson.
-export function squaredPointTriangleDistance(point: Point, [a, b, c]: readonly [Point, Point, Point]) {
+export function squaredPointTriangleDistance(
+  point: Point,
+  [a, b, c]: readonly [Point, Point, Point],
+) {
   const ab = subtract(b, a);
   const ac = subtract(c, a);
   const ap = subtract(point, a);
@@ -121,9 +120,7 @@ export function squaredPointTriangleDistance(point: Point, [a, b, c]: readonly [
 // face cuts across the true surface reports a near-zero distance, hiding real
 // error. One sample per triangle keeps the O(samples x triangles) sweep within
 // the fine-mesh oracle comparisons' time budget.
-const INTERIOR_BARYCENTRICS = [
-  [1 / 3, 1 / 3, 1 / 3],
-] as const;
+const INTERIOR_BARYCENTRICS = [[1 / 3, 1 / 3, 1 / 3]] as const;
 
 function barycentricPoint(
   [a, b, c]: readonly [Point, Point, Point],
@@ -158,13 +155,14 @@ function directedDistances(source: Mesh, target: Mesh) {
   // Skip non-finite distances: a degenerate (zero-area) target triangle can
   // divide by zero in the barycentric math and yield NaN, which would otherwise
   // poison the running minimum and silently void the whole metric.
-  return samples.map((point) => Math.sqrt(surfaces.reduce(
-    (nearest, triangle) => {
-      const squared = squaredPointTriangleDistance(point, triangle);
-      return Number.isFinite(squared) ? Math.min(nearest, squared) : nearest;
-    },
-    Infinity,
-  )));
+  return samples.map((point) =>
+    Math.sqrt(
+      surfaces.reduce((nearest, triangle) => {
+        const squared = squaredPointTriangleDistance(point, triangle);
+        return Number.isFinite(squared) ? Math.min(nearest, squared) : nearest;
+      }, Infinity),
+    ),
+  );
 }
 
 function symmetricDistances(a: Mesh, b: Mesh) {
@@ -181,11 +179,12 @@ export function meanSurfaceDistance(a: Mesh, b: Mesh) {
 }
 
 export function enclosedVolume(mesh: Mesh) {
-  return triangles(mesh).reduce((volume, [a, b, c]) => volume + dot(a, [
-    b[1] * c[2] - b[2] * c[1],
-    b[2] * c[0] - b[0] * c[2],
-    b[0] * c[1] - b[1] * c[0],
-  ]) / 6, 0);
+  return triangles(mesh).reduce(
+    (volume, [a, b, c]) =>
+      volume +
+      dot(a, [b[1] * c[2] - b[2] * c[1], b[2] * c[0] - b[0] * c[2], b[0] * c[1] - b[1] * c[0]]) / 6,
+    0,
+  );
 }
 
 export function boundingBox(mesh: Mesh) {

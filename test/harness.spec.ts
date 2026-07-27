@@ -2,11 +2,7 @@ import { readFile } from 'node:fs/promises';
 
 import { describe, expect, it } from 'vitest';
 
-import {
-  enclosedVolume,
-  meanSurfaceDistance,
-  symmetricHausdorffDistance,
-} from './diff/mesh.js';
+import { enclosedVolume, meanSurfaceDistance, symmetricHausdorffDistance } from './diff/mesh.js';
 import { readMeshJson } from './fixtures/loaders.js';
 import { fixtureUrl } from './fixtures/root.js';
 
@@ -36,7 +32,6 @@ describe('oracle calibration harness', () => {
 
     expect(hausdorff, failureMessage).toBeLessThanOrEqual(maxHausdorff);
     expect(meanDistance, failureMessage).toBeLessThanOrEqual(maxMeanDistance);
-    expect(Math.abs(volumeRatio - 1), failureMessage)
-      .toBeLessThanOrEqual(maxVolumeRatioDelta);
+    expect(Math.abs(volumeRatio - 1), failureMessage).toBeLessThanOrEqual(maxVolumeRatioDelta);
   }, 20_000);
 });

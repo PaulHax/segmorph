@@ -303,7 +303,7 @@ function lineMeanZ(points: PointStore, line: Line) {
 function sortContours(points: PointStore, lines: Line[]) {
   return lines
     .map((line, index) => ({ line, index, z: lineMeanZ(points, line) }))
-    .sort((left, right) => (left.z - right.z) || (left.index - right.index))
+    .sort((left, right) => left.z - right.z || left.index - right.index)
     .map((entry) => entry.line);
 }
 
@@ -435,8 +435,10 @@ function getNumberOfLinesOnPlane(
   const threshold = 0.1 * spacing;
   const lineZ = lineMeanZ(points, lines[originalLineIndex]);
   let currentLineId = originalLineIndex + 1;
-  while (currentLineId < lines.length
-    && Math.abs(lineMeanZ(points, lines[currentLineId]) - lineZ) < threshold) {
+  while (
+    currentLineId < lines.length &&
+    Math.abs(lineMeanZ(points, lines[currentLineId]) - lineZ) < threshold
+  ) {
     currentLineId += 1;
   }
   return currentLineId - originalLineIndex;
@@ -445,10 +447,12 @@ function getNumberOfLinesOnPlane(
 function doLinesOverlap(points: PointStore, line1: Line, line2: Line) {
   const bounds1 = lineBounds(points, line1);
   const bounds2 = lineBounds(points, line2);
-  return bounds1[0] < bounds2[1]
-    && bounds1[1] > bounds2[0]
-    && bounds1[2] < bounds2[3]
-    && bounds1[3] > bounds2[2];
+  return (
+    bounds1[0] < bounds2[1] &&
+    bounds1[1] > bounds2[0] &&
+    bounds1[2] < bounds2[3] &&
+    bounds1[3] > bounds2[2]
+  );
 }
 
 // --- Branch -----------------------------------------------------------------
@@ -569,9 +573,11 @@ function triangulateBetweenContours(
 
   // Pre-calculated closest points, position -> position.
   const closestFrom1To2 = pointsInLine1.map((id) =>
-    getClosestPosition(points, getPoint(points, id), pointsInLine2));
+    getClosestPosition(points, getPoint(points, id), pointsInLine2),
+  );
   const closestFrom2To1 = pointsInLine2.map((id) =>
-    getClosestPosition(points, getPoint(points, id), pointsInLine1));
+    getClosestPosition(points, getPoint(points, id), pointsInLine1),
+  );
 
   const startLine1Position = 0;
   const startLine2Position = closestFrom1To2[0];
@@ -585,13 +591,11 @@ function triangulateBetweenContours(
   const line1EndPosition = getEndLoop(startLine1Position, numberOfPointsInLine1, line1Closed);
   const line2EndPosition = getEndLoop(startLine2Position, numberOfPointsInLine2, line2Closed);
 
-  const score: number[][] = Array.from(
-    { length: numberOfPointsInLine1 },
-    () => new Array<number>(numberOfPointsInLine2).fill(0),
+  const score: number[][] = Array.from({ length: numberOfPointsInLine1 }, () =>
+    new Array<number>(numberOfPointsInLine2).fill(0),
   );
-  const backtrack: number[][] = Array.from(
-    { length: numberOfPointsInLine1 },
-    () => new Array<number>(numberOfPointsInLine2).fill(BACKTRACK_UP),
+  const backtrack: number[][] = Array.from({ length: numberOfPointsInLine1 }, () =>
+    new Array<number>(numberOfPointsInLine2).fill(BACKTRACK_UP),
   );
   score[0][0] = distanceSquaredToCoords(points, pointsInLine2[startLine2Position], firstPointLine1);
 
@@ -776,10 +780,22 @@ function marchingSquares(data: Uint8Array, dimX: number, dimY: number) {
   // VTK's corner masks: pts0=(i,j)->1, pts1=(i+1,j)->2, pts2=(i,j+1)->8,
   // pts3=(i+1,j+1)->4; edges 0:(0,1) 1:(1,3) 2:(2,3) 3:(0,2).
   const caseTable = [
-    [], [0, 3], [1, 0], [1, 3],
-    [2, 1], [0, 3, 2, 1], [2, 0], [2, 3],
-    [3, 2], [0, 2], [1, 0, 3, 2], [1, 2],
-    [3, 1], [0, 1], [3, 0], [],
+    [],
+    [0, 3],
+    [1, 0],
+    [1, 3],
+    [2, 1],
+    [0, 3, 2, 1],
+    [2, 0],
+    [2, 3],
+    [3, 2],
+    [0, 2],
+    [1, 0, 3, 2],
+    [1, 2],
+    [3, 1],
+    [0, 1],
+    [3, 0],
+    [],
   ];
   const cornerOffsets = [
     [0, 0],
@@ -895,8 +911,9 @@ function distanceToLineSquared(point: Vec3, p1: Vec3, p2: Vec3) {
   if (lengthSquared === 0) {
     return offset[0] ** 2 + offset[1] ** 2 + offset[2] ** 2;
   }
-  const t = (offset[0] * direction[0] + offset[1] * direction[1] + offset[2] * direction[2])
-    / lengthSquared;
+  const t =
+    (offset[0] * direction[0] + offset[1] * direction[1] + offset[2] * direction[2]) /
+    lengthSquared;
   const dx = offset[0] - t * direction[0];
   const dy = offset[1] - t * direction[1];
   const dz = offset[2] - t * direction[2];
@@ -915,8 +932,8 @@ function computeError(pointCoords: number[], lineIds: number[], position: number
   const previousId = lineIds[getPreviousLocation(position, lineIds.length, isClosed)];
   const next = capPoint(pointCoords, nextId);
   const previous = capPoint(pointCoords, previousId);
-  const gap = (next[0] - previous[0]) ** 2 + (next[1] - previous[1]) ** 2
-    + (next[2] - previous[2]) ** 2;
+  const gap =
+    (next[0] - previous[0]) ** 2 + (next[1] - previous[1]) ** 2 + (next[2] - previous[2]) ** 2;
   if (gap === 0) return 0;
   return distanceToLineSquared(capPoint(pointCoords, currentId), next, previous);
 }
@@ -926,22 +943,24 @@ function computeError(pointCoords: number[], lineIds: number[], position: number
  * priority queue (errors computed once, as in the original; VTK's tie order
  * inside vtkPriorityQueue is implementation defined - here insertion order).
  */
-function decimateLines(
-  pointCoords: number[],
-  lines: number[][],
-  decimationFactor: number,
-) {
+function decimateLines(pointCoords: number[], lines: number[][], decimationFactor: number) {
   return lines
     .map((inputLine) => {
       let ids = [...inputLine];
       if (ids.length > 2) {
         const queue = ids
-          .map((id, position) => ({ priority: computeError(pointCoords, ids, position), id, position }))
-          .sort((left, right) => (left.priority - right.priority) || (left.position - right.position));
+          .map((id, position) => ({
+            priority: computeError(pointCoords, ids, position),
+            id,
+            position,
+          }))
+          .sort((left, right) => left.priority - right.priority || left.position - right.position);
         let head = 0;
-        while (queue.length - head > 3
-          && (queue[head].priority < Number.EPSILON
-            || ids.length / inputLine.length > decimationFactor)) {
+        while (
+          queue.length - head > 3 &&
+          (queue[head].priority < Number.EPSILON ||
+            ids.length / inputLine.length > decimationFactor)
+        ) {
           const { id } = queue[head];
           head += 1;
           ids = ids.filter((candidate) => candidate !== id);
@@ -1025,12 +1044,14 @@ function createSmoothEndCapContour(
         const oriented = isCapLineClockwise(worldCoords, capLine)
           ? [...capLine].reverse()
           : capLine;
-        const outputIds = oriented.map((localId) => insertPoint(
-          points,
-          worldCoords[localId * 3],
-          worldCoords[localId * 3 + 1],
-          worldCoords[localId * 3 + 2] + lineSpacing / 2,
-        ));
+        const outputIds = oriented.map((localId) =>
+          insertPoint(
+            points,
+            worldCoords[localId * 3],
+            worldCoords[localId * 3 + 1],
+            worldCoords[localId * 3 + 2] + lineSpacing / 2,
+          ),
+        );
         if (outputIds[0] !== outputIds[outputIds.length - 1]) {
           outputIds.push(outputIds[0]);
         }
@@ -1064,12 +1085,9 @@ function createStraightEndCapContour(
   smoothFallback = false,
 ): Line {
   const sourceIds = smoothFallback ? inputLine.slice(0, -1) : inputLine;
-  const outputIds = sourceIds.map((id) => insertPoint(
-    points,
-    points[id * 3],
-    points[id * 3 + 1],
-    points[id * 3 + 2] + lineSpacing / 2,
-  ));
+  const outputIds = sourceIds.map((id) =>
+    insertPoint(points, points[id * 3], points[id * 3 + 1], points[id * 3 + 2] + lineSpacing / 2),
+  );
   if (smoothFallback) outputIds.push(outputIds[0]);
   return outputIds;
 }
@@ -1193,15 +1211,15 @@ function endCapping(
   for (let lineIndex = 0; lineIndex < numberOfLines; lineIndex += 1) {
     const currentLine = lines[lineIndex];
     for (const direction of ['below', 'above'] as const) {
-      const lineTriangulated = direction === 'above'
-        ? triangulatedAbove[lineIndex]
-        : triangulatedBelow[lineIndex];
+      const lineTriangulated =
+        direction === 'above' ? triangulatedAbove[lineIndex] : triangulatedBelow[lineIndex];
       if (lineTriangulated) continue;
 
       const lineOffset = direction === 'below' ? -lineSpacing : lineSpacing;
-      const capLines = mode === 'smooth'
-        ? createSmoothEndCapContour(points, currentLine, lineOffset)
-        : [createStraightEndCapContour(points, currentLine, lineOffset)];
+      const capLines =
+        mode === 'smooth'
+          ? createSmoothEndCapContour(points, currentLine, lineOffset)
+          : [createStraightEndCapContour(points, currentLine, lineOffset)];
 
       for (const capLine of capLines) {
         lines.push(capLine);
@@ -1280,9 +1298,7 @@ export function contourToSurface(
   const polys: number[] = [];
 
   let firstLineOnPlane1 = 0;
-  let linesInPlane1 = numberOfLines > 0
-    ? getNumberOfLinesOnPlane(points, lines, 0, spacing)
-    : 0;
+  let linesInPlane1 = numberOfLines > 0 ? getNumberOfLinesOnPlane(points, lines, 0, spacing) : 0;
 
   while (firstLineOnPlane1 + linesInPlane1 < numberOfLines) {
     const firstLineOnPlane2 = firstLineOnPlane1 + linesInPlane1;
@@ -1292,20 +1308,20 @@ export function contourToSurface(
     const plane2Overlaps: number[][] = Array.from({ length: linesInPlane2 }, () => []);
     for (let line1 = 0; line1 < linesInPlane1; line1 += 1) {
       for (let line2 = 0; line2 < linesInPlane2; line2 += 1) {
-        if (doLinesOverlap(
-          points,
-          lines[firstLineOnPlane1 + line1],
-          lines[firstLineOnPlane2 + line2],
-        )) {
+        if (
+          doLinesOverlap(points, lines[firstLineOnPlane1 + line1], lines[firstLineOnPlane2 + line2])
+        ) {
           plane1Overlaps[line1].push(firstLineOnPlane2 + line2);
           plane2Overlaps[line2].push(firstLineOnPlane1 + line1);
         }
       }
     }
 
-    for (let line1Index = firstLineOnPlane1;
+    for (
+      let line1Index = firstLineOnPlane1;
       line1Index < firstLineOnPlane1 + linesInPlane1;
-      line1Index += 1) {
+      line1Index += 1
+    ) {
       const line1 = lines[line1Index];
       const overlaps1 = plane1Overlaps[line1Index - firstLineOnPlane1];
       const overlap1Lines = overlaps1.map((id) => lines[id]);

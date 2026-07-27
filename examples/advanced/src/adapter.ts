@@ -21,11 +21,7 @@ export function toOrientedImage<T extends SegmorphImageData>(image: vtkImageData
     origin: image.getOrigin(),
     // vtk.js stores the direction as a flat 9-element row-major matrix;
     // segmorph wants it as three rows. This is the only reshape needed.
-    direction: [
-      direction.slice(0, 3),
-      direction.slice(3, 6),
-      direction.slice(6, 9),
-    ],
+    direction: [direction.slice(0, 3), direction.slice(3, 6), direction.slice(6, 9)],
   } as OrientedImage<T>;
 }
 
@@ -38,10 +34,12 @@ export function toVtkImageData(image: OrientedImage) {
   vtkImage.setOrigin(image.origin as [number, number, number]);
   // segmorph's three direction rows flatten straight into vtk.js's 3x3.
   vtkImage.setDirection(Float32Array.from(image.direction.flat()));
-  vtkImage.getPointData().setScalars(vtkDataArray.newInstance({
-    numberOfComponents: 1,
-    values: image.data,
-  }));
+  vtkImage.getPointData().setScalars(
+    vtkDataArray.newInstance({
+      numberOfComponents: 1,
+      values: image.data,
+    }),
+  );
   return vtkImage;
 }
 

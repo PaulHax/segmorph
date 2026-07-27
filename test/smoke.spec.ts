@@ -11,7 +11,11 @@ describe('package', () => {
       dims: [3, 3, 3],
       spacing: [1, 1, 1],
       origin: [0, 0, 0],
-      direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
     });
 
     expect(labelmapToSurface(labelmap, { labelValue: 1 }).points.length).toBeGreaterThan(0);

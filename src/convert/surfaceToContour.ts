@@ -29,11 +29,7 @@ import { validateMesh, type Mesh } from '../geometry/mesh.js';
 //   undefined because validatePlanarContour rejects zero loops.
 
 function cross(a: Vector3, b: Vector3): Vector3 {
-  return [
-    a[1] * b[2] - a[2] * b[1],
-    a[2] * b[0] - a[0] * b[2],
-    a[0] * b[1] - a[1] * b[0],
-  ];
+  return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 }
 
 type CutEdge = {
@@ -50,9 +46,10 @@ function classifyPoints(mesh: Mesh, origin: Vector3, normal: Vector3) {
   let anyBelow = false;
   for (let index = 0; index < count; index += 1) {
     const offset = index * 3;
-    const value = normal[0] * (mesh.points[offset] - origin[0])
-      + normal[1] * (mesh.points[offset + 1] - origin[1])
-      + normal[2] * (mesh.points[offset + 2] - origin[2]);
+    const value =
+      normal[0] * (mesh.points[offset] - origin[0]) +
+      normal[1] * (mesh.points[offset + 1] - origin[1]) +
+      normal[2] * (mesh.points[offset + 2] - origin[2]);
     // vtkPolyDataPlaneCutter: strictly positive is above; exactly on the
     // plane classifies as below. No epsilon anywhere.
     if (value > 0) {
@@ -91,8 +88,7 @@ function collectCutEdges(mesh: Mesh, above: Uint8Array) {
 function mergeCutEdges(edges: CutEdge[], segmentConn: Uint32Array) {
   // vtkStaticEdgeLocatorTemplate::MergeEdges: sort canonical edges; identical
   // (v0, v1) runs merge into one output point.
-  const sorted = [...edges].sort((left, right) =>
-    (left.v0 - right.v0) || (left.v1 - right.v1));
+  const sorted = [...edges].sort((left, right) => left.v0 - right.v0 || left.v1 - right.v1);
   const uniqueEdges: CutEdge[] = [];
   for (const edge of sorted) {
     const last = uniqueEdges[uniqueEdges.length - 1];
@@ -104,30 +100,29 @@ function mergeCutEdges(edges: CutEdge[], segmentConn: Uint32Array) {
   return uniqueEdges;
 }
 
-function cutPointPositions(
-  mesh: Mesh,
-  uniqueEdges: CutEdge[],
-  origin: Vector3,
-  normal: Vector3,
-) {
+function cutPointPositions(mesh: Mesh, uniqueEdges: CutEdge[], origin: Vector3, normal: Vector3) {
   const positions = new Float64Array(uniqueEdges.length * 3);
   for (let index = 0; index < uniqueEdges.length; index += 1) {
     const { v0, v1 } = uniqueEdges[index];
     const x0 = v0 * 3;
     const x1 = v1 * 3;
-    const value0 = normal[0] * (mesh.points[x0] - origin[0])
-      + normal[1] * (mesh.points[x0 + 1] - origin[1])
-      + normal[2] * (mesh.points[x0 + 2] - origin[2]);
-    const value1 = normal[0] * (mesh.points[x1] - origin[0])
-      + normal[1] * (mesh.points[x1 + 1] - origin[1])
-      + normal[2] * (mesh.points[x1 + 2] - origin[2]);
+    const value0 =
+      normal[0] * (mesh.points[x0] - origin[0]) +
+      normal[1] * (mesh.points[x0 + 1] - origin[1]) +
+      normal[2] * (mesh.points[x0 + 2] - origin[2]);
+    const value1 =
+      normal[0] * (mesh.points[x1] - origin[0]) +
+      normal[1] * (mesh.points[x1 + 1] - origin[1]) +
+      normal[2] * (mesh.points[x1 + 2] - origin[2]);
     const delta = value1 - value0;
     // Unclamped, computed in canonical edge order so shared points are
     // bitwise identical regardless of which triangle contributed the edge.
     const t = delta === 0 ? 0 : -value0 / delta;
     positions[index * 3] = mesh.points[x0] + t * (mesh.points[x1] - mesh.points[x0]);
-    positions[index * 3 + 1] = mesh.points[x0 + 1] + t * (mesh.points[x1 + 1] - mesh.points[x0 + 1]);
-    positions[index * 3 + 2] = mesh.points[x0 + 2] + t * (mesh.points[x1 + 2] - mesh.points[x0 + 2]);
+    positions[index * 3 + 1] =
+      mesh.points[x0 + 1] + t * (mesh.points[x1 + 1] - mesh.points[x0 + 1]);
+    positions[index * 3 + 2] =
+      mesh.points[x0 + 2] + t * (mesh.points[x1 + 2] - mesh.points[x0 + 2]);
   }
   return positions;
 }
@@ -207,8 +202,7 @@ function signedArea(points: Float64Array) {
   const count = points.length / 2;
   for (let index = 0; index < count; index += 1) {
     const next = (index + 1) % count;
-    area += points[index * 2] * points[next * 2 + 1]
-      - points[next * 2] * points[index * 2 + 1];
+    area += points[index * 2] * points[next * 2 + 1] - points[next * 2] * points[index * 2 + 1];
   }
   return area / 2;
 }
@@ -252,8 +246,9 @@ export function surfaceToContour(mesh: Mesh, plane: ContourPlane) {
   const uniqueEdges = mergeCutEdges(edges, segmentConn);
   const positions = cutPointPositions(mesh, uniqueEdges, plane.origin, normal);
 
-  const loops = extractClosedLoops(segmentConn, uniqueEdges.length)
-    .map((loop) => ({ points: orientCounterclockwise(projectLoop(loop, positions, plane)) }));
+  const loops = extractClosedLoops(segmentConn, uniqueEdges.length).map((loop) => ({
+    points: orientCounterclockwise(projectLoop(loop, positions, plane)),
+  }));
   if (loops.length === 0) return undefined;
 
   return createPlanarContour(plane, loops);

@@ -10,12 +10,7 @@ export {
   validatePlanarContour,
   worldToPlane,
 } from './geometry/contour.js';
-export type {
-  ContourLoop,
-  ContourPlane,
-  PlanarContour,
-  Vector2,
-} from './geometry/contour.js';
+export type { ContourLoop, ContourPlane, PlanarContour, Vector2 } from './geometry/contour.js';
 export {
   createMesh,
   getPoint,
@@ -34,14 +29,8 @@ export type { MeshDecimateOptions } from './convert/meshDecimate.js';
 export { surfaceToContour } from './convert/surfaceToContour.js';
 export { contourToLabelmap } from './convert/contourToLabelmap.js';
 export { contourToSurface } from './convert/contourToSurface.js';
-export type {
-  ContourToSurfaceOptions,
-  EndCappingMode,
-} from './convert/contourToSurface.js';
-export {
-  surfaceToFractionalLabelmap,
-  fractionalLabelmapToSurface,
-} from './convert/fractional.js';
+export type { ContourToSurfaceOptions, EndCappingMode } from './convert/contourToSurface.js';
+export { surfaceToFractionalLabelmap, fractionalLabelmapToSurface } from './convert/fractional.js';
 export {
   createDefaultRules,
   createDefaultConversionGraph,
@@ -60,12 +49,7 @@ export {
   validateImageGeometry,
   worldToIndex,
 } from './image/orientedImage.js';
-export type {
-  ImageData,
-  ImageGeometry,
-  OrientedImage,
-  Vector3,
-} from './image/orientedImage.js';
+export type { ImageData, ImageGeometry, OrientedImage, Vector3 } from './image/orientedImage.js';
 export {
   compositeImage,
   compositeMax,
@@ -87,16 +71,8 @@ export {
 export type { Dimensions3D, Extent3D, Index3D } from './image/extent.js';
 export { resampleNearest } from './image/resample.js';
 export type { NearestResampleOptions } from './image/resample.js';
-export {
-  createSegment,
-  getRepresentation,
-  setRepresentation,
-} from './model/segment.js';
-export type {
-  CreateSegmentOptions,
-  Segment,
-  SegmentColor,
-} from './model/segment.js';
+export { createSegment, getRepresentation, setRepresentation } from './model/segment.js';
+export type { CreateSegmentOptions, Segment, SegmentColor } from './model/segment.js';
 export {
   addSegment,
   createSegmentation,
@@ -105,21 +81,9 @@ export {
   reorderSegments,
 } from './model/segmentation.js';
 export type { Segmentation } from './model/segmentation.js';
-export {
-  assignSegmentToLayer,
-  compactLayers,
-  createLayerModel,
-} from './model/layers.js';
-export type {
-  LabelmapArray,
-  LayerAssignment,
-  LayerModel,
-} from './model/layers.js';
-export {
-  createConversionGraph,
-  findCheapestPath,
-  registerConversionRule,
-} from './model/graph.js';
+export { assignSegmentToLayer, compactLayers, createLayerModel } from './model/layers.js';
+export type { LabelmapArray, LayerAssignment, LayerModel } from './model/layers.js';
+export { createConversionGraph, findCheapestPath, registerConversionRule } from './model/graph.js';
 export type { ConversionGraph, ConversionRule } from './model/graph.js';
 export {
   editRepresentation,

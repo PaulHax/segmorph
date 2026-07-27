@@ -106,9 +106,15 @@ function clampTargetReduction(value: number) {
 
 // vtkMath::LinearSolve3x3: adjoint-based solve of A * x = b.
 function linearSolve3x3(a: Float64Array, b: Float64Array, x: Float64Array) {
-  const a1 = a[0]; const b1 = a[1]; const c1 = a[2];
-  const a2 = a[3]; const b2 = a[4]; const c2 = a[5];
-  const a3 = a[6]; const b3 = a[7]; const c3 = a[8];
+  const a1 = a[0];
+  const b1 = a[1];
+  const c1 = a[2];
+  const a2 = a[3];
+  const b2 = a[4];
+  const c2 = a[5];
+  const a3 = a[6];
+  const b3 = a[7];
+  const c3 = a[8];
 
   const d1 = b2 * c3 - b3 * c2;
   const d2 = -(a2 * c3 - a3 * c2);
@@ -130,9 +136,11 @@ function linearSolve3x3(a: Float64Array, b: Float64Array, x: Float64Array) {
 }
 
 function determinant3x3(a: Float64Array) {
-  return a[0] * (a[4] * a[8] - a[5] * a[7])
-    - a[1] * (a[3] * a[8] - a[5] * a[6])
-    + a[2] * (a[3] * a[7] - a[4] * a[6]);
+  return (
+    a[0] * (a[4] * a[8] - a[5] * a[7]) -
+    a[1] * (a[3] * a[8] - a[5] * a[6]) +
+    a[2] * (a[3] * a[7] - a[4] * a[6])
+  );
 }
 
 function rowNorm(a: Float64Array, row: number) {
@@ -196,7 +204,9 @@ export function meshDecimate(mesh: Mesh, options: MeshDecimateOptions): Mesh {
     const i0 = cells[cell * 3];
     const i1 = cells[cell * 3 + 1];
     const i2 = cells[cell * 3 + 2];
-    const x0 = points[i0 * 3]; const y0 = points[i0 * 3 + 1]; const z0 = points[i0 * 3 + 2];
+    const x0 = points[i0 * 3];
+    const y0 = points[i0 * 3 + 1];
+    const z0 = points[i0 * 3 + 2];
     const e1x = points[i1 * 3] - x0;
     const e1y = points[i1 * 3 + 1] - y0;
     const e1z = points[i1 * 3 + 2] - z0;
@@ -215,9 +225,15 @@ export function meshDecimate(mesh: Mesh, options: MeshDecimateOptions): Mesh {
     const area = length / 2;
     const d = -(nx * x0 + ny * y0 + nz * z0);
 
-    const q0 = nx * nx; const q1 = nx * ny; const q2 = nx * nz; const q3 = d * nx;
-    const q4 = ny * ny; const q5 = ny * nz; const q6 = d * ny;
-    const q7 = nz * nz; const q8 = d * nz;
+    const q0 = nx * nx;
+    const q1 = nx * ny;
+    const q2 = nx * nz;
+    const q3 = d * nx;
+    const q4 = ny * ny;
+    const q5 = ny * nz;
+    const q6 = d * ny;
+    const q7 = nz * nz;
+    const q8 = d * nz;
     const q9 = d * d;
 
     for (const point of [i0, i1, i2]) {
@@ -239,12 +255,12 @@ export function meshDecimate(mesh: Mesh, options: MeshDecimateOptions): Mesh {
   // AddBoundaryConstraints: for every boundary edge add a quadric of the
   // plane through the edge, orthogonal to its triangle, weighted by the
   // squared edge length (WeighBoundaryConstraintsByLength off default).
-  const isBoundaryEdge = (cell: number, from: number, to: number) => (
-    !pointCells[from].some((other) => (
-      other !== cell
-      && (cells[other * 3] === to || cells[other * 3 + 1] === to || cells[other * 3 + 2] === to)
-    ))
-  );
+  const isBoundaryEdge = (cell: number, from: number, to: number) =>
+    !pointCells[from].some(
+      (other) =>
+        other !== cell &&
+        (cells[other * 3] === to || cells[other * 3 + 1] === to || cells[other * 3 + 2] === to),
+    );
   for (let cell = 0; cell < triangleTotal; cell += 1) {
     for (let corner = 0; corner < 3; corner += 1) {
       const from = cells[cell * 3 + corner];
@@ -252,11 +268,21 @@ export function meshDecimate(mesh: Mesh, options: MeshDecimateOptions): Mesh {
       if (!isBoundaryEdge(cell, from, to)) continue;
 
       const opposite = cells[cell * 3 + ((corner + 2) % 3)];
-      const t0x = points[opposite * 3]; const t0y = points[opposite * 3 + 1]; const t0z = points[opposite * 3 + 2];
-      const t1x = points[from * 3]; const t1y = points[from * 3 + 1]; const t1z = points[from * 3 + 2];
-      const t2x = points[to * 3]; const t2y = points[to * 3 + 1]; const t2z = points[to * 3 + 2];
-      const e0x = t2x - t1x; const e0y = t2y - t1y; const e0z = t2z - t1z;
-      const e1x = t0x - t1x; const e1y = t0y - t1y; const e1z = t0z - t1z;
+      const t0x = points[opposite * 3];
+      const t0y = points[opposite * 3 + 1];
+      const t0z = points[opposite * 3 + 2];
+      const t1x = points[from * 3];
+      const t1y = points[from * 3 + 1];
+      const t1z = points[from * 3 + 2];
+      const t2x = points[to * 3];
+      const t2y = points[to * 3 + 1];
+      const t2z = points[to * 3 + 2];
+      const e0x = t2x - t1x;
+      const e0y = t2y - t1y;
+      const e0z = t2z - t1z;
+      const e1x = t0x - t1x;
+      const e1y = t0y - t1y;
+      const e1z = t0z - t1z;
       const c = (e0x * e1x + e0y * e1y + e0z * e1z) / (e0x * e0x + e0y * e0y + e0z * e0z);
       let nx = e1x - c * e0x;
       let ny = e1y - c * e0y;
@@ -272,10 +298,17 @@ export function meshDecimate(mesh: Mesh, options: MeshDecimateOptions): Mesh {
       const weight = edgeLength * edgeLength;
 
       const constraint = [
-        nx * nx, nx * ny, nx * nz, d * nx,
-        ny * ny, ny * nz, d * ny,
-        nz * nz, d * nz,
-        d * d, 1,
+        nx * nx,
+        nx * ny,
+        nx * nz,
+        d * nx,
+        ny * ny,
+        ny * nz,
+        d * ny,
+        nz * nz,
+        d * nz,
+        d * d,
+        1,
       ];
       for (const point of [from, to]) {
         for (let entry = 0; entry < 11; entry += 1) {
@@ -312,7 +345,9 @@ export function meshDecimate(mesh: Mesh, options: MeshDecimateOptions): Mesh {
       linearSolve3x3(tempA, tempB, x);
     } else {
       // Singular quadric: least-squares fit of A * (pt1 + c * v) = b.
-      const p0x = points[p0 * 3]; const p0y = points[p0 * 3 + 1]; const p0z = points[p0 * 3 + 2];
+      const p0x = points[p0 * 3];
+      const p0y = points[p0 * 3 + 1];
+      const p0z = points[p0 * 3 + 2];
       const vx = points[p1 * 3] - p0x;
       const vy = points[p1 * 3 + 1] - p0y;
       const vz = points[p1 * 3 + 2] - p0z;
@@ -363,10 +398,10 @@ export function meshDecimate(mesh: Mesh, options: MeshDecimateOptions): Mesh {
 
   // TrianglePlaneCheck: is x on the same side as t0 of the plane through
   // t1-t2 that is orthogonal to the triangle?
-  const trianglePlaneCheck = (
-    t0: number, t1: number, t2: number, x: Float64Array,
-  ) => {
-    const t1x = points[t1 * 3]; const t1y = points[t1 * 3 + 1]; const t1z = points[t1 * 3 + 2];
+  const trianglePlaneCheck = (t0: number, t1: number, t2: number, x: Float64Array) => {
+    const t1x = points[t1 * 3];
+    const t1y = points[t1 * 3 + 1];
+    const t1z = points[t1 * 3 + 2];
     const e0x = points[t2 * 3] - t1x;
     const e0y = points[t2 * 3 + 1] - t1y;
     const e0z = points[t2 * 3 + 2] - t1z;
@@ -398,19 +433,28 @@ export function meshDecimate(mesh: Mesh, options: MeshDecimateOptions): Mesh {
   // IsGoodPlacement: the target x must stay on the inside of every triangle
   // around either endpoint that does not contain the other endpoint.
   const isGoodPlacement = (pt0: number, pt1: number, x: Float64Array) => {
-    for (const [anchor, excluded] of [[pt0, pt1], [pt1, pt0]] as const) {
+    for (const [anchor, excluded] of [
+      [pt0, pt1],
+      [pt1, pt0],
+    ] as const) {
       for (const cell of pointCells[anchor]) {
         const base = cell * 3;
-        if (cells[base] === excluded || cells[base + 1] === excluded
-          || cells[base + 2] === excluded) continue;
+        if (
+          cells[base] === excluded ||
+          cells[base + 1] === excluded ||
+          cells[base + 2] === excluded
+        )
+          continue;
         for (let corner = 0; corner < 3; corner += 1) {
           if (cells[base + corner] !== anchor) continue;
-          if (!trianglePlaneCheck(
-            cells[base + corner],
-            cells[base + ((corner + 1) % 3)],
-            cells[base + ((corner + 2) % 3)],
-            x,
-          )) {
+          if (
+            !trianglePlaneCheck(
+              cells[base + corner],
+              cells[base + ((corner + 1) % 3)],
+              cells[base + ((corner + 2) % 3)],
+              x,
+            )
+          ) {
             return false;
           }
         }
@@ -424,7 +468,10 @@ export function meshDecimate(mesh: Mesh, options: MeshDecimateOptions): Mesh {
   const findAffectedEdges = (pt0: number, pt1: number) => {
     const affected: number[] = [];
     const seen = new Set<number>();
-    for (const [target, other] of [[pt1, pt0], [pt0, pt1]] as const) {
+    for (const [target, other] of [
+      [pt1, pt0],
+      [pt0, pt1],
+    ] as const) {
       for (const cell of pointCells[target]) {
         for (let corner = 0; corner < 3; corner += 1) {
           const vertex = cells[cell * 3 + corner];
@@ -487,9 +534,11 @@ export function meshDecimate(mesh: Mesh, options: MeshDecimateOptions): Mesh {
         const a = cells[cell * 3];
         const b = cells[cell * 3 + 1];
         const c = cells[cell * 3 + 2];
-        if ((v0 === a || v0 === b || v0 === c)
-          && (v1 === a || v1 === b || v1 === c)
-          && (v2 === a || v2 === b || v2 === c)) {
+        if (
+          (v0 === a || v0 === b || v0 === c) &&
+          (v1 === a || v1 === b || v1 === c) &&
+          (v2 === a || v2 === b || v2 === c)
+        ) {
           return true;
         }
       }
@@ -514,9 +563,10 @@ export function meshDecimate(mesh: Mesh, options: MeshDecimateOptions): Mesh {
 
     for (const cell of [...pointCells[pt1]]) {
       const base = cell * 3;
-      const duplicates = (cells[base] === pt1 && isTriangle(pt0, cells[base + 1], cells[base + 2]))
-        || (cells[base + 1] === pt1 && isTriangle(cells[base], pt0, cells[base + 2]))
-        || (cells[base + 2] === pt1 && isTriangle(cells[base], cells[base + 1], pt0));
+      const duplicates =
+        (cells[base] === pt1 && isTriangle(pt0, cells[base + 1], cells[base + 2])) ||
+        (cells[base + 1] === pt1 && isTriangle(cells[base], pt0, cells[base + 2])) ||
+        (cells[base + 2] === pt1 && isTriangle(cells[base], cells[base + 1], pt0));
       if (duplicates) {
         removeCellReference(cell);
         cellDeleted[cell] = 1;
@@ -539,8 +589,11 @@ export function meshDecimate(mesh: Mesh, options: MeshDecimateOptions): Mesh {
   // Main collapse loop from RequestData.
   let deletedTriangles = 0;
   let popped = queuePop(queue);
-  while (popped.id >= 0 && popped.cost < MAXIMUM_ERROR
-    && deletedTriangles / triangleTotal < targetReduction) {
+  while (
+    popped.id >= 0 &&
+    popped.cost < MAXIMUM_ERROR &&
+    deletedTriangles / triangleTotal < targetReduction
+  ) {
     const edgeId = popped.id;
     const pt0 = endPoint1[edgeId];
     const pt1 = endPoint2[edgeId];

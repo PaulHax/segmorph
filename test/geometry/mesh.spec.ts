@@ -21,7 +21,11 @@ function triangle(): Mesh {
 describe('mesh geometry', () => {
   it('constructs flat typed arrays from points and triangles', () => {
     const mesh = createMesh(
-      [[0, 0, 0], [1, 0, 0], [0, 1, 0]],
+      [
+        [0, 0, 0],
+        [1, 0, 0],
+        [0, 1, 0],
+      ],
       [[0, 1, 2]],
     );
 
@@ -38,14 +42,28 @@ describe('mesh geometry', () => {
 
   it('iterates points and vtk-style triangle cells', () => {
     const mesh = createMesh(
-      [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]],
-      [[0, 1, 2], [0, 2, 3]],
+      [
+        [0, 0, 0],
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
+      [
+        [0, 1, 2],
+        [0, 2, 3],
+      ],
     );
 
     expect([...iteratePoints(mesh)]).toEqual([
-      [0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1],
+      [0, 0, 0],
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
     ]);
-    expect([...iterateTriangles(mesh)]).toEqual([[0, 1, 2], [0, 2, 3]]);
+    expect([...iterateTriangles(mesh)]).toEqual([
+      [0, 1, 2],
+      [0, 2, 3],
+    ]);
     expect(vertexCount(mesh)).toBe(4);
     expect(triangleCount(mesh)).toBe(2);
   });

@@ -23,19 +23,29 @@ import { sphereMesh } from './surfaceToLabelmapCases.js';
 const TIMEOUT_MS = 60_000;
 
 describe('surfaceToLabelmap performance', () => {
-  it('voxelizes a dense 96^3 sphere with pruned ray tests', () => {
-    const geometry: ImageGeometry = {
-      dims: [96, 96, 96], spacing: [1, 1, 1], origin: [0, 0, 0],
-      direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-    };
-    const center = [48, 48, 48] as const;
-    const mesh = sphereMesh(center, 40, 48, 64);
+  it(
+    'voxelizes a dense 96^3 sphere with pruned ray tests',
+    () => {
+      const geometry: ImageGeometry = {
+        dims: [96, 96, 96],
+        spacing: [1, 1, 1],
+        origin: [0, 0, 0],
+        direction: [
+          [1, 0, 0],
+          [0, 1, 0],
+          [0, 0, 1],
+        ],
+      };
+      const center = [48, 48, 48] as const;
+      const mesh = sphereMesh(center, 40, 48, 64);
 
-    const result = surfaceToLabelmap(mesh, geometry, { labelValue: 1 });
+      const result = surfaceToLabelmap(mesh, geometry, { labelValue: 1 });
 
-    const foreground = [...result.data].filter(Boolean).length;
-    // A radius-40 sphere on unit spacing fills ~ (4/3) pi 40^3 ~ 268k voxels.
-    expect(foreground).toBeGreaterThan(240_000);
-    expect(foreground).toBeLessThan(290_000);
-  }, TIMEOUT_MS);
+      const foreground = [...result.data].filter(Boolean).length;
+      // A radius-40 sphere on unit spacing fills ~ (4/3) pi 40^3 ~ 268k voxels.
+      expect(foreground).toBeGreaterThan(240_000);
+      expect(foreground).toBeLessThan(290_000);
+    },
+    TIMEOUT_MS,
+  );
 });

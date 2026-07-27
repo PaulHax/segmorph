@@ -9,12 +9,7 @@ import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkPlane from '@kitware/vtk.js/Common/DataModel/Plane';
 import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData';
 import type vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
-import {
-  createContourPlane,
-  planeToWorld,
-  surfaceToContour,
-  type Mesh,
-} from 'segmorph';
+import { createContourPlane, planeToWorld, surfaceToContour, type Mesh } from 'segmorph';
 
 import type { SegmentSeed } from './data';
 
@@ -161,15 +156,19 @@ export function createSliceView(container: HTMLElement, seeds: SegmentSeed[]) {
   // would normally zoom, so zoom moves to ctrl/cmd + wheel and right-drag.
   // Both are captured on the container to preempt the interactor's own
   // handlers bound to the same element.
-  container.addEventListener('wheel', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (event.ctrlKey || event.metaKey) {
-      zoomBy(event.deltaY > 0 ? 1.1 : 1 / 1.1);
-      return;
-    }
-    setSlice(currentZ + Math.sign(event.deltaY) * sliceStep);
-  }, { capture: true, passive: false });
+  container.addEventListener(
+    'wheel',
+    (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.ctrlKey || event.metaKey) {
+        zoomBy(event.deltaY > 0 ? 1.1 : 1 / 1.1);
+        return;
+      }
+      setSlice(currentZ + Math.sign(event.deltaY) * sliceStep);
+    },
+    { capture: true, passive: false },
+  );
 
   // Right-drag zooms, the convention in most slice viewers. vtk.js's built-in
   // styles bind only the left button, so this is handled here.
@@ -177,28 +176,36 @@ export function createSliceView(container: HTMLElement, seeds: SegmentSeed[]) {
 
   let zoomAnchorY: number | undefined;
 
-  container.addEventListener('pointerdown', (event) => {
-    if (event.button !== 2) return;
-    event.preventDefault();
-    event.stopPropagation();
-    zoomAnchorY = event.clientY;
-    // Capture keeps the drag alive outside the element, but is not essential:
-    // it throws for pointers the element never actually received.
-    try {
-      container.setPointerCapture(event.pointerId);
-    } catch {
-      // Drag still works through the container's own move events.
-    }
-  }, { capture: true });
+  container.addEventListener(
+    'pointerdown',
+    (event) => {
+      if (event.button !== 2) return;
+      event.preventDefault();
+      event.stopPropagation();
+      zoomAnchorY = event.clientY;
+      // Capture keeps the drag alive outside the element, but is not essential:
+      // it throws for pointers the element never actually received.
+      try {
+        container.setPointerCapture(event.pointerId);
+      } catch {
+        // Drag still works through the container's own move events.
+      }
+    },
+    { capture: true },
+  );
 
-  container.addEventListener('pointermove', (event) => {
-    if (zoomAnchorY === undefined) return;
-    event.preventDefault();
-    event.stopPropagation();
-    const dy = event.clientY - zoomAnchorY;
-    zoomAnchorY = event.clientY;
-    zoomBy(Math.exp(dy * 0.005));
-  }, { capture: true });
+  container.addEventListener(
+    'pointermove',
+    (event) => {
+      if (zoomAnchorY === undefined) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const dy = event.clientY - zoomAnchorY;
+      zoomAnchorY = event.clientY;
+      zoomBy(Math.exp(dy * 0.005));
+    },
+    { capture: true },
+  );
 
   const endZoom = (event: PointerEvent) => {
     if (zoomAnchorY === undefined) return;

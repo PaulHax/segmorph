@@ -94,7 +94,9 @@ describe('segmentation', () => {
     const segmentation = addSegment(addSegment(createSegmentation('labelmap'), liver), tumor);
 
     expect(reorderSegments(segmentation, ['tumor', 'liver']).order).toEqual(['tumor', 'liver']);
-    expect(() => reorderSegments(segmentation, ['liver'])).toThrow('Order must contain every segment id exactly once');
+    expect(() => reorderSegments(segmentation, ['liver'])).toThrow(
+      'Order must contain every segment id exactly once',
+    );
     expect(() => reorderSegments(segmentation, ['liver', 'other'])).toThrow(
       'Order must contain every segment id exactly once',
     );

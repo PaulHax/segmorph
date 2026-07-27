@@ -12,7 +12,9 @@ import { marchingCubesCases, voxelEdges } from './marchingCubesCases.js';
 // Per-edge lattice deltas derived from the VTK_VOXEL edge numbering: each edge
 // is a unit lattice edge whose min corner is voxelEdges[edge][0]. edgeAxis is
 // the varying axis; edgeD* place the shared min corner in [-1, dim] key space.
-const edgeAxis = Uint8Array.from(voxelEdges, ([a, b]) => ((a ^ b) === 1 ? 0 : (a ^ b) === 2 ? 1 : 2));
+const edgeAxis = Uint8Array.from(voxelEdges, ([a, b]) =>
+  (a ^ b) === 1 ? 0 : (a ^ b) === 2 ? 1 : 2,
+);
 const edgeDx = Uint8Array.from(voxelEdges, ([a]) => a & 1);
 const edgeDy = Uint8Array.from(voxelEdges, ([a]) => (a >> 1) & 1);
 const edgeDz = Uint8Array.from(voxelEdges, ([a]) => (a >> 2) & 1);
@@ -21,9 +23,10 @@ const edgeDz = Uint8Array.from(voxelEdges, ([a]) => (a >> 2) & 1);
 // (bit0 row y,z; bit1 row y+1,z; bit2 row y,z+1; bit3 row y+1,z+1). Spreading
 // a nibble onto the even bits yields the x-face contribution of the VTK_VOXEL
 // case index; the x+1 face lands on the odd bits via one extra shift.
-const spreadNibble = Uint8Array.from({ length: 16 }, (_, nibble) => (
-  (nibble & 1) | ((nibble & 2) << 1) | ((nibble & 4) << 2) | ((nibble & 8) << 3)
-));
+const spreadNibble = Uint8Array.from(
+  { length: 16 },
+  (_, nibble) => (nibble & 1) | ((nibble & 2) << 1) | ((nibble & 4) << 2) | ((nibble & 8) << 3),
+);
 
 /**
  * Extract a label isosurface with VTK's table-driven discrete marching-cubes
@@ -131,10 +134,12 @@ export function labelmapToSurface<T extends ImageData>(
       const base3 = rows[3] * width;
       const nibbleAt = (x: number) => {
         if (x < 0 || x >= width) return 0;
-        return (rows[0] >= 0 && data[base0 + x] === labelValue ? 1 : 0)
-          | (rows[1] >= 0 && data[base1 + x] === labelValue ? 2 : 0)
-          | (rows[2] >= 0 && data[base2 + x] === labelValue ? 4 : 0)
-          | (rows[3] >= 0 && data[base3 + x] === labelValue ? 8 : 0);
+        return (
+          (rows[0] >= 0 && data[base0 + x] === labelValue ? 1 : 0) |
+          (rows[1] >= 0 && data[base1 + x] === labelValue ? 2 : 0) |
+          (rows[2] >= 0 && data[base2 + x] === labelValue ? 4 : 0) |
+          (rows[3] >= 0 && data[base3 + x] === labelValue ? 8 : 0)
+        );
       };
 
       let left = nibbleAt(spanFirst - 1);

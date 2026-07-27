@@ -46,12 +46,7 @@ describe('source-authoritative invalidation', () => {
       { source: 'A', target: 'C', cost: 5, convert: direct },
     ];
     const edited = editRepresentation(segmentationWithRepresentations(), 'segment', 'A', 'edited');
-    const result = getOrCreateRepresentation(
-      edited,
-      'segment',
-      'C',
-      createConversionGraph(rules),
-    );
+    const result = getOrCreateRepresentation(edited, 'segment', 'C', createConversionGraph(rules));
 
     expect(result.representation).toBe('edited-b-c');
     expect(result.segmentation.segments.segment.representations).toEqual({
@@ -67,9 +62,7 @@ describe('source-authoritative invalidation', () => {
   it('returns an existing representation without converting or changing the segmentation', () => {
     const segmentation = segmentationWithRepresentations();
     const convert = vi.fn();
-    const graph = createConversionGraph([
-      { source: 'A', target: 'B', cost: 1, convert },
-    ]);
+    const graph = createConversionGraph([{ source: 'A', target: 'B', cost: 1, convert }]);
     const result = getOrCreateRepresentation(segmentation, 'segment', 'B', graph);
 
     expect(result).toEqual({ segmentation, representation: 'derived-b' });

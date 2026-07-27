@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  assignSegmentToLayer,
-  compactLayers,
-  createLayerModel,
-} from '../src/index.js';
+import { assignSegmentToLayer, compactLayers, createLayerModel } from '../src/index.js';
 
 describe('layer overlap model', () => {
   it('places disjoint segments together on layer 0', () => {
@@ -28,12 +24,7 @@ describe('layer overlap model', () => {
       2,
       new Uint8Array([0, 0, 1, 0]),
     );
-    const painted = assignSegmentToLayer(
-      disjoint,
-      'tumor',
-      2,
-      new Uint8Array([0, 1, 1, 0]),
-    );
+    const painted = assignSegmentToLayer(disjoint, 'tumor', 2, new Uint8Array([0, 1, 1, 0]));
 
     expect(painted.assignments.tumor).toEqual({ layer: 1, labelValue: 2 });
     expect(disjoint.assignments.tumor).toEqual({ layer: 0, labelValue: 2 });
@@ -46,12 +37,7 @@ describe('layer overlap model', () => {
       2,
       new Uint8Array([0, 1, 1, 0]),
     );
-    const erased = assignSegmentToLayer(
-      overlapping,
-      'tumor',
-      2,
-      new Uint8Array([0, 0, 1, 0]),
-    );
+    const erased = assignSegmentToLayer(overlapping, 'tumor', 2, new Uint8Array([0, 0, 1, 0]));
 
     expect(overlapping.assignments.tumor).toEqual({ layer: 1, labelValue: 2 });
     expect(erased.assignments.tumor).toEqual({ layer: 1, labelValue: 2 });
@@ -59,12 +45,7 @@ describe('layer overlap model', () => {
   });
 
   it('supports segment ids that match inherited object properties', () => {
-    const model = assignSegmentToLayer(
-      createLayerModel(),
-      'toString',
-      1,
-      new Uint8Array([1]),
-    );
+    const model = assignSegmentToLayer(createLayerModel(), 'toString', 1, new Uint8Array([1]));
 
     expect(model.assignments['toString']).toEqual({ layer: 0, labelValue: 1 });
     expect(model.order).toEqual(['toString']);

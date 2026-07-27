@@ -39,9 +39,10 @@ const expected = {
   },
 } as const;
 
-const sha256 = (data: ArrayBufferView) => createHash('sha256')
-  .update(new Uint8Array(data.buffer, data.byteOffset, data.byteLength))
-  .digest('hex');
+const sha256 = (data: ArrayBufferView) =>
+  createHash('sha256')
+    .update(new Uint8Array(data.buffer, data.byteOffset, data.byteLength))
+    .digest('hex');
 
 const summarize = (data: ArrayBufferView & ArrayLike<number>) => ({
   hash: sha256(data),

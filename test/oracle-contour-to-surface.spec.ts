@@ -54,9 +54,7 @@ async function loadGolden(caseName: string): Promise<Mesh> {
   );
 }
 
-const manifest = readFixtureManifest(
-  await readFile(new URL('manifest.json', fixturesUrl), 'utf8'),
-);
+const manifest = readFixtureManifest(await readFile(new URL('manifest.json', fixturesUrl), 'utf8'));
 
 describe('polyseg-wasm contour-to-surface oracle', () => {
   for (const caseName of Object.keys(contourToSurfaceCases)) {
@@ -80,11 +78,13 @@ describe('polyseg-wasm contour-to-surface oracle', () => {
         .soft(Math.abs(volumeRatio - 1), `volumeRatio ${volumeRatio}`)
         .toBeLessThanOrEqual(tolerance.volume);
 
-      const vertexRatio = (ours.points.length / 3) / (golden.points.length / 3);
-      const triangleRatio = (ours.polys.length / 4) / (golden.polys.length / 4);
-      expect.soft(Math.abs(vertexRatio - 1), `vertexRatio ${vertexRatio}`)
+      const vertexRatio = ours.points.length / 3 / (golden.points.length / 3);
+      const triangleRatio = ours.polys.length / 4 / (golden.polys.length / 4);
+      expect
+        .soft(Math.abs(vertexRatio - 1), `vertexRatio ${vertexRatio}`)
         .toBeLessThanOrEqual(countBand);
-      expect.soft(Math.abs(triangleRatio - 1), `triangleRatio ${triangleRatio}`)
+      expect
+        .soft(Math.abs(triangleRatio - 1), `triangleRatio ${triangleRatio}`)
         .toBeLessThanOrEqual(countBand);
     });
   }

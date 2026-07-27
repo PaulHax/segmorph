@@ -16,39 +16,61 @@ import { readMeshJson } from './fixtures/loaders.js';
 const sphereMeshUrl = new URL('./fixtures/A/sphere/golden.mesh.json', import.meta.url);
 
 const cubeTriangles = [
-  [0, 2, 1], [0, 3, 2],
-  [4, 5, 6], [4, 6, 7],
-  [0, 1, 5], [0, 5, 4],
-  [3, 7, 6], [3, 6, 2],
-  [0, 4, 7], [0, 7, 3],
-  [1, 2, 6], [1, 6, 5],
+  [0, 2, 1],
+  [0, 3, 2],
+  [4, 5, 6],
+  [4, 6, 7],
+  [0, 1, 5],
+  [0, 5, 4],
+  [3, 7, 6],
+  [3, 6, 2],
+  [0, 4, 7],
+  [0, 7, 3],
+  [1, 2, 6],
+  [1, 6, 5],
 ] as const;
 
 function cube(minimum: number, maximum: number) {
   const points: Point[] = [
-    [minimum, minimum, minimum], [maximum, minimum, minimum],
-    [maximum, maximum, minimum], [minimum, maximum, minimum],
-    [minimum, minimum, maximum], [maximum, minimum, maximum],
-    [maximum, maximum, maximum], [minimum, maximum, maximum],
+    [minimum, minimum, minimum],
+    [maximum, minimum, minimum],
+    [maximum, maximum, minimum],
+    [minimum, maximum, minimum],
+    [minimum, minimum, maximum],
+    [maximum, minimum, maximum],
+    [maximum, maximum, maximum],
+    [minimum, maximum, maximum],
   ];
   return createMesh(points, cubeTriangles);
 }
 
 const octahedronTriangles = [
-  [0, 2, 3], [0, 3, 4], [0, 4, 5], [0, 5, 2],
-  [1, 3, 2], [1, 4, 3], [1, 5, 4], [1, 2, 5],
+  [0, 2, 3],
+  [0, 3, 4],
+  [0, 4, 5],
+  [0, 5, 2],
+  [1, 3, 2],
+  [1, 4, 3],
+  [1, 5, 4],
+  [1, 2, 5],
 ] as const;
 
 function octahedron(scale: Vector3 = [1, 1, 1], offset: Vector3 = [0, 0, 0]) {
   const base: Point[] = [
-    [0, 0, 1], [0, 0, -1],
-    [1, 0, 0], [0, 1, 0], [-1, 0, 0], [0, -1, 0],
+    [0, 0, 1],
+    [0, 0, -1],
+    [1, 0, 0],
+    [0, 1, 0],
+    [-1, 0, 0],
+    [0, -1, 0],
   ];
-  const points = base.map(([x, y, z]): Point => [
-    x * scale[0] + offset[0],
-    y * scale[1] + offset[1],
-    z * scale[2] + offset[2],
-  ]);
+  const points = base.map(
+    ([x, y, z]): Point => [
+      x * scale[0] + offset[0],
+      y * scale[1] + offset[1],
+      z * scale[2] + offset[2],
+    ],
+  );
   return createMesh(points, octahedronTriangles);
 }
 
@@ -62,11 +84,7 @@ function normalize(vector: Vector3): Vector3 {
 }
 
 function cross(a: Vector3, b: Vector3): Vector3 {
-  return [
-    a[1] * b[2] - a[2] * b[1],
-    a[2] * b[0] - a[0] * b[2],
-    a[0] * b[1] - a[1] * b[0],
-  ];
+  return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 }
 
 function loopVertices(loop: { points: Float64Array }) {
@@ -110,13 +128,14 @@ function maxPlaneDistance(contour: PlanarContour) {
 }
 
 function segmentsIntersect(
-  a0: [number, number], a1: [number, number],
-  b0: [number, number], b1: [number, number],
+  a0: [number, number],
+  a1: [number, number],
+  b0: [number, number],
+  b1: [number, number],
 ) {
   const orient = (p: [number, number], q: [number, number], r: [number, number]) =>
     Math.sign((q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]));
-  return orient(a0, a1, b0) !== orient(a0, a1, b1)
-    && orient(b0, b1, a0) !== orient(b0, b1, a1);
+  return orient(a0, a1, b0) !== orient(a0, a1, b1) && orient(b0, b1, a0) !== orient(b0, b1, a1);
 }
 
 function isSimpleLoop(loop: { points: Float64Array }) {
@@ -125,10 +144,14 @@ function isSimpleLoop(loop: { points: Float64Array }) {
   for (let i = 0; i < count; i += 1) {
     for (let j = i + 2; j < count; j += 1) {
       if (i === 0 && j === count - 1) continue; // adjacent through closure
-      if (segmentsIntersect(
-        vertices[i], vertices[(i + 1) % count],
-        vertices[j], vertices[(j + 1) % count],
-      )) {
+      if (
+        segmentsIntersect(
+          vertices[i],
+          vertices[(i + 1) % count],
+          vertices[j],
+          vertices[(j + 1) % count],
+        )
+      ) {
         return false;
       }
     }
@@ -149,7 +172,11 @@ describe('surfaceToContour', () => {
 
   it('drops open chains from meshes with boundaries', () => {
     const triangle = createMesh(
-      [[0, 0, -1], [2, 0, 1], [0, 2, 1]],
+      [
+        [0, 0, -1],
+        [2, 0, 1],
+        [0, 2, 1],
+      ],
       [[0, 1, 2]],
     );
     expect(surfaceToContour(triangle, axisPlane(0))).toBeUndefined();
@@ -169,8 +196,18 @@ describe('surfaceToContour', () => {
   it('orients every loop counterclockwise about xAxis cross yAxis', () => {
     const two = createMesh(
       [
-        [0, 0, 1], [0, 0, -1], [1, 0, 0], [0, 1, 0], [-1, 0, 0], [0, -1, 0],
-        [5, 0, 1], [5, 0, -1], [6, 0, 0], [5, 1, 0], [4, 0, 0], [5, -1, 0],
+        [0, 0, 1],
+        [0, 0, -1],
+        [1, 0, 0],
+        [0, 1, 0],
+        [-1, 0, 0],
+        [0, -1, 0],
+        [5, 0, 1],
+        [5, 0, -1],
+        [6, 0, 0],
+        [5, 1, 0],
+        [4, 0, 0],
+        [5, -1, 0],
       ],
       [
         ...octahedronTriangles,

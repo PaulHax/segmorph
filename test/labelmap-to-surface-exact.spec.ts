@@ -17,7 +17,11 @@ import { labelmapToSurfaceBase } from './baselines/labelmapToSurfaceBase.js';
 // (only legitimate when the observable output is intentionally changed, which
 // requires coordinator approval).
 
-const identity = [[1, 0, 0], [0, 1, 0], [0, 0, 1]] as const;
+const identity = [
+  [1, 0, 0],
+  [0, 1, 0],
+  [0, 0, 1],
+] as const;
 
 const mulberry32 = (seed: number) => () => {
   seed = (seed + 0x6d2b79f5) | 0;
@@ -80,7 +84,11 @@ function multiLabelImage() {
   set(7, 6, 5, 3);
   set(0, 6, 0, 3);
   return createOrientedImage({
-    data, dims, spacing: [1, 1, 1], origin: [0, 0, 0], direction: identity,
+    data,
+    dims,
+    spacing: [1, 1, 1],
+    origin: [0, 0, 0],
+    direction: identity,
   });
 }
 
@@ -91,19 +99,26 @@ function boundarySlabImage() {
     for (let x = 0; x < dims[0]; x += 1) data[x + dims[0] * dims[1] * z] = 5;
   }
   return createOrientedImage({
-    data, dims, spacing: [1, 1, 1], origin: [0, 0, 0], direction: identity,
+    data,
+    dims,
+    spacing: [1, 1, 1],
+    origin: [0, 0, 0],
+    direction: identity,
   });
 }
 
 function randomNoiseImage() {
   const dims = [20, 19, 18] as const;
   const random = mulberry32(42);
-  const data = Uint8Array.from(
-    { length: dims[0] * dims[1] * dims[2] },
-    () => Math.floor(random() * 4),
+  const data = Uint8Array.from({ length: dims[0] * dims[1] * dims[2] }, () =>
+    Math.floor(random() * 4),
   );
   return createOrientedImage({
-    data, dims, spacing: [1, 1, 1], origin: [0, 0, 0], direction: identity,
+    data,
+    dims,
+    spacing: [1, 1, 1],
+    origin: [0, 0, 0],
+    direction: identity,
   });
 }
 
@@ -238,8 +253,9 @@ describe('labelmapToSurface exact-output regression', () => {
       direction: identity,
     });
     for (const labelValue of [0, -1, 1.5, 2 ** 32, Number.NaN]) {
-      expect(() => labelmapToSurface(image, { labelValue }))
-        .toThrow('labelValue must be an integer between 1 and 4294967295');
+      expect(() => labelmapToSurface(image, { labelValue })).toThrow(
+        'labelValue must be an integer between 1 and 4294967295',
+      );
     }
   });
 });

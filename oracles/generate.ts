@@ -25,7 +25,10 @@ const oracleDirectory = fileURLToPath(new URL('./py', import.meta.url));
 const nodeDirectory = fileURLToPath(new URL('./node', import.meta.url));
 
 const outFlag = process.argv.indexOf('--out');
-const fixturesDirectory = resolve(root, outFlag === -1 ? 'test/fixtures' : process.argv[outFlag + 1]);
+const fixturesDirectory = resolve(
+  root,
+  outFlag === -1 ? 'test/fixtures' : process.argv[outFlag + 1],
+);
 
 // Per-algorithm oracles. `py` lists the Python generators (run in order, so a
 // second oracle can cross-check the first); `node` is a composed Node oracle
@@ -71,8 +74,8 @@ if (requestedAlgorithm && !(requestedAlgorithm in oracles)) {
 const algorithms = requestedAlgorithm
   ? [requestedAlgorithm]
   : Object.keys(oracles).filter(
-    (algorithm) => !(targetsCommittedCorpus && liveOnlyAlgorithms.has(algorithm)),
-  );
+      (algorithm) => !(targetsCommittedCorpus && liveOnlyAlgorithms.has(algorithm)),
+    );
 
 function run(command: string, args: string[]) {
   const result = spawnSync(command, args, {

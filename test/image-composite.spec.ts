@@ -30,24 +30,28 @@ describe('bounded image compositing', () => {
     const input = Uint16Array.from([8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8]);
     const modifier = Uint16Array.from([1, 9, 4, 7, 3, 10, 2, 12, 6, 5, 11, 0]);
 
-    expect([...compositeMin(input, modifier, dims, middleColumn)])
-      .toEqual([8, 8, 4, 8, 3, 8, 8, 8, 6, 8, 8, 0]);
-    expect([...compositeMax(input, modifier, dims, middleColumn)])
-      .toEqual([8, 9, 8, 8, 8, 10, 8, 12, 8, 8, 11, 8]);
+    expect([...compositeMin(input, modifier, dims, middleColumn)]).toEqual([
+      8, 8, 4, 8, 3, 8, 8, 8, 6, 8, 8, 0,
+    ]);
+    expect([...compositeMax(input, modifier, dims, middleColumn)]).toEqual([
+      8, 9, 8, 8, 8, 10, 8, 12, 8, 8, 11, 8,
+    ]);
   });
 
   it('keeps input voxels selected by a label and fills other voxels in the extent', () => {
     const input = Int16Array.from({ length: 12 }, (_, index) => index - 2);
     const labels = Uint8Array.from([0, 4, 4, 4, 2, 4, 4, 0, 4, 4, 4, 3]);
 
-    expect([...maskByLabelValue(input, labels, dims, 4, -9, middleColumn)])
-      .toEqual([-2, -1, 0, 1, -9, 3, 4, -9, 6, 7, 8, -9]);
+    expect([...maskByLabelValue(input, labels, dims, 4, -9, middleColumn)]).toEqual([
+      -2, -1, 0, 1, -9, 3, 4, -9, 6, 7, 8, -9,
+    ]);
     expect([...input]).toEqual([-2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   });
 
   it('defaults to the complete image extent', () => {
-    expect([...compositeSet(new Uint8Array(12), new Uint8Array(12).fill(5), dims)])
-      .toEqual(new Array(12).fill(5));
+    expect([...compositeSet(new Uint8Array(12), new Uint8Array(12).fill(5), dims)]).toEqual(
+      new Array(12).fill(5),
+    );
   });
 
   it('validates dimensions, array sizes, extents, and compatible data types', () => {

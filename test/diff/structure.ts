@@ -17,7 +17,11 @@ function edgeKey(a: number, b: number) {
 function edgeUses(triangles: readonly Triangle[]) {
   const uses = new Map<string, { from: number; to: number }[]>();
   for (const [a, b, c] of triangles) {
-    for (const [from, to] of [[a, b], [b, c], [c, a]]) {
+    for (const [from, to] of [
+      [a, b],
+      [b, c],
+      [c, a],
+    ]) {
       const key = edgeKey(from, to);
       const entries = uses.get(key) ?? [];
       entries.push({ from, to });
@@ -70,17 +74,21 @@ function hasManifoldVertexLinks(triangles: readonly Triangle[]) {
 
 export function isManifold(mesh: Mesh) {
   const triangles = distinctTriangleIndices(mesh);
-  return [...edgeUses(triangles).values()].every((entries) => entries.length <= 2)
-    && hasManifoldVertexLinks(triangles);
+  return (
+    [...edgeUses(triangles).values()].every((entries) => entries.length <= 2) &&
+    hasManifoldVertexLinks(triangles)
+  );
 }
 
 export function hasConsistentOutwardOrientation(mesh: Mesh) {
   if (enclosedVolume(mesh) <= 0) return false;
 
-  return [...edgeUses(distinctTriangleIndices(mesh)).values()].every((entries) =>
-    entries.length <= 2
-    && (entries.length < 2
-      || (entries[0].from === entries[1].to && entries[0].to === entries[1].from)));
+  return [...edgeUses(distinctTriangleIndices(mesh)).values()].every(
+    (entries) =>
+      entries.length <= 2 &&
+      (entries.length < 2 ||
+        (entries[0].from === entries[1].to && entries[0].to === entries[1].from)),
+  );
 }
 
 export function isVolumeWithinBand(mesh: Mesh, referenceVolume: number, band: number) {

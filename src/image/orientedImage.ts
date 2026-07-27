@@ -33,8 +33,10 @@ function dot(left: readonly number[], right: readonly number[]) {
 }
 
 export function validateImageGeometry(geometry: ImageGeometry) {
-  if (geometry.dims.length !== 3
-    || geometry.dims.some((value) => !Number.isInteger(value) || value <= 0)) {
+  if (
+    geometry.dims.length !== 3 ||
+    geometry.dims.some((value) => !Number.isInteger(value) || value <= 0)
+  ) {
     throw new Error('dims must contain three positive integers');
   }
   if (!hasThreeFiniteValues(geometry.spacing) || geometry.spacing.some((value) => value <= 0)) {
@@ -43,16 +45,20 @@ export function validateImageGeometry(geometry: ImageGeometry) {
   if (!hasThreeFiniteValues(geometry.origin)) {
     throw new Error('origin must contain three finite numbers');
   }
-  if (geometry.direction.length !== 3
-    || geometry.direction.some((row) => !hasThreeFiniteValues(row))) {
+  if (
+    geometry.direction.length !== 3 ||
+    geometry.direction.some((row) => !hasThreeFiniteValues(row))
+  ) {
     throw new Error('direction must be an orthonormal 3x3 matrix');
   }
 
   for (let row = 0; row < 3; row += 1) {
     for (let other = row; other < 3; other += 1) {
       const expected = row === other ? 1 : 0;
-      if (Math.abs(dot(geometry.direction[row], geometry.direction[other]) - expected)
-        > directionTolerance) {
+      if (
+        Math.abs(dot(geometry.direction[row], geometry.direction[other]) - expected) >
+        directionTolerance
+      ) {
         throw new Error('direction must be an orthonormal 3x3 matrix');
       }
     }
@@ -77,9 +83,11 @@ export function createOrientedImage<T extends ImageData>(image: OrientedImage<T>
  * normals stay outward-facing in world space.
  */
 export function directionDeterminant(direction: readonly (readonly number[])[]) {
-  return direction[0][0] * (direction[1][1] * direction[2][2] - direction[1][2] * direction[2][1])
-    - direction[0][1] * (direction[1][0] * direction[2][2] - direction[1][2] * direction[2][0])
-    + direction[0][2] * (direction[1][0] * direction[2][1] - direction[1][1] * direction[2][0]);
+  return (
+    direction[0][0] * (direction[1][1] * direction[2][2] - direction[1][2] * direction[2][1]) -
+    direction[0][1] * (direction[1][0] * direction[2][2] - direction[1][2] * direction[2][0]) +
+    direction[0][2] * (direction[1][0] * direction[2][1] - direction[1][1] * direction[2][0])
+  );
 }
 
 export function indexToWorld(geometry: ImageGeometry, index: Vector3): Vector3 {
@@ -102,14 +110,17 @@ export function worldToIndex(geometry: ImageGeometry, world: Vector3): Vector3 {
     world[2] - geometry.origin[2],
   ];
   return [
-    (geometry.direction[0][0] * offset[0]
-      + geometry.direction[1][0] * offset[1]
-      + geometry.direction[2][0] * offset[2]) / geometry.spacing[0],
-    (geometry.direction[0][1] * offset[0]
-      + geometry.direction[1][1] * offset[1]
-      + geometry.direction[2][1] * offset[2]) / geometry.spacing[1],
-    (geometry.direction[0][2] * offset[0]
-      + geometry.direction[1][2] * offset[1]
-      + geometry.direction[2][2] * offset[2]) / geometry.spacing[2],
+    (geometry.direction[0][0] * offset[0] +
+      geometry.direction[1][0] * offset[1] +
+      geometry.direction[2][0] * offset[2]) /
+      geometry.spacing[0],
+    (geometry.direction[0][1] * offset[0] +
+      geometry.direction[1][1] * offset[1] +
+      geometry.direction[2][1] * offset[2]) /
+      geometry.spacing[1],
+    (geometry.direction[0][2] * offset[0] +
+      geometry.direction[1][2] * offset[1] +
+      geometry.direction[2][2] * offset[2]) /
+      geometry.spacing[2],
   ];
 }

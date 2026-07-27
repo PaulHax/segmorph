@@ -24,7 +24,11 @@ const labelmap = createOrientedImage({
   dims,
   spacing: [1, 1, 1],
   origin: [0, 0, 0],
-  direction: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+  direction: [
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+  ],
 });
 
 // 2. The conversion. One synchronous call, no setup and no await.

@@ -34,14 +34,14 @@ segmentation model.
 
 ## What each part demonstrates
 
-| File | segmorph API | What it shows |
-|---|---|---|
-| `src/adapter.ts` | data contracts | vtkImageData to `OrientedImage`, and `Mesh` to `vtkPolyData`. Voxel and vertex arrays pass by reference; the only reshape is the 9-element direction matrix into three rows. |
-| `src/worker.ts` | `labelmapToSurface`, `meshSmooth`, `meshDecimate`, `resampleNearest` | The whole conversion pipeline, off the main thread. |
-| `src/sliceView.ts` | `surfaceToContour`, `createContourPlane`, `planeToWorld` | Cuts the 3D surfaces with the current slice plane and draws the loops over the reslice. |
-| `src/volumeView.ts` | (rendering only) | vtk.js volume rendering with the segment surfaces inside it. Both live in the same world coordinates, because segmorph works in physical space, so there is no registration step. |
-| `src/scheduler.ts` | (policy) | Worker ownership, debouncing, and latest-wins request handling. |
-| `src/main.ts` | `createSegmentation`, `createSegment`, `addSegment` | The segment list drives the UI, rather than a hardcoded array. |
+| File                | segmorph API                                                         | What it shows                                                                                                                                                                     |
+| ------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/adapter.ts`    | data contracts                                                       | vtkImageData to `OrientedImage`, and `Mesh` to `vtkPolyData`. Voxel and vertex arrays pass by reference; the only reshape is the 9-element direction matrix into three rows.      |
+| `src/worker.ts`     | `labelmapToSurface`, `meshSmooth`, `meshDecimate`, `resampleNearest` | The whole conversion pipeline, off the main thread.                                                                                                                               |
+| `src/sliceView.ts`  | `surfaceToContour`, `createContourPlane`, `planeToWorld`             | Cuts the 3D surfaces with the current slice plane and draws the loops over the reslice.                                                                                           |
+| `src/volumeView.ts` | (rendering only)                                                     | vtk.js volume rendering with the segment surfaces inside it. Both live in the same world coordinates, because segmorph works in physical space, so there is no registration step. |
+| `src/scheduler.ts`  | (policy)                                                             | Worker ownership, debouncing, and latest-wins request handling.                                                                                                                   |
+| `src/main.ts`       | `createSegmentation`, `createSegment`, `addSegment`                  | The segment list drives the UI, rather than a hardcoded array.                                                                                                                    |
 
 The contours on the slice view are worth dwelling on. They are not a second
 stored segmentation. They are the same meshes shown in 3D, cut on demand by the

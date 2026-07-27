@@ -136,10 +136,7 @@ async function generateLabelmap(caseName: string) {
   const data = resampleToReference(geometry, source, result.data);
 
   const labelmap = { data: Array.from(data), dims: geometry.dims };
-  await writeFile(
-    new URL('golden.polyseg.labelmap.json', url),
-    `${JSON.stringify(labelmap)}\n`,
-  );
+  await writeFile(new URL('golden.polyseg.labelmap.json', url), `${JSON.stringify(labelmap)}\n`);
 
   written.push({
     oracle: { name: ORACLE_NAME, version: POLYSEG_VERSION },
@@ -197,10 +194,14 @@ const manifestText = await readFile(manifestUrl, 'utf8').catch((error) => {
   return JSON.stringify({ schemaVersion: 1, fixtures: [] });
 });
 const manifest = JSON.parse(manifestText);
-manifest.fixtures = manifest.fixtures.filter((fixture: ManifestEntry) => !written.some(
-  (entry) => entry.algorithm === fixture.algorithm
-    && entry.case === fixture.case
-    && entry.oracle.name === fixture.oracle.name,
-));
+manifest.fixtures = manifest.fixtures.filter(
+  (fixture: ManifestEntry) =>
+    !written.some(
+      (entry) =>
+        entry.algorithm === fixture.algorithm &&
+        entry.case === fixture.case &&
+        entry.oracle.name === fixture.oracle.name,
+    ),
+);
 manifest.fixtures.push(...written);
 await writeFile(manifestUrl, `${JSON.stringify(manifest, null, 2)}\n`);

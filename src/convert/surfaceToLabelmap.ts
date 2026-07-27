@@ -175,17 +175,21 @@ function buildRayGrid(triangles: PreparedTriangles, tolerance: number, reach: nu
 
     let pad = basePad;
     if (triangles.rayActive[index] === 1) {
-      const pLength = Math.sqrt(triangles.rayCross[offset] ** 2
-        + triangles.rayCross[offset + 1] ** 2
-        + triangles.rayCross[offset + 2] ** 2);
+      const pLength = Math.sqrt(
+        triangles.rayCross[offset] ** 2 +
+          triangles.rayCross[offset + 1] ** 2 +
+          triangles.rayCross[offset + 2] ** 2,
+      );
       const edge1Length = Math.sqrt(triangles.dot11[index]);
       const edge2Length = Math.sqrt(triangles.dot00[index]);
-      pad += (Number.EPSILON * reach * (pLength * edge1Length + edge1Length * edge2Length) * 64)
-        / Math.abs(triangles.determinant[index]);
+      pad +=
+        (Number.EPSILON * reach * (pLength * edge1Length + edge1Length * edge2Length) * 64) /
+        Math.abs(triangles.determinant[index]);
     }
     if (triangles.surfaceActive[index] === 1 && triangles.denominator[index] !== 0) {
-      pad += (Number.EPSILON * reach * triangles.dot00[index] * triangles.dot11[index] * 64)
-        / Math.abs(triangles.denominator[index]);
+      pad +=
+        (Number.EPSILON * reach * triangles.dot00[index] * triangles.dot11[index] * 64) /
+        Math.abs(triangles.denominator[index]);
     }
     pad = Math.min(pad, padCap);
 
@@ -204,18 +208,15 @@ function buildRayGrid(triangles: PreparedTriangles, tolerance: number, reach: nu
     inserted += 1;
   }
 
-  const cellsPerAxis = inserted === 0
-    ? 1
-    : Math.min(128, Math.max(1, Math.ceil(Math.sqrt(inserted))));
+  const cellsPerAxis =
+    inserted === 0 ? 1 : Math.min(128, Math.max(1, Math.ceil(Math.sqrt(inserted))));
   const uScale = uMax > uMin ? cellsPerAxis / (uMax - uMin) : 0;
   const vScale = vMax > vMin ? cellsPerAxis / (vMax - vMin) : 0;
   const cellCount = cellsPerAxis * cellsPerAxis;
-  const columnOf = (u: number) => (
-    Math.min(cellsPerAxis - 1, Math.max(0, Math.floor((u - uMin) * uScale)))
-  );
-  const rowOf = (v: number) => (
-    Math.min(cellsPerAxis - 1, Math.max(0, Math.floor((v - vMin) * vScale)))
-  );
+  const columnOf = (u: number) =>
+    Math.min(cellsPerAxis - 1, Math.max(0, Math.floor((u - uMin) * uScale)));
+  const rowOf = (v: number) =>
+    Math.min(cellsPerAxis - 1, Math.max(0, Math.floor((v - vMin) * vScale)));
 
   const cellSizes = new Int32Array(cellCount);
   for (let index = 0; index < count; index += 1) {
@@ -292,21 +293,28 @@ function containsPoint(
     const fromAZ = z - triangles.vertex[offset + 2];
 
     if (triangles.surfaceActive[index] === 1) {
-      const distanceNumerator = fromAX * triangles.normal[offset]
-        + fromAY * triangles.normal[offset + 1]
-        + fromAZ * triangles.normal[offset + 2];
-      if (!(distanceNumerator * distanceNumerator > triangles.planeTolerance[index])
-        && triangles.denominator[index] !== 0) {
-        const dot02 = triangles.edge2[offset] * fromAX
-          + triangles.edge2[offset + 1] * fromAY
-          + triangles.edge2[offset + 2] * fromAZ;
-        const dot12 = triangles.edge1[offset] * fromAX
-          + triangles.edge1[offset + 1] * fromAY
-          + triangles.edge1[offset + 2] * fromAZ;
-        const surfaceU = (triangles.dot11[index] * dot02 - triangles.dot01[index] * dot12)
-          / triangles.denominator[index];
-        const surfaceV = (triangles.dot00[index] * dot12 - triangles.dot01[index] * dot02)
-          / triangles.denominator[index];
+      const distanceNumerator =
+        fromAX * triangles.normal[offset] +
+        fromAY * triangles.normal[offset + 1] +
+        fromAZ * triangles.normal[offset + 2];
+      if (
+        !(distanceNumerator * distanceNumerator > triangles.planeTolerance[index]) &&
+        triangles.denominator[index] !== 0
+      ) {
+        const dot02 =
+          triangles.edge2[offset] * fromAX +
+          triangles.edge2[offset + 1] * fromAY +
+          triangles.edge2[offset + 2] * fromAZ;
+        const dot12 =
+          triangles.edge1[offset] * fromAX +
+          triangles.edge1[offset + 1] * fromAY +
+          triangles.edge1[offset + 2] * fromAZ;
+        const surfaceU =
+          (triangles.dot11[index] * dot02 - triangles.dot01[index] * dot12) /
+          triangles.denominator[index];
+        const surfaceV =
+          (triangles.dot00[index] * dot12 - triangles.dot01[index] * dot02) /
+          triangles.denominator[index];
         const slack = triangles.barycentricTolerance[index];
         if (surfaceU >= -slack && surfaceV >= -slack && surfaceU + surfaceV <= 1 + slack) {
           return true;
@@ -316,18 +324,22 @@ function containsPoint(
 
     if (triangles.rayActive[index] === 1) {
       const inverse = triangles.inverseDeterminant[index];
-      const rayU = (fromAX * triangles.rayCross[offset]
-        + fromAY * triangles.rayCross[offset + 1]
-        + fromAZ * triangles.rayCross[offset + 2]) * inverse;
+      const rayU =
+        (fromAX * triangles.rayCross[offset] +
+          fromAY * triangles.rayCross[offset + 1] +
+          fromAZ * triangles.rayCross[offset + 2]) *
+        inverse;
       if (rayU < -1e-12 || rayU > 1 + 1e-12) continue;
       const qx = fromAY * triangles.edge1[offset + 2] - fromAZ * triangles.edge1[offset + 1];
       const qy = fromAZ * triangles.edge1[offset] - fromAX * triangles.edge1[offset + 2];
       const qz = fromAX * triangles.edge1[offset + 1] - fromAY * triangles.edge1[offset];
       const rayV = (rayDirection[0] * qx + rayDirection[1] * qy + rayDirection[2] * qz) * inverse;
       if (rayV < -1e-12 || rayU + rayV > 1 + 1e-12) continue;
-      const distance = (triangles.edge2[offset] * qx
-        + triangles.edge2[offset + 1] * qy
-        + triangles.edge2[offset + 2] * qz) * inverse;
+      const distance =
+        (triangles.edge2[offset] * qx +
+          triangles.edge2[offset + 1] * qy +
+          triangles.edge2[offset + 2] * qz) *
+        inverse;
       if (distance > tolerance) {
         let position = hitCount;
         while (position > 0 && distances[position - 1] > distance) {
@@ -351,11 +363,7 @@ function containsPoint(
   return uniqueCount % 2 === 1;
 }
 
-function referenceBounds(
-  mesh: Mesh,
-  geometry: ImageGeometry,
-  tolerance: number,
-) {
+function referenceBounds(mesh: Mesh, geometry: ImageGeometry, tolerance: number) {
   const minimum = [Infinity, Infinity, Infinity];
   const maximum = [-Infinity, -Infinity, -Infinity];
   for (let index = 0; index < mesh.points.length / 3; index += 1) {
@@ -388,17 +396,15 @@ function worldReach(mesh: Mesh, geometry: ImageGeometry) {
     include(getPoint(mesh, index));
   }
   for (let corner = 0; corner < 8; corner += 1) {
-    include(indexToWorld(geometry, [
-      corner & 1 ? geometry.dims[0] - 1 : 0,
-      corner & 2 ? geometry.dims[1] - 1 : 0,
-      corner & 4 ? geometry.dims[2] - 1 : 0,
-    ]));
+    include(
+      indexToWorld(geometry, [
+        corner & 1 ? geometry.dims[0] - 1 : 0,
+        corner & 2 ? geometry.dims[1] - 1 : 0,
+        corner & 4 ? geometry.dims[2] - 1 : 0,
+      ]),
+    );
   }
-  return Math.hypot(
-    maximum[0] - minimum[0],
-    maximum[1] - minimum[1],
-    maximum[2] - minimum[2],
-  );
+  return Math.hypot(maximum[0] - minimum[0], maximum[1] - minimum[1], maximum[2] - minimum[2]);
 }
 
 /**

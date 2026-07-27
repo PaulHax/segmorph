@@ -25,9 +25,7 @@ const cases = [
 
 const borderTiesCase = 'half-voxel-border-ties';
 
-const fixture = (caseName: string, name: string) => (
-  fixtureUrl(`E/${caseName}/${name}`)
-);
+const fixture = (caseName: string, name: string) => fixtureUrl(`E/${caseName}/${name}`);
 
 const loadCase = async (caseName: string) => {
   const [input, golden, params] = await Promise.all([
@@ -38,9 +36,8 @@ const loadCase = async (caseName: string) => {
   return { input, golden, params };
 };
 
-const loadItkGolden = async (caseName: string) => (
-  readNrrd(await readFile(fixture(caseName, 'golden.itk.nrrd')))
-);
+const loadItkGolden = async (caseName: string) =>
+  readNrrd(await readFile(fixture(caseName, 'golden.itk.nrrd')));
 
 describe('oriented nearest-neighbor resample oracle', () => {
   it.each(cases)('matches Python VTK for %s geometry', async (caseName) => {
@@ -76,21 +73,24 @@ describe('oriented nearest-neighbor resample oracle', () => {
   it('uses a negative-determinant direction in the mirrored fixture', async () => {
     const { golden } = await loadCase('mirrored');
     const [r0, r1, r2] = golden.direction;
-    const determinant = r0[0] * (r1[1] * r2[2] - r1[2] * r2[1])
-      - r0[1] * (r1[0] * r2[2] - r1[2] * r2[0])
-      + r0[2] * (r1[0] * r2[1] - r1[1] * r2[0]);
+    const determinant =
+      r0[0] * (r1[1] * r2[2] - r1[2] * r2[1]) -
+      r0[1] * (r1[0] * r2[2] - r1[2] * r2[0]) +
+      r0[2] * (r1[0] * r2[1] - r1[1] * r2[0]);
     expect(determinant).toBeCloseTo(-1, 10);
   });
 
   it('records the Python VTK and ITK oracles for every case in the manifest', async () => {
-    const manifest = readFixtureManifest(
-      await readFile(fixtureUrl('manifest.json'), 'utf8'),
-    );
+    const manifest = readFixtureManifest(await readFile(fixtureUrl('manifest.json'), 'utf8'));
     const allCases = [...cases, borderTiesCase];
 
-    expect(allCases.map((caseName) => (
-      findFixtureEntries(manifest, 'E', caseName).map((entry) => entry.oracle.name).sort()
-    ))).toEqual(allCases.map(() => ['itk', 'python-vtk']));
+    expect(
+      allCases.map((caseName) =>
+        findFixtureEntries(manifest, 'E', caseName)
+          .map((entry) => entry.oracle.name)
+          .sort(),
+      ),
+    ).toEqual(allCases.map(() => ['itk', 'python-vtk']));
   });
 });
 
@@ -133,9 +133,8 @@ describe('half-voxel upper-boundary ties', () => {
           const sx = Math.min(x + 1, input.dims[0] - 1);
           const sy = Math.min(y + 1, input.dims[1] - 1);
           const sz = Math.min(z + 1, input.dims[2] - 1);
-          clamped[x + dims[0] * (y + dims[1] * z)] = input.data[
-            sx + input.dims[0] * (sy + input.dims[1] * sz)
-          ];
+          clamped[x + dims[0] * (y + dims[1] * z)] =
+            input.data[sx + input.dims[0] * (sy + input.dims[1] * sz)];
         }
       }
     }
@@ -155,9 +154,9 @@ describe('half-voxel upper-boundary ties', () => {
       }
     }
     tiePlanes.forEach(([x, y, z]) => {
-      expect(actual.data[x + dims[0] * (y + dims[1] * z)]).toBe(clamped[
-        x + dims[0] * (y + dims[1] * z)
-      ]);
+      expect(actual.data[x + dims[0] * (y + dims[1] * z)]).toBe(
+        clamped[x + dims[0] * (y + dims[1] * z)],
+      );
       expect(actual.data[x + dims[0] * (y + dims[1] * z)]).not.toBe(params.fillValue);
     });
   });
@@ -170,8 +169,9 @@ describe('half-voxel upper-boundary ties', () => {
     const { input, golden, params } = await loadCase(borderTiesCase);
     const actual = resampleNearest(input, golden, { fillValue: params.fillValue });
 
-    expect(mismatchCount(actual.data, golden.data, golden.dims as [number, number, number]))
-      .toBe(0);
+    expect(mismatchCount(actual.data, golden.data, golden.dims as [number, number, number])).toBe(
+      0,
+    );
   });
 
   // This is the one geometry where the two oracles legitimately disagree, which
@@ -186,9 +186,8 @@ describe('half-voxel upper-boundary ties', () => {
     const dims = golden.dims as [number, number, number];
 
     const divergences = mismatchingVoxelCoordinates(golden.data, itk.data, dims);
-    const isUpperEdge = ([x, y, z]: readonly [number, number, number]) => (
-      x === input.dims[0] - 1 || y === input.dims[1] - 1 || z === input.dims[2] - 1
-    );
+    const isUpperEdge = ([x, y, z]: readonly [number, number, number]) =>
+      x === input.dims[0] - 1 || y === input.dims[1] - 1 || z === input.dims[2] - 1;
     expect(divergences.every(isUpperEdge)).toBe(true);
     // Every upper-edge voxel diverges: 24 total minus the 3x2x1 interior block.
     expect(divergences.length).toBe(18);
@@ -216,21 +215,51 @@ describe('nearest-neighbor resample invariants (oracle-free)', () => {
 
   const voxelCount = (dims: readonly number[]) => dims[0] * dims[1] * dims[2];
 
-  const identity = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+  const identity = [
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+  ];
   // 3-4-5 rotation about z: orthonormal to within one ulp in doubles.
-  const oblique = [[0.6, -0.8, 0], [0.8, 0.6, 0], [0, 0, 1]];
-  const mirrored = [[-1, 0, 0], [0, 1, 0], [0, 0, 1]];
+  const oblique = [
+    [0.6, -0.8, 0],
+    [0.8, 0.6, 0],
+    [0, 0, 1],
+  ];
+  const mirrored = [
+    [-1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+  ];
 
   const geometries = [
-    ['identity axis-aligned', {
-      dims: [4, 3, 2], spacing: [1, 1, 1], origin: [0, 0, 0], direction: identity,
-    }],
-    ['oblique anisotropic', {
-      dims: [5, 4, 3], spacing: [0.7, 1.3, 2.1], origin: [1, -2, 3], direction: oblique,
-    }],
-    ['mirrored', {
-      dims: [4, 3, 2], spacing: [0.8, 1.1, 1.7], origin: [5, 6, 7], direction: mirrored,
-    }],
+    [
+      'identity axis-aligned',
+      {
+        dims: [4, 3, 2],
+        spacing: [1, 1, 1],
+        origin: [0, 0, 0],
+        direction: identity,
+      },
+    ],
+    [
+      'oblique anisotropic',
+      {
+        dims: [5, 4, 3],
+        spacing: [0.7, 1.3, 2.1],
+        origin: [1, -2, 3],
+        direction: oblique,
+      },
+    ],
+    [
+      'mirrored',
+      {
+        dims: [4, 3, 2],
+        spacing: [0.8, 1.1, 1.7],
+        origin: [5, 6, 7],
+        direction: mirrored,
+      },
+    ],
   ] as const;
 
   it.each(geometries)('resampling onto its own geometry is the identity: %s', (_, geometry) => {
@@ -241,7 +270,10 @@ describe('nearest-neighbor resample invariants (oracle-free)', () => {
 
   it('recovers every label after resampling to a half-spacing grid and back', () => {
     const geometry = {
-      dims: [5, 4, 3], spacing: [0.8, 1.2, 2.0], origin: [3, -2, 7], direction: oblique,
+      dims: [5, 4, 3],
+      spacing: [0.8, 1.2, 2.0],
+      origin: [3, -2, 7],
+      direction: oblique,
     };
     // Fine voxel centers sit at input index (j - 0.75) / 2, an exact 0.125 away from the
     // nearest rounding boundary, so float noise cannot flip any nearest-neighbor pick.
