@@ -41,7 +41,6 @@ function prepareTriangles(mesh: Mesh, tolerance: number) {
   const dot01 = new Float64Array(count);
   const dot11 = new Float64Array(count);
   const denominator = new Float64Array(count);
-  const barycentricTolerance = new Float64Array(count);
   const rayActive = new Uint8Array(count);
   const surfaceActive = new Uint8Array(count);
 
@@ -95,7 +94,6 @@ function prepareTriangles(mesh: Mesh, tolerance: number) {
     dot11[index] = squared1;
     denominator[index] = dot00[index] * dot11[index] - dot01[index] * dot01[index];
     surfaceActive[index] = normalLengthSquared === 0 ? 0 : 1;
-    barycentricTolerance[index] = tolerance / Math.sqrt(Math.max(squared2, squared1));
     index += 1;
   }
 
@@ -113,7 +111,6 @@ function prepareTriangles(mesh: Mesh, tolerance: number) {
     dot01,
     dot11,
     denominator,
-    barycentricTolerance,
     rayActive,
     surfaceActive,
   };
@@ -126,10 +123,9 @@ type PreparedTriangles = ReturnType<typeof prepareTriangles>;
  * inserted into every cell overlapped by its padded (u, v) bounding box, so a
  * voxel only tests the triangles bucketed at its own (u, v) cell.
  *
- * Padding is conservative: 8 * tolerance covers the on-surface acceptance slab
- * (plane distance <= tolerance plus barycentric slack ~ tolerance in world
- * units) and the 1e-12 barycentric slack of ray hits, and the conditioning
- * terms bound how far floating-point error can move an accepted hit for a
+ * Padding is conservative: 8 * tolerance covers the accepted world-distance
+ * neighborhood of each triangle and the 1e-12 barycentric slack of ray hits.
+ * The conditioning terms bound how far floating-point error can move a hit for a
  * nearly degenerate triangle (error ~ EPSILON * reach * scale / divisor). The
  * pad is capped at basePad + 2 * reach, which always suffices because
  * |u(P) - u(A)| <= 2 * |P - A| <= 2 * reach for every voxel center P and
@@ -250,6 +246,25 @@ function buildRayGrid(triangles: PreparedTriangles, tolerance: number, reach: nu
 
 type RayGrid = ReturnType<typeof buildRayGrid>;
 
+function nearSegment(
+  px: number,
+  py: number,
+  pz: number,
+  ex: number,
+  ey: number,
+  ez: number,
+  toleranceSquared: number,
+) {
+  const fraction = Math.min(
+    1,
+    Math.max(0, (px * ex + py * ey + pz * ez) / (ex * ex + ey * ey + ez * ez)),
+  );
+  const dx = px - fraction * ex;
+  const dy = py - fraction * ey;
+  const dz = pz - fraction * ez;
+  return dx * dx + dy * dy + dz * dz <= toleranceSquared;
+}
+
 /**
  * Surface samples are foreground. Other samples use Moller-Trumbore ray
  * intersections, sorted by distance so shared-face hits count only once.
@@ -308,8 +323,30 @@ function containsPoint(
         const surfaceV =
           (triangles.dot00[index] * dot12 - triangles.dot01[index] * dot02) /
           triangles.denominator[index];
-        const slack = triangles.barycentricTolerance[index];
-        if (surfaceU >= -slack && surfaceV >= -slack && surfaceU + surfaceV <= 1 + slack) {
+        if (surfaceU >= 0 && surfaceV >= 0 && surfaceU + surfaceV <= 1) {
+          return true;
+        }
+        const e1x = triangles.edge1[offset];
+        const e1y = triangles.edge1[offset + 1];
+        const e1z = triangles.edge1[offset + 2];
+        const e2x = triangles.edge2[offset];
+        const e2y = triangles.edge2[offset + 1];
+        const e2z = triangles.edge2[offset + 2];
+        // Outside the triangle's projection, the closest point is on an edge.
+        const toleranceSquared = tolerance * tolerance;
+        if (
+          nearSegment(fromAX, fromAY, fromAZ, e1x, e1y, e1z, toleranceSquared) ||
+          nearSegment(fromAX, fromAY, fromAZ, e2x, e2y, e2z, toleranceSquared) ||
+          nearSegment(
+            fromAX - e1x,
+            fromAY - e1y,
+            fromAZ - e1z,
+            e2x - e1x,
+            e2y - e1y,
+            e2z - e1z,
+            toleranceSquared,
+          )
+        ) {
           return true;
         }
       }
@@ -426,12 +463,24 @@ export function surfaceToLabelmap(
       maximum[axis] = Math.max(maximum[axis], mesh.points[offset + axis]);
     }
   }
-  // The world-space floor covers float32 boundary rounding and stays below
-  // the sample spacing. The relative allowance depends only on mesh size.
-  const absoluteTolerance = Math.min(1e-6, Math.min(...geometry.spacing) * 1e-3);
-  const tolerance = Math.max(
-    absoluteTolerance,
-    ...minimum.map((value, axis) => (maximum[axis] - value) * 1e-7),
+  const minimumSpacing = Math.min(...geometry.spacing);
+  // Each coordinate rounds by at most half a float32 ULP; combine the axis
+  // errors to cover oblique faces. Float32 subnormals have a fixed 2^-149 ULP.
+  const coordinateTolerance = Math.hypot(
+    ...minimum.map((value, axis) => {
+      const magnitude = Math.max(Math.abs(value), Math.abs(maximum[axis]));
+      return magnitude === 0 ? 0 : 2 ** Math.max(-150, Math.floor(Math.log2(magnitude)) - 24);
+    }),
+  );
+  // Boundary uncertainty is limited to 1% of a sample step. Coarser float32
+  // coordinates cannot reliably recover the original boundary position.
+  const tolerance = Math.min(
+    minimumSpacing * 0.01,
+    Math.max(
+      Math.min(1e-6, minimumSpacing * 1e-3),
+      coordinateTolerance,
+      ...minimum.map((value, axis) => (maximum[axis] - value) * 1e-7),
+    ),
   );
   const data = createLabelData(
     geometry.dims[0] * geometry.dims[1] * geometry.dims[2],

@@ -22,12 +22,15 @@ type Geometry = {
 };
 
 type Disk = { z: number; cx: number; cy: number; r: number };
+type Region = { z: number; x: number; y: number; rows: string[] };
 
 type Case = {
   name: string;
   geometry: Geometry;
   labelValue: number;
   disks: Disk[];
+  regions?: Region[];
+  noUseDistanceTransform?: true;
 };
 
 const identity = [
@@ -88,6 +91,55 @@ const cases: Case[] = [
   },
 ];
 
+const ringRows = ['#######', '#######', '##...##', '##...##', '##...##', '#######', '#######'];
+const conditionalGeometry: Geometry = {
+  dims: [24, 12, 8],
+  spacing: [1, 1, 1],
+  origin: [0, 0, 0],
+  direction: identity,
+};
+
+const conditionalCases: Case[] = [
+  {
+    name: 'conditional-dilation-disjoint',
+    geometry: conditionalGeometry,
+    labelValue: 1,
+    noUseDistanceTransform: true,
+    disks: [
+      { z: 1, cx: 3, cy: 3, r: 1.5 },
+      { z: 5, cx: 11, cy: 3, r: 1.5 },
+    ],
+  },
+  {
+    name: 'conditional-dilation-mixed',
+    geometry: conditionalGeometry,
+    labelValue: 1,
+    noUseDistanceTransform: true,
+    disks: [
+      { z: 1, cx: 3, cy: 3, r: 1.5 },
+      { z: 5, cx: 3, cy: 3, r: 1.5 },
+      { z: 1, cx: 11, cy: 3, r: 1.5 },
+      { z: 5, cx: 19, cy: 3, r: 1.5 },
+    ],
+  },
+  {
+    name: 'conditional-dilation-concave',
+    geometry: conditionalGeometry,
+    labelValue: 1,
+    noUseDistanceTransform: true,
+    disks: [{ z: 5, cx: 18, cy: 4, r: 1.5 }],
+    regions: [{ z: 1, x: 2, y: 2, rows: ringRows }],
+  },
+  {
+    name: 'conditional-dilation-reverse-odd-gap',
+    geometry: conditionalGeometry,
+    labelValue: 1,
+    noUseDistanceTransform: true,
+    disks: [{ z: 1, cx: 18, cy: 4, r: 1.5 }],
+    regions: [{ z: 6, x: 2, y: 2, rows: ringRows }],
+  },
+];
+
 function rasterize(c: Case): Uint8Array {
   const [nx, ny, nz] = c.geometry.dims;
   const data = new Uint8Array(nx * ny * nz);
@@ -99,6 +151,13 @@ function rasterize(c: Case): Uint8Array {
         if (dx * dx + dy * dy <= disk.r * disk.r) {
           data[disk.z * nx * ny + y * nx + x] = c.labelValue;
         }
+      }
+    }
+  }
+  for (const region of c.regions ?? []) {
+    for (const [y, row] of region.rows.entries()) {
+      for (const [x, value] of [...row].entries()) {
+        if (value === '#') data[region.x + x + nx * (region.y + y + ny * region.z)] = c.labelValue;
       }
     }
   }
@@ -142,11 +201,14 @@ const manifestText = await readFile(manifestUrl, 'utf8').catch((error) => {
 });
 const manifest = JSON.parse(manifestText);
 
-for (const c of cases) {
+for (const c of [...cases, ...conditionalCases]) {
   const input = rasterize(c);
   const { outputImage } = await morphologicalContourInterpolationNode(
     toItkImage(input, c.geometry),
-    { label: c.labelValue },
+    {
+      label: c.labelValue,
+      ...(c.noUseDistanceTransform ? { noUseDistanceTransform: true, axis: 2 } : {}),
+    },
   );
   if (!outputImage.data) throw new Error(`Oracle returned no data for case ${c.name}`);
 
@@ -161,8 +223,12 @@ for (const c of cases) {
   const params = {
     labelValue: c.labelValue,
     axis: 2,
-    segmentedSlices: [...new Set(c.disks.map((d) => d.z))].sort((a, b) => a - b),
+    segmentedSlices: [
+      ...new Set([...c.disks, ...(c.regions ?? [])].map((region) => region.z)),
+    ].sort((a, b) => a - b),
     disks: c.disks,
+    ...(c.regions ? { regions: c.regions } : {}),
+    ...(c.noUseDistanceTransform ? { noUseDistanceTransform: true } : {}),
   };
   await writeFile(new URL('params.json', caseUrl), `${JSON.stringify(params, null, 2)}\n`);
 

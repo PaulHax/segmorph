@@ -118,6 +118,111 @@ describe('surfaceToLabelmap', () => {
     expect(actual.data).toEqual(expected);
   });
 
+  it.each([0.1, 0.01, 0.001])(
+    'includes translated float32 boundary samples with spacing %s',
+    (spacing) => {
+      const geometry = {
+        dims: [3, 3, 3],
+        spacing: [spacing, spacing, spacing],
+        origin: [100, -100, 0],
+        direction: [
+          [1, 0, 0],
+          [0, 1, 0],
+          [0, 0, 1],
+        ],
+      } as const;
+
+      expect(surfaceToLabelmap(cube(geometry, 0, 2), geometry, { labelValue: 1 }).data).toEqual(
+        new Uint8Array(27).fill(1),
+      );
+    },
+  );
+
+  it('includes translated float32 boundaries on oblique faces', () => {
+    const diagonal = Math.SQRT1_2;
+    const geometry = {
+      dims: [3, 3, 3],
+      spacing: [0.001, 0.001, 0.001],
+      origin: [100, -100, 0],
+      direction: [
+        [diagonal, -diagonal, 0],
+        [diagonal, diagonal, 0],
+        [0, 0, 1],
+      ],
+    } as const;
+
+    expect(surfaceToLabelmap(cube(geometry, 0, 2), geometry, { labelValue: 1 }).data).toEqual(
+      new Uint8Array(27).fill(1),
+    );
+  });
+
+  it('includes translated float32 boundaries with anisotropic spacing', () => {
+    const geometry = {
+      dims: [5, 5, 5],
+      spacing: [0.05, 0.2, 1.1],
+      origin: [100, -100, 0],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
+    } as const;
+    const actual = surfaceToLabelmap(cube(geometry, 1, 3), geometry, { labelValue: 1 });
+    const expected = new Uint8Array(5 ** 3);
+    for (let z = 1; z <= 3; z += 1) {
+      for (let y = 1; y <= 3; y += 1) {
+        for (let x = 1; x <= 3; x += 1) expected[x + 5 * (y + 5 * z)] = 1;
+      }
+    }
+
+    expect(actual.data).toEqual(expected);
+  });
+
+  it('keeps exterior samples empty when a fine grid is translated far from zero', () => {
+    const geometry = {
+      dims: [43, 43, 43],
+      spacing: [0.05, 0.05, 0.05],
+      origin: [-0.05, 1_000_000 - 0.05, -0.05],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
+    } as const;
+    const actual = surfaceToLabelmap(cube(geometry, 1, 41), geometry, { labelValue: 1 });
+    const expected = new Uint8Array(43 ** 3);
+    for (let z = 1; z <= 41; z += 1) {
+      for (let y = 1; y <= 41; y += 1) {
+        for (let x = 1; x <= 41; x += 1) expected[x + 43 * (y + 43 * z)] = 1;
+      }
+    }
+
+    expect(actual.data).toEqual(expected);
+  });
+
+  it('keeps sub-step exterior samples empty across axes with different coordinate magnitudes', () => {
+    const geometry = {
+      dims: [23, 23, 23],
+      spacing: [0.05, 0.05, 0.05],
+      origin: [1_000_000, -0.01, -0.01],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
+    } as const;
+    const mesh = cube({ ...geometry, origin: [1_000_000, 0, 0] }, 0, 20);
+    const actual = surfaceToLabelmap(mesh, geometry, { labelValue: 1 });
+    const expected = new Uint8Array(23 ** 3);
+    for (let z = 1; z <= 20; z += 1) {
+      for (let y = 1; y <= 20; y += 1) {
+        for (let x = 0; x <= 20; x += 1) expected[x + 23 * (y + 23 * z)] = 1;
+      }
+    }
+
+    expect(actual.data).toEqual(expected);
+  });
+
   it('uses oblique reference geometry', () => {
     const geometry = {
       dims: [4, 4, 4],
