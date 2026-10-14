@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { labelmapToSurface } from '../src/convert/labelmapToSurface.js';
 import { triangleCount, vertexCount, type Mesh } from '../src/geometry/mesh.js';
-import { boundingBox, enclosedVolume } from './diff/mesh.js';
+import { boundingBox, enclosedVolume, triangleIndices } from './diff/mesh.js';
 import { hasConsistentOutwardOrientation, isManifold, isWatertight } from './diff/structure.js';
 
 const identity = [
@@ -35,6 +35,46 @@ function extract(
     },
     { labelValue: 7 },
   );
+}
+
+// Connect faces through shared edges, then retain original vertex IDs so the
+// assertions can also detect components pinched together at a single vertex.
+function edgeConnectedComponents(mesh: Mesh) {
+  const triangles = triangleIndices(mesh);
+  const edgeFaces = new Map<string, number[]>();
+  const faceEdges = triangles.map(([a, b, c], face) =>
+    [
+      [a, b],
+      [b, c],
+      [c, a],
+    ].map(([from, to]) => {
+      const key = from < to ? `${from}:${to}` : `${to}:${from}`;
+      const faces = edgeFaces.get(key) ?? [];
+      faces.push(face);
+      edgeFaces.set(key, faces);
+      return key;
+    }),
+  );
+  const remaining = new Set(triangles.map((_, face) => face));
+  const components = [];
+  for (const first of remaining) {
+    const faces = new Set([first]);
+    for (const face of faces) {
+      remaining.delete(face);
+      for (const edge of faceEdges[face]) {
+        for (const neighbor of edgeFaces.get(edge)!) faces.add(neighbor);
+      }
+    }
+    const componentTriangles = [...faces].map((face) => triangles[face]);
+    components.push({
+      vertexIds: new Set(componentTriangles.flat()),
+      mesh: {
+        points: mesh.points,
+        polys: Uint32Array.from(componentTriangles.flatMap(([a, b, c]) => [3, a, b, c])),
+      },
+    });
+  }
+  return components;
 }
 
 function expectClosedOutwardManifold(mesh: Mesh) {
@@ -170,15 +210,65 @@ describe('VTK discrete surface topology acceptance', () => {
   );
 
   it('makes face-adjacent voxels one manifold component', () => {
-    expectClosedOutwardManifold(
-      extract([
-        [2, 2, 2],
-        [3, 2, 2],
-      ]),
-    );
+    const mesh = extract([
+      [2, 2, 2],
+      [3, 2, 2],
+    ]);
+
+    expect(edgeConnectedComponents(mesh)).toHaveLength(1);
+    expect(enclosedVolume(mesh)).toBeCloseTo(2 / 3, 6);
+    expectClosedOutwardManifold(mesh);
   });
 
-  // These stronger component-separation semantics are not guaranteed by classic VTK cases.
-  it.todo('keeps edge-adjacent components topologically separate and manifold');
-  it.todo('keeps body-diagonal components topologically separate and manifold');
+  describe.each([
+    { name: 'unit geometry', spacing: [1, 1, 1], direction: identity },
+    {
+      name: 'reflected anisotropic geometry',
+      spacing: [2, 3, 4],
+      direction: [
+        [-1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
+    },
+  ])('$name', ({ spacing, direction }) => {
+    const offsets = [-1, 0, 1].flatMap((dx) =>
+      [-1, 0, 1].flatMap((dy) => [-1, 0, 1].map((dz) => [dx, dy, dz] as const)),
+    );
+
+    describe.each([
+      { adjacency: 'edge', changedAxes: 2 },
+      { adjacency: 'body-diagonal', changedAxes: 3 },
+    ])('$adjacency adjacency', ({ changedAxes }) => {
+      it.each(
+        offsets.filter((offset) => offset.filter((value) => value !== 0).length === changedAxes),
+      )(
+        'keeps offset (%i, %i, %i) in two separate closed outward manifold components',
+        (dx, dy, dz) => {
+          const mesh = extract(
+            [
+              [2, 2, 2],
+              [2 + dx, 2 + dy, 2 + dz],
+            ],
+            { spacing, direction, origin: [10, 20, 30] },
+          );
+          const components = edgeConnectedComponents(mesh);
+
+          expect(components).toHaveLength(2);
+          const [first, second] = components;
+          expect([...first.vertexIds].filter((id) => second.vertexIds.has(id))).toEqual([]);
+          // Each isolated sample encloses an octahedron with half-spacing radii.
+          const componentVolume = (spacing[0] * spacing[1] * spacing[2]) / 6;
+          for (const component of components) {
+            expect(component.vertexIds.size).toBe(6);
+            expect(triangleCount(component.mesh)).toBe(8);
+            expect(enclosedVolume(component.mesh)).toBeCloseTo(componentVolume, 6);
+            expectClosedOutwardManifold(component.mesh);
+          }
+          expect(enclosedVolume(mesh)).toBeCloseTo(2 * componentVolume, 6);
+          expectClosedOutwardManifold(mesh);
+        },
+      );
+    });
+  });
 });
