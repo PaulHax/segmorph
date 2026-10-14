@@ -187,6 +187,11 @@ Model functions return new objects instead of mutating their inputs.
 reverse winding, and interfaces with other labels may have mixed orientation.
 Consumers that require outward normals must orient the resulting mesh.
 
+`surfaceToLabelmap` allows for Float32 rounding near triangle faces and edges,
+bounded to 1% of the smallest sample spacing. Very fine grids far from the
+coordinate origin can exceed this precision bound. Center the geometry before
+constructing its Float32 mesh when retaining those boundaries is required.
+
 ### Image (`src/image`)
 
 | Export                                                                 | Description                                                                                                                                                                |

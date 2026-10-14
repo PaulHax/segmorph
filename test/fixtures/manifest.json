@@ -4056,6 +4056,294 @@
         "spacing": 1.8
       },
       "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk-wasm-morphological-contour-interpolation",
+        "version": "2.0.0"
+      },
+      "algorithm": "H",
+      "case": "conditional-dilation-disjoint",
+      "params": {
+        "labelValue": 1,
+        "axis": 2,
+        "segmentedSlices": [
+          1,
+          5
+        ],
+        "disks": [
+          {
+            "z": 1,
+            "cx": 3,
+            "cy": 3,
+            "r": 1.5
+          },
+          {
+            "z": 5,
+            "cx": 11,
+            "cy": 3,
+            "r": 1.5
+          }
+        ],
+        "noUseDistanceTransform": true,
+        "dims": [
+          24,
+          12,
+          8
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk-wasm-morphological-contour-interpolation",
+        "version": "2.0.0"
+      },
+      "algorithm": "H",
+      "case": "conditional-dilation-mixed",
+      "params": {
+        "labelValue": 1,
+        "axis": 2,
+        "segmentedSlices": [
+          1,
+          5
+        ],
+        "disks": [
+          {
+            "z": 1,
+            "cx": 3,
+            "cy": 3,
+            "r": 1.5
+          },
+          {
+            "z": 5,
+            "cx": 3,
+            "cy": 3,
+            "r": 1.5
+          },
+          {
+            "z": 1,
+            "cx": 11,
+            "cy": 3,
+            "r": 1.5
+          },
+          {
+            "z": 5,
+            "cx": 19,
+            "cy": 3,
+            "r": 1.5
+          }
+        ],
+        "noUseDistanceTransform": true,
+        "dims": [
+          24,
+          12,
+          8
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk-wasm-morphological-contour-interpolation",
+        "version": "2.0.0"
+      },
+      "algorithm": "H",
+      "case": "conditional-dilation-concave",
+      "params": {
+        "labelValue": 1,
+        "axis": 2,
+        "segmentedSlices": [
+          1,
+          5
+        ],
+        "disks": [
+          {
+            "z": 5,
+            "cx": 18,
+            "cy": 4,
+            "r": 1.5
+          }
+        ],
+        "regions": [
+          {
+            "z": 1,
+            "x": 2,
+            "y": 2,
+            "rows": [
+              "#######",
+              "#######",
+              "##...##",
+              "##...##",
+              "##...##",
+              "#######",
+              "#######"
+            ]
+          }
+        ],
+        "noUseDistanceTransform": true,
+        "dims": [
+          24,
+          12,
+          8
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      "seed": 0
+    },
+    {
+      "oracle": {
+        "name": "itk-wasm-morphological-contour-interpolation",
+        "version": "2.0.0"
+      },
+      "algorithm": "H",
+      "case": "conditional-dilation-reverse-odd-gap",
+      "params": {
+        "labelValue": 1,
+        "axis": 2,
+        "segmentedSlices": [
+          1,
+          6
+        ],
+        "disks": [
+          {
+            "z": 1,
+            "cx": 18,
+            "cy": 4,
+            "r": 1.5
+          }
+        ],
+        "regions": [
+          {
+            "z": 6,
+            "x": 2,
+            "y": 2,
+            "rows": [
+              "#######",
+              "#######",
+              "##...##",
+              "##...##",
+              "##...##",
+              "#######",
+              "#######"
+            ]
+          }
+        ],
+        "noUseDistanceTransform": true,
+        "dims": [
+          24,
+          12,
+          8
+        ],
+        "spacing": [
+          1,
+          1,
+          1
+        ],
+        "origin": [
+          0,
+          0,
+          0
+        ],
+        "direction": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      "seed": 0
     }
   ]
 }

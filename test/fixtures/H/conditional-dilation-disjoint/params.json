@@ -1,0 +1,23 @@
+{
+  "labelValue": 1,
+  "axis": 2,
+  "segmentedSlices": [
+    1,
+    5
+  ],
+  "disks": [
+    {
+      "z": 1,
+      "cx": 3,
+      "cy": 3,
+      "r": 1.5
+    },
+    {
+      "z": 5,
+      "cx": 11,
+      "cy": 3,
+      "r": 1.5
+    }
+  ],
+  "noUseDistanceTransform": true
+}
