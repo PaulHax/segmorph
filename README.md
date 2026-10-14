@@ -4,7 +4,7 @@ segmorph is a pure TypeScript library for polymorphic medical image
 segmentations: overlapping, individually identified segments that hold multiple
 interchangeable representations (binary labelmap, closed surface, planar
 contour) with conversions between them. Algorithms are ported from VTK,
-PolySeg, and SlicerRT, proven correct by differential testing against those
+PolySeg, and SlicerRT, differentially tested against those
 canonical libraries, and the published package ships zero runtime dependencies,
 no WebAssembly, and no Python. Data are plain records over typed arrays that map
 1:1 onto vtk.js structures without importing vtk.js, and all conversions are
@@ -74,7 +74,7 @@ type OrientedImage<T extends ImageData = ImageData> = ImageGeometry & {
 };
 ```
 
-`direction` rows are the world-space directions of the image axes and must be
+`direction` columns are the world-space directions of the image axes and must be
 orthonormal (oblique orientations are fully supported). `ImageData` is any of
 the standard numeric typed arrays. Voxels are stored x-fastest:
 `data[x + dims[0] * (y + dims[1] * z)]`.
@@ -124,8 +124,8 @@ const voxelized = surfaceToLabelmap(surface, labelmap, { labelValue: 2 });
 Every conversion is a synchronous pure function, which is a deliberate choice:
 segmorph does not own a scheduler, so the calling app decides where the work
 runs. On clinical-size volumes these are not instant. Extraction, voxelization,
-and decimation are all superlinear in the data, so calling them directly from an
-event handler will drop frames.
+and decimation can take substantial time on large inputs, so calling them
+directly from an event handler can drop frames.
 
 Run them in a worker. The data contracts are plain records over typed arrays, so
 they cross the worker boundary by structured clone, and the buffers can be
@@ -183,6 +183,10 @@ Model functions return new objects instead of mutating their inputs.
 | `fillBetween(image, options)`                           | Interpolate contours between segmented slices, ported from ITK's morphological contour interpolation. Returns a new `OrientedImage`.                                                                                                                           |
 | `surfaceNets(image, options)`                           | Extract a dual-grid surface net from a labelmap, ported from `vtkSurfaceNets3D`. Returns a `Mesh`.                                                                                                                                                             |
 
+`surfaceNets` preserves VTK's winding conventions. Reflected image directions
+reverse winding, and interfaces with other labels may have mixed orientation.
+Consumers that require outward normals must orient the resulting mesh.
+
 ### Image (`src/image`)
 
 | Export                                                                 | Description                                                                                                                                                                |
@@ -231,28 +235,32 @@ Extents are inclusive bounds in `[xMin, xMax, yMin, yMax, zMin, zMax]` order.
 
 ### Model (`src/model`)
 
-| Export                                                              | Description                                                                                                                                                     |
-| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `createSegment(options)`                                            | Create a segment record: id, name, color, optional locked flag and initial representations map.                                                                 |
-| `getRepresentation(segment, name)`                                  | The named representation, or undefined.                                                                                                                         |
-| `setRepresentation(segment, name, representation)`                  | New segment with the named representation set.                                                                                                                  |
-| `createSegmentation(sourceRepresentation)`                          | Empty segmentation whose edits happen in the named source representation.                                                                                       |
-| `addSegment(segmentation, segment)`                                 | New segmentation with the segment appended.                                                                                                                     |
-| `removeSegment(segmentation, id)`                                   | New segmentation without the segment.                                                                                                                           |
-| `renameSegment(segmentation, id, name)`                             | New segmentation with the segment renamed.                                                                                                                      |
-| `reorderSegments(segmentation, order)`                              | New segmentation with segments in the given id order.                                                                                                           |
-| `createLayerModel()`                                                | Empty `{layer, labelValue}` overlap model for shared labelmaps.                                                                                                 |
-| `assignSegmentToLayer(model, segmentId, labelValue, mask)`          | Assign a segment mask to the lowest layer where it does not collide with another segment's foreground.                                                          |
-| `compactLayers(model)`                                              | Reassign every segment to remove gaps left by removed or shrunken segments.                                                                                     |
-| `createConversionGraph(rules?)`                                     | Conversion graph from an optional initial rule list.                                                                                                            |
-| `registerConversionRule(graph, rule)`                               | New graph with the rule added. A rule is a data record: `{ source, target, cost, convert }`.                                                                    |
-| `findCheapestPath(graph, source, target)`                           | Cheapest rule sequence from source to target representation, `[]` when source equals target, undefined when unreachable.                                        |
-| `createDefaultRules(options)`                                       | Build the default conversion-rule set (labelmap and surface) as data records, capturing `{ labelValue, referenceGeometry }` for the conversions that need them. |
-| `createDefaultConversionGraph(options)`                             | A conversion graph pre-populated with `createDefaultRules`.                                                                                                     |
-| `defaultRepresentations`                                            | The canonical representation names (`labelmap`, `surface`) used by the default rules.                                                                           |
-| `editRepresentation(segmentation, segmentId, name, representation)` | Write the source representation of a segment and drop its derived representations. Editing a non-source representation throws.                                  |
-| `getOrCreateRepresentation(segmentation, segmentId, target, graph)` | Return the target representation, converting from the source along the cheapest path and caching intermediate results when absent.                              |
-| `promoteRepresentationToSource(segmentation, name)`                 | Make an existing representation the source for future edits; every segment must already carry it.                                                               |
+| Export                                                              | Description                                                                                                                                                 |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `createSegment(options)`                                            | Create a segment record: id, name, color, optional locked flag and initial representations map.                                                             |
+| `getRepresentation(segment, name)`                                  | The named representation, or undefined.                                                                                                                     |
+| `setRepresentation(segment, name, representation)`                  | New segment with the named representation set.                                                                                                              |
+| `createSegmentation(sourceRepresentation)`                          | Empty segmentation whose edits happen in the named source representation.                                                                                   |
+| `addSegment(segmentation, segment)`                                 | New segmentation with the segment appended.                                                                                                                 |
+| `removeSegment(segmentation, id)`                                   | New segmentation without the segment.                                                                                                                       |
+| `renameSegment(segmentation, id, name)`                             | New segmentation with the segment renamed.                                                                                                                  |
+| `reorderSegments(segmentation, order)`                              | New segmentation with segments in the given id order.                                                                                                       |
+| `createLayerModel()`                                                | Empty `{layer, labelValue}` overlap model for shared labelmaps.                                                                                             |
+| `assignSegmentToLayer(model, segmentId, labelValue, mask)`          | Assign a segment mask to a layer with no foreground overlap or duplicate label. Foreground labels are positive uint32 integers.                             |
+| `compactLayers(model)`                                              | Reassign every segment to remove gaps left by removed or shrunken segments.                                                                                 |
+| `createConversionGraph(rules?)`                                     | Conversion graph from an optional initial rule list.                                                                                                        |
+| `registerConversionRule(graph, rule)`                               | New graph with the rule added. A rule is a data record: `{ source, target, cost, convert }`.                                                                |
+| `findCheapestPath(graph, source, target)`                           | Cheapest rule sequence from source to target representation, `[]` when source equals target, undefined when unreachable.                                    |
+| `createDefaultRules(options)`                                       | Build the default conversion rules for labelmaps, surfaces, and contours, capturing `{ labelValue, referenceGeometry }` for the conversions that need them. |
+| `createDefaultConversionGraph(options)`                             | A conversion graph pre-populated with `createDefaultRules`.                                                                                                 |
+| `defaultRepresentations`                                            | The canonical representation names (`labelmap`, `surface`, `contour`) used by the default rules.                                                            |
+| `editRepresentation(segmentation, segmentId, name, representation)` | Write the source representation of a segment and drop its derived representations. Editing a non-source representation throws.                              |
+| `getOrCreateRepresentation(segmentation, segmentId, target, graph)` | Return the target representation, converting from the source along the cheapest path and caching intermediate results when absent.                          |
+| `promoteRepresentationToSource(segmentation, name)`                 | Make an existing representation the source for future edits; every segment must already carry it.                                                           |
+
+Cached representations are identified by name. Changing conversion parameters
+does not invalidate them. Use `editRepresentation` to write the source and clear
+derived representations before reconverting with different parameters.
 
 ### IO (`src/io`)
 

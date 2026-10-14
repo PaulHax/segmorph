@@ -1,9 +1,9 @@
 import type { ImageData } from './orientedImage.js';
-import type { Extent3D } from './extent.js';
+import { extentFromDims, validateExtent, type Dimensions3D, type Extent3D } from './extent.js';
 
 export type CompositeOperation = 'set' | 'minimum' | 'maximum';
 
-function validateDimensions(dims: readonly number[]) {
+function validateDimensions(dims: readonly number[]): asserts dims is Dimensions3D {
   if (dims.length !== 3 || dims.some((value) => !Number.isInteger(value) || value <= 0)) {
     throw new Error('dims must contain three positive integers');
   }
@@ -21,25 +21,8 @@ function validateDataLength(
   }
 }
 
-function resolveExtent(dims: readonly number[], extent?: Extent3D): Extent3D {
-  const resolved = extent ?? [0, dims[0] - 1, 0, dims[1] - 1, 0, dims[2] - 1];
-  if (resolved.some((value) => !Number.isInteger(value))) {
-    throw new Error('extent must contain six integers');
-  }
-  if (resolved[0] > resolved[1] || resolved[2] > resolved[3] || resolved[4] > resolved[5]) {
-    throw new Error('extent bounds must be ordered');
-  }
-  if (
-    resolved[0] < 0 ||
-    resolved[1] >= dims[0] ||
-    resolved[2] < 0 ||
-    resolved[3] >= dims[1] ||
-    resolved[4] < 0 ||
-    resolved[5] >= dims[2]
-  ) {
-    throw new Error('extent must be within image dimensions');
-  }
-  return resolved;
+function resolveExtent(dims: Dimensions3D, extent?: Extent3D) {
+  return validateExtent(extent ?? extentFromDims(dims), dims);
 }
 
 function forEachExtentIndex(

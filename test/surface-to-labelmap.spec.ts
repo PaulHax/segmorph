@@ -72,6 +72,52 @@ describe('surfaceToLabelmap', () => {
     expect([...result.data]).toEqual(new Array(27).fill(1));
   });
 
+  it('preserves occupancy when mesh and reference geometry translate together', () => {
+    const geometry = {
+      dims: [7, 7, 7],
+      spacing: [0.5, 0.5, 0.5],
+      origin: [-0.5, -0.5, -0.5],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
+    } as const;
+    const mesh = cube(geometry, 1, 5);
+    const expected = surfaceToLabelmap(mesh, geometry, { labelValue: 1 });
+    const translated = {
+      ...geometry,
+      origin: [-0.5, 10_000_000 - 0.5, -0.5],
+    };
+    const actual = surfaceToLabelmap(cube(translated, 1, 5), translated, { labelValue: 1 });
+
+    expect(actual.data).toEqual(expected.data);
+    expect([...actual.data].filter(Boolean)).toHaveLength(125);
+    expect(actual.data[7 * (3 + 7 * 3)]).toBe(0);
+  });
+
+  it.each([1, 0.001, 1e-6])('preserves occupancy with sample spacing %s', (spacing) => {
+    const geometry = {
+      dims: [7, 7, 7],
+      spacing: [spacing, spacing, spacing],
+      origin: [-spacing, -spacing, -spacing],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
+    } as const;
+    const actual = surfaceToLabelmap(cube(geometry, 1, 5), geometry, { labelValue: 1 });
+    const expected = new Uint8Array(7 * 7 * 7);
+    for (let z = 1; z <= 5; z += 1) {
+      for (let y = 1; y <= 5; y += 1) {
+        for (let x = 1; x <= 5; x += 1) expected[x + 7 * (y + 7 * z)] = 1;
+      }
+    }
+
+    expect(actual.data).toEqual(expected);
+  });
+
   it('uses oblique reference geometry', () => {
     const geometry = {
       dims: [4, 4, 4],

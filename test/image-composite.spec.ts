@@ -6,6 +6,7 @@ import {
   compositeSet,
   maskByLabelValue,
 } from '../src/image/composite.js';
+import { intersectExtents } from '../src/image/extent.js';
 import type { ImageData } from '../src/image/orientedImage.js';
 
 const dims = [3, 2, 2] as const;
@@ -52,6 +53,19 @@ describe('bounded image compositing', () => {
     expect([...compositeSet(new Uint8Array(12), new Uint8Array(12).fill(5), dims)]).toEqual(
       new Array(12).fill(5),
     );
+  });
+
+  it('leaves input values unchanged when the requested extents do not intersect', () => {
+    const input = Uint8Array.from({ length: 12 }, (_, index) => index + 1);
+    const modifier = new Uint8Array(12).fill(99);
+    const extent = intersectExtents([0, 0, 0, 1, 0, 1], [1, 2, 0, 1, 0, 1]);
+
+    for (const composite of [compositeSet, compositeMin, compositeMax]) {
+      const output = composite(input, modifier, dims, extent);
+      expect(output).toEqual(input);
+      expect(output).not.toBe(input);
+    }
+    expect(maskByLabelValue(input, modifier, dims, 1, 0, extent)).toEqual(input);
   });
 
   it('validates dimensions, array sizes, extents, and compatible data types', () => {

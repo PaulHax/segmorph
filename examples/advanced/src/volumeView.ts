@@ -42,9 +42,8 @@ export function createVolumeView(container: HTMLElement, seeds: SegmentSeed[]) {
   color.addRGBPoint(180, 0.78, 0.79, 0.82);
   color.addRGBPoint(255, 1, 1, 1);
 
-  // Soft tissue sits roughly in 30..120 on this rescaled CT. The previous ramp
-  // held zero until 90, which erased everything between the bones, so it now
-  // starts just above air and stays faint rather than absent.
+  // Soft tissue sits roughly in 30..120 on this rescaled CT. Keep it faintly
+  // visible while giving dense bone a higher opacity.
   const OPACITY_POINTS: [number, number][] = [
     [0, 0],
     [22, 0],

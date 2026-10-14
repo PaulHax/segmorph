@@ -1,12 +1,12 @@
 import {
   createMesh,
-  getPoint,
   iterateTriangles,
   validateMesh,
   type Mesh,
   type Point,
   type Triangle,
 } from '../geometry/mesh.js';
+import { pointAt } from '../geometry/pointAt.js';
 import {
   createOrientedImage,
   directionDeterminant,
@@ -62,7 +62,7 @@ function prepareTriangles(mesh: Mesh, geometry: ImageGeometry) {
   const pointCount = mesh.points.length / 3;
   const ijk = new Float64Array(mesh.points.length);
   for (let index = 0; index < pointCount; index += 1) {
-    const world = getPoint(mesh, index);
+    const world = pointAt(mesh.points, index);
     const point = worldToIndex(geometry, world);
     ijk[index * 3] = point[0];
     ijk[index * 3 + 1] = point[1];

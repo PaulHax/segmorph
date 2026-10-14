@@ -1,3 +1,5 @@
+import { pointAt } from './pointAt.js';
+
 export type Point = readonly [number, number, number];
 export type Triangle = readonly [number, number, number];
 
@@ -61,13 +63,12 @@ export function getPoint(mesh: Mesh, index: number): Point {
   if (!Number.isInteger(index) || index < 0 || index >= count) {
     throw new RangeError('Mesh point index is out of bounds');
   }
-  const offset = index * 3;
-  return [mesh.points[offset], mesh.points[offset + 1], mesh.points[offset + 2]];
+  return pointAt(mesh.points, index);
 }
 
 export function* iteratePoints(mesh: Mesh): Generator<Point> {
   const count = vertexCount(mesh);
-  for (let index = 0; index < count; index += 1) yield getPoint(mesh, index);
+  for (let index = 0; index < count; index += 1) yield pointAt(mesh.points, index);
 }
 
 export function* iterateTriangles(mesh: Mesh): Generator<Triangle> {

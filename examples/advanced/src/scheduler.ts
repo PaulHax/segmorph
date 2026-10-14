@@ -30,39 +30,62 @@ export function createConversionScheduler(options: {
   getPipeline: () => MeshPipeline;
   getStride: () => number;
   onResult: (response: ConvertResponse) => void;
+  onError: (error: Error) => void;
 }) {
   const debounceMs = options.debounceMs ?? 150;
   const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
 
-  let nextRequestId = 0;
-  let latestRequestId = -1;
-  let inFlight = false;
-  let pending = false;
+  let initialized = false;
+  let disposed = false;
+  let latestRequestId = 0;
+  let lastSentRequestId = 0;
+  let inFlightRequestId: number | undefined;
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
   const send = () => {
-    inFlight = true;
-    nextRequestId += 1;
-    latestRequestId = nextRequestId;
+    if (
+      !initialized ||
+      disposed ||
+      inFlightRequestId !== undefined ||
+      debounceTimer !== undefined ||
+      lastSentRequestId === latestRequestId
+    )
+      return;
     const request: ConvertRequest = {
       kind: 'convert',
-      requestId: nextRequestId,
+      requestId: latestRequestId,
       segments: options.getSegments(),
       pipeline: options.getPipeline(),
       stride: options.getStride(),
     };
+    lastSentRequestId = request.requestId;
+    inFlightRequestId = request.requestId;
     worker.postMessage(request);
   };
 
   worker.onmessage = ({ data: response }: MessageEvent<ConvertResponse>) => {
-    inFlight = false;
-    if (pending) {
-      pending = false;
-      send();
-    }
-    // Drop stale meshes: a newer request is already in flight.
-    if (response.requestId !== latestRequestId) return;
-    options.onResult(response);
+    if (disposed || response.requestId !== inFlightRequestId) return;
+    inFlightRequestId = undefined;
+    if (response.requestId === latestRequestId) options.onResult(response);
+    send();
+  };
+
+  const fail = (error: Error) => {
+    if (disposed) return;
+    const failedRequestId = inFlightRequestId;
+    inFlightRequestId = undefined;
+    if (failedRequestId === undefined || failedRequestId === latestRequestId)
+      options.onError(error);
+    send();
+  };
+
+  worker.onerror = (event) => {
+    event.preventDefault();
+    fail(new Error(event.message || 'Conversion worker failed'));
+  };
+
+  worker.onmessageerror = () => {
+    fail(new Error('Unable to read conversion worker response'));
   };
 
   return {
@@ -72,18 +95,20 @@ export function createConversionScheduler(options: {
       const owned = data.slice();
       const request: InitRequest = { kind: 'init', data: owned, geometry };
       worker.postMessage(request, [owned.buffer]);
+      initialized = true;
+      send();
     },
     requestConvert() {
+      if (disposed) return;
+      latestRequestId += 1;
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        if (inFlight) {
-          pending = true;
-        } else {
-          send();
-        }
+        debounceTimer = undefined;
+        send();
       }, debounceMs);
     },
     dispose() {
+      disposed = true;
       clearTimeout(debounceTimer);
       worker.terminate();
     },

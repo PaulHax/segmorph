@@ -14,8 +14,7 @@ import { labelmapToSurfaceBase } from './baselines/labelmapToSurfaceBase.js';
 // the small named cases additionally against committed JSON snapshots under
 // test/fixtures/A/exact/. Regenerate snapshots with:
 //   UPDATE_EXACT=1 npx vitest run test/labelmap-to-surface-exact.spec.ts
-// (only legitimate when the observable output is intentionally changed, which
-// requires coordinator approval).
+// Update snapshots only when the observable output is intentionally changed.
 
 const identity = [
   [1, 0, 0],

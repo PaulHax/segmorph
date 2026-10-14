@@ -1,3 +1,5 @@
+import { validateLabelValue } from '../image/labelData.js';
+
 export type LabelmapArray = Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array;
 
 export type LayerAssignment = Readonly<{
@@ -24,9 +26,10 @@ function masksCollide(first: LabelmapArray, second: LabelmapArray) {
   return false;
 }
 
-function layerHasCollision(
+function layerHasConflict(
   model: LayerModel,
   segmentId: string,
+  labelValue: number,
   mask: LabelmapArray,
   layer: number,
 ) {
@@ -34,13 +37,19 @@ function layerHasCollision(
     (otherId) =>
       otherId !== segmentId &&
       model.assignments[otherId].layer === layer &&
-      masksCollide(mask, model.masks[otherId]),
+      (model.assignments[otherId].labelValue === labelValue ||
+        masksCollide(mask, model.masks[otherId])),
   );
 }
 
-function lowestAvailableLayer(model: LayerModel, segmentId: string, mask: LabelmapArray) {
+function lowestAvailableLayer(
+  model: LayerModel,
+  segmentId: string,
+  labelValue: number,
+  mask: LabelmapArray,
+) {
   let layer = 0;
-  while (layerHasCollision(model, segmentId, mask, layer)) {
+  while (layerHasConflict(model, segmentId, labelValue, mask, layer)) {
     layer += 1;
   }
   return layer;
@@ -59,14 +68,15 @@ export function assignSegmentToLayer(
   labelValue: number,
   mask: LabelmapArray,
 ): LayerModel {
+  validateLabelValue(labelValue);
   validateMaskLength(model, mask);
   const existing = Object.hasOwn(model.assignments, segmentId)
     ? model.assignments[segmentId]
     : undefined;
   const layer =
-    existing !== undefined && !layerHasCollision(model, segmentId, mask, existing.layer)
+    existing !== undefined && !layerHasConflict(model, segmentId, labelValue, mask, existing.layer)
       ? existing.layer
-      : lowestAvailableLayer(model, segmentId, mask);
+      : lowestAvailableLayer(model, segmentId, labelValue, mask);
 
   return {
     assignments: {

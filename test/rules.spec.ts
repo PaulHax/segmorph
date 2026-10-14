@@ -1,5 +1,11 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 
+import {
+  addSegment,
+  createSegment,
+  createSegmentation,
+  getOrCreateRepresentation,
+} from '../src/index.js';
 import type { Mesh } from '../src/geometry/mesh.js';
 import type { ImageData, ImageGeometry, OrientedImage } from '../src/image/orientedImage.js';
 import {
@@ -14,6 +20,7 @@ import {
   defaultRepresentations,
 } from '../src/model/rules.js';
 import { dice } from './diff/image.js';
+import { cubeMesh } from './surfaceToLabelmapCases.js';
 
 // Compile-time coverage: the default rules encode each source/target
 // representation pairing in its convert signature (representationRule in
@@ -72,6 +79,29 @@ describe('default conversion rules', () => {
   const graph = createDefaultConversionGraph({
     labelValue,
     referenceGeometry: geometry,
+  });
+
+  it('includes every sample on a closed surface when deriving a labelmap', () => {
+    const referenceGeometry = { ...geometry, dims: [3, 3, 3] as const };
+    const segmentation = addSegment(
+      createSegmentation(defaultRepresentations.surface),
+      createSegment({
+        id: 'cube',
+        name: 'Cube',
+        color: [1, 0, 0],
+        representations: { surface: cubeMesh(referenceGeometry, 0, 2) },
+      }),
+    );
+    const result = getOrCreateRepresentation(
+      segmentation,
+      'cube',
+      defaultRepresentations.labelmap,
+      createDefaultConversionGraph({ labelValue, referenceGeometry }),
+    );
+
+    expect((result.representation as OrientedImage<ImageData>).data).toEqual(
+      new Uint8Array(27).fill(labelValue),
+    );
   });
 
   it('round-trips a sphere labelmap through the surface representation', () => {

@@ -36,7 +36,7 @@ segmentation model.
 
 | File                | segmorph API                                                         | What it shows                                                                                                                                                                     |
 | ------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/adapter.ts`    | data contracts                                                       | vtkImageData to `OrientedImage`, and `Mesh` to `vtkPolyData`. Voxel and vertex arrays pass by reference; the only reshape is the 9-element direction matrix into three rows.      |
+| `src/adapter.ts`    | data contracts                                                       | vtkImageData to `OrientedImage`, and `Mesh` to `vtkPolyData`. Voxel and vertex arrays pass by reference; the column-major direction matrix becomes three matrix rows.             |
 | `src/worker.ts`     | `labelmapToSurface`, `meshSmooth`, `meshDecimate`, `resampleNearest` | The whole conversion pipeline, off the main thread.                                                                                                                               |
 | `src/sliceView.ts`  | `surfaceToContour`, `createContourPlane`, `planeToWorld`             | Cuts the 3D surfaces with the current slice plane and draws the loops over the reslice.                                                                                           |
 | `src/volumeView.ts` | (rendering only)                                                     | vtk.js volume rendering with the segment surfaces inside it. Both live in the same world coordinates, because segmorph works in physical space, so there is no registration step. |
@@ -62,6 +62,8 @@ representation, several views of it, converted when a view needs them.
 
 The status line reports triangles before and after processing, how long the
 worker took, and how many contour loops the current slice cut.
+Conversion controls stay disabled until the CT is loaded, with a tooltip
+explaining their availability. Worker failures appear in the status line.
 
 ## Scheduling, and why the API is synchronous
 

@@ -76,7 +76,21 @@ const scheduler = createConversionScheduler({
       ` (${reduction}% fewer), ${(response.durationMs / 1000).toFixed(1)}s`;
     updateLoopStat();
   },
+  onError(error) {
+    meshStat.textContent = `failed: ${error.message}`;
+  },
 });
+
+const conversionInputs = [smoothInput, decimateInput, strideInput];
+function setConversionAvailability(reason?: string) {
+  for (const input of conversionInputs) {
+    input.disabled = reason !== undefined;
+    input.title = reason ?? '';
+    const label = input.closest('label');
+    if (label) label.title = reason ?? '';
+  }
+}
+setConversionAvailability('Loading chest CT');
 
 function updateLoopStat() {
   const loops = [...sliceView.getLoopCounts().values()].reduce((a, b) => a + b, 0);
@@ -107,7 +121,7 @@ for (const id of segmentation.order) {
   toolbarLegend.append(label);
 }
 
-for (const input of [smoothInput, decimateInput, strideInput]) {
+for (const input of conversionInputs) {
   input.addEventListener('input', () => {
     meshStat.textContent = 'converting...';
     scheduler.requestConvert();
@@ -152,11 +166,14 @@ async function start() {
     origin: image.origin,
     direction: image.direction,
   });
+  setConversionAvailability();
 
   meshStat.textContent = 'converting...';
   scheduler.requestConvert();
 }
 
 start().catch((error) => {
-  meshStat.textContent = `failed: ${error instanceof Error ? error.message : String(error)}`;
+  const message = error instanceof Error ? error.message : String(error);
+  meshStat.textContent = `failed: ${message}`;
+  setConversionAvailability(`Chest CT unavailable: ${message}`);
 });

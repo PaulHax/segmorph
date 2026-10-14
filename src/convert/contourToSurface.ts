@@ -1172,8 +1172,7 @@ function triangulateContourInterior(
         }
       }
       if (blocked) continue;
-      // Prefer well-shaped ears (largest minimum edge ratio to area), which
-      // approximates vtkPolygon's priority without reproducing its queue.
+      // Prefer the largest convex ear by area.
       const measure = cross;
       if (measure > bestMeasure) {
         bestMeasure = measure;
