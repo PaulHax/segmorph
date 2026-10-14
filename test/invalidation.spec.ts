@@ -70,6 +70,31 @@ describe('source-authoritative invalidation', () => {
     expect(convert).not.toHaveBeenCalled();
   });
 
+  it('reuses existing intermediate representations when deriving a missing target', () => {
+    const segmentation = addSegment(
+      createSegmentation('A'),
+      createSegment({
+        id: 'segment',
+        name: 'Segment',
+        color: [1, 0, 0],
+        representations: { A: 'source', B: 'cached-b' },
+      }),
+    );
+    const graph = createConversionGraph([
+      { source: 'A', target: 'B', cost: 1, convert: (value: string) => `${value}-b` },
+      { source: 'B', target: 'C', cost: 1, convert: (value: string) => `${value}-c` },
+    ]);
+    const result = getOrCreateRepresentation(segmentation, 'segment', 'C', graph);
+
+    expect(result.representation).toBe('cached-b-c');
+    expect(result.segmentation.segments.segment.representations).toEqual({
+      A: 'source',
+      B: 'cached-b',
+      C: 'cached-b-c',
+    });
+    expect(segmentation.segments.segment.representations).toEqual({ A: 'source', B: 'cached-b' });
+  });
+
   it('rejects derived edits until that representation is promoted to source', () => {
     const segmentation = segmentationWithRepresentations();
 

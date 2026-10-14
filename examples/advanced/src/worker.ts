@@ -18,9 +18,8 @@ import type {
   WorkerRequest,
 } from './protocol';
 
-// Module worker: every segmorph call in this app runs here. The conversions
-// are synchronous and CPU-bound, so keeping them off the main thread is what
-// makes a 256 x 256 x 133 volume feel interactive.
+// Mesh extraction, smoothing, decimation, and preview resampling are
+// synchronous and CPU-bound, so this pipeline runs off the main thread.
 
 let scalars: Uint8Array | undefined;
 let geometry: ImageGeometry | undefined;

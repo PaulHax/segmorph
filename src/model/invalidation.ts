@@ -58,8 +58,12 @@ export function getOrCreateRepresentation(
   let representation = segment.representations[source];
   const representations = { ...segment.representations };
   for (const rule of path) {
-    representation = applyConversionRule(rule, representation);
-    representations[rule.target] = representation;
+    if (Object.hasOwn(representations, rule.target)) {
+      representation = representations[rule.target];
+    } else {
+      representation = applyConversionRule(rule, representation);
+      representations[rule.target] = representation;
+    }
   }
 
   return {

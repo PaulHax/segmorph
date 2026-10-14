@@ -1,4 +1,5 @@
-import { getPoint, iterateTriangles, validateMesh, type Mesh } from '../geometry/mesh.js';
+import { iterateTriangles, validateMesh, type Mesh } from '../geometry/mesh.js';
+import { pointAt } from '../geometry/pointAt.js';
 import {
   createLabelData,
   validateLabelValue,
@@ -25,11 +26,7 @@ const rayDirection: Vector3 = [1, 0.3713906763541037, 0.6947465906068658];
 const slopeY = rayDirection[1] / rayDirection[0];
 const slopeZ = rayDirection[2] / rayDirection[0];
 
-/**
- * Per-triangle constants of the base implementation, hoisted out of the voxel
- * loop. Every value is computed with the same expressions and operation order
- * as the original per-voxel code, so reusing them is bit-identical.
- */
+/** Per-triangle constants shared by all voxel queries. */
 function prepareTriangles(mesh: Mesh, tolerance: number) {
   const count = mesh.polys.length / 4;
   const vertex = new Float64Array(count * 3);
@@ -51,9 +48,9 @@ function prepareTriangles(mesh: Mesh, tolerance: number) {
   const toleranceSquared = tolerance * tolerance;
   let index = 0;
   for (const triangle of iterateTriangles(mesh)) {
-    const a = getPoint(mesh, triangle[0]);
-    const b = getPoint(mesh, triangle[1]);
-    const c = getPoint(mesh, triangle[2]);
+    const a = pointAt(mesh.points, triangle[0]);
+    const b = pointAt(mesh.points, triangle[1]);
+    const c = pointAt(mesh.points, triangle[2]);
     const offset = index * 3;
     vertex[offset] = a[0];
     vertex[offset + 1] = a[1];
@@ -137,8 +134,8 @@ type PreparedTriangles = ReturnType<typeof prepareTriangles>;
  * pad is capped at basePad + 2 * reach, which always suffices because
  * |u(P) - u(A)| <= 2 * |P - A| <= 2 * reach for every voxel center P and
  * triangle vertex A. Over-padding only adds candidates, and extra candidates
- * never change output because the candidate loop reproduces the base
- * implementation's per-triangle arithmetic exactly.
+ * never change output because every candidate receives the same containment
+ * tests.
  */
 function buildRayGrid(triangles: PreparedTriangles, tolerance: number, reach: number) {
   const { count } = triangles;
@@ -254,12 +251,8 @@ function buildRayGrid(triangles: PreparedTriangles, tolerance: number, reach: nu
 type RayGrid = ReturnType<typeof buildRayGrid>;
 
 /**
- * Same decision procedure as the base implementation's containsPoint:
- * on-surface test first, then Moller-Trumbore parity along rayDirection, with
- * identical expressions and operand order per triangle. Only the candidate set
- * shrinks (via the grid); the set of contributing triangles is unchanged, and
- * the insertion sort produces the same ascending distances as the base
- * implementation's numeric sort of the same multiset.
+ * Surface samples are foreground. Other samples use Moller-Trumbore ray
+ * intersections, sorted by distance so shared-face hits count only once.
  */
 function containsPoint(
   x: number,
@@ -367,7 +360,7 @@ function referenceBounds(mesh: Mesh, geometry: ImageGeometry, tolerance: number)
   const minimum = [Infinity, Infinity, Infinity];
   const maximum = [-Infinity, -Infinity, -Infinity];
   for (let index = 0; index < mesh.points.length / 3; index += 1) {
-    const point = worldToIndex(geometry, getPoint(mesh, index));
+    const point = worldToIndex(geometry, pointAt(mesh.points, index));
     for (let axis = 0; axis < 3; axis += 1) {
       minimum[axis] = Math.min(minimum[axis], point[axis]);
       maximum[axis] = Math.max(maximum[axis], point[axis]);
@@ -393,7 +386,7 @@ function worldReach(mesh: Mesh, geometry: ImageGeometry) {
     }
   };
   for (let index = 0; index < mesh.points.length / 3; index += 1) {
-    include(getPoint(mesh, index));
+    include(pointAt(mesh.points, index));
   }
   for (let corner = 0; corner < 8; corner += 1) {
     include(
@@ -425,14 +418,21 @@ export function surfaceToLabelmap(
   validateImageGeometry(geometry);
   validateLabelValue(options.labelValue);
 
-  const coordinates = mesh.points;
-  let minimum = Infinity;
-  let maximum = -Infinity;
-  for (const coordinate of coordinates) {
-    minimum = Math.min(minimum, coordinate);
-    maximum = Math.max(maximum, coordinate);
+  const minimum = [Infinity, Infinity, Infinity];
+  const maximum = [-Infinity, -Infinity, -Infinity];
+  for (let offset = 0; offset < mesh.points.length; offset += 3) {
+    for (let axis = 0; axis < 3; axis += 1) {
+      minimum[axis] = Math.min(minimum[axis], mesh.points[offset + axis]);
+      maximum[axis] = Math.max(maximum[axis], mesh.points[offset + axis]);
+    }
   }
-  const tolerance = Math.max(1, maximum - minimum) * 1e-7;
+  // The world-space floor covers float32 boundary rounding and stays below
+  // the sample spacing. The relative allowance depends only on mesh size.
+  const absoluteTolerance = Math.min(1e-6, Math.min(...geometry.spacing) * 1e-3);
+  const tolerance = Math.max(
+    absoluteTolerance,
+    ...minimum.map((value, axis) => (maximum[axis] - value) * 1e-7),
+  );
   const data = createLabelData(
     geometry.dims[0] * geometry.dims[1] * geometry.dims[2],
     options.labelValue,
