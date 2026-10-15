@@ -108,9 +108,21 @@ export function readNrrd(bytes: Uint8Array): Nrrd {
   const fields = new Map<string, string>();
   for (const line of lines.slice(1)) {
     if (!line || line.startsWith('#')) continue;
+    // Distinguish metadata from fields before normalizing structural names.
+    // A field value may itself contain :=, and metadata keys may contain colons.
+    const metadataSeparator = line.indexOf(':=');
+    const fieldSeparator = line.search(/:\s/);
+    if (metadataSeparator >= 0 && (fieldSeparator < 0 || metadataSeparator < fieldSeparator)) {
+      continue;
+    }
     const separator = line.indexOf(':');
     if (separator < 0) throw new Error(`Invalid NRRD header line: ${line}`);
-    fields.set(line.slice(0, separator).trim().toLowerCase(), line.slice(separator + 1).trim());
+    const field = line.slice(0, separator).trim().toLowerCase();
+    const value = line.slice(separator + 1).trim();
+    if (field === 'endian' && !/^(big|little)$/i.test(value)) {
+      throw new Error('Unsupported NRRD endian: ' + value);
+    }
+    fields.set(field, value);
   }
 
   if (fields.get('encoding')?.toLowerCase() !== 'raw') {

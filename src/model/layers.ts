@@ -98,5 +98,24 @@ export function compactLayers(model: LayerModel): LayerModel {
       model.masks[segmentId],
     );
   }
-  return compacted;
+  const occupiedLayers = new Set(model.order.map((id) => model.assignments[id].layer));
+  const compactedLayers = new Set(model.order.map((id) => compacted.assignments[id].layer));
+  if (compactedLayers.size <= occupiedLayers.size) {
+    return compacted;
+  }
+
+  // Order-dependent greedy coloring can grow after edits. Keep the existing
+  // conflict-free groups in that case, only closing gaps in their layer numbers.
+  const denseLayers = new Map(
+    [...occupiedLayers].sort((a, b) => a - b).map((layer, index) => [layer, index]),
+  );
+  return {
+    ...model,
+    assignments: Object.fromEntries(
+      model.order.map((id) => [
+        id,
+        { ...model.assignments[id], layer: denseLayers.get(model.assignments[id].layer)! },
+      ]),
+    ),
+  };
 }

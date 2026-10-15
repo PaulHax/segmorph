@@ -249,3 +249,138 @@ describe('meshSmooth invariants', () => {
     expect(() => meshSmooth(sphere, { windowFunction: 'kaiser' })).toThrow(RangeError);
   });
 });
+
+describe('meshSmooth numerical failures', () => {
+  const windows = ['nuttall', 'blackman', 'hanning', 'hamming'] as const;
+
+  it.each(windows)(
+    'rejects nonfinite filter gain with %s without mutating input',
+    (windowFunction) => {
+      const mesh = octahedron();
+      const pristine = cloneMesh(mesh);
+
+      // At passBand 0 the first Newton step divides by zero. Its NaN residual
+      // must not be mistaken for a gain within tolerance.
+      for (const numberOfIterations of [2, 3, 20, 40]) {
+        const smooth = () => meshSmooth(mesh, { numberOfIterations, passBand: 0, windowFunction });
+        expect(smooth).toThrow(RangeError);
+        expect(smooth).toThrow(
+          'meshSmooth filter gain became nonfinite; adjust passBand or numberOfIterations',
+        );
+        expect(mesh).toEqual(pristine);
+      }
+    },
+  );
+
+  it.each([
+    { numberOfIterations: 2, passBand: 2, windowFunction: 'nuttall' },
+    ...windows.map((windowFunction) => ({
+      numberOfIterations: 3,
+      passBand: 0.0001,
+      windowFunction,
+    })),
+  ] as const)(
+    'rejects exhausted coefficient tuning: $numberOfIterations iterations, passBand $passBand, $windowFunction',
+    (options) => {
+      const mesh = octahedron();
+      const pristine = cloneMesh(mesh);
+
+      // The two-iteration Nuttall case previously returned a finite radius of
+      // 697792.0625. Finiteness alone does not establish filter convergence.
+      const smooth = () => meshSmooth(mesh, options);
+      expect(smooth).toThrow(RangeError);
+      expect(smooth).toThrow(
+        'meshSmooth filter did not converge after 500 attempts; adjust passBand or numberOfIterations',
+      );
+      expect(mesh).toEqual(pristine);
+    },
+  );
+
+  it('rejects nonfinite final coordinates even when coefficient tuning converges', () => {
+    const largestFloat32 = 3.4028234663852886e38;
+    const mesh = createMesh(
+      [
+        [largestFloat32, 0, 0],
+        [largestFloat32, 1, 0],
+        [largestFloat32, 0, 1],
+      ],
+      [[0, 1, 2]],
+    );
+    const pristine = cloneMesh(mesh);
+
+    // The default filter converges, but its accumulation overflows Float32.
+    const smooth = () => meshSmooth(mesh);
+    expect(smooth).toThrow(RangeError);
+    expect(smooth).toThrow('meshSmooth produced nonfinite point coordinates');
+    expect(mesh).toEqual(pristine);
+
+    const normalized = meshSmooth(mesh, { normalizeCoordinates: true });
+    expect(normalized.points.every(Number.isFinite)).toBe(true);
+    expect(normalized.points[0]).toBe(largestFloat32);
+    expect(normalized.polys).toEqual(mesh.polys);
+    expect(mesh).toEqual(pristine);
+  });
+
+  it.each(windows)('preserves coincident normalized points with %s', (windowFunction) => {
+    for (const position of [
+      [0, 0, 0],
+      [3, -4, 5],
+    ] as const) {
+      for (const numberOfIterations of [1, 20]) {
+        const mesh = octahedron();
+        for (let offset = 0; offset < mesh.points.length; offset += 3) {
+          mesh.points.set(position, offset);
+        }
+        const pristine = cloneMesh(mesh);
+        const smoothed = meshSmooth(mesh, {
+          normalizeCoordinates: true,
+          numberOfIterations,
+          windowFunction,
+        });
+
+        expect(smoothed).toEqual(pristine);
+        expect(smoothed.points).not.toBe(mesh.points);
+        expect(smoothed.polys).not.toBe(mesh.polys);
+        expect(mesh).toEqual(pristine);
+      }
+    }
+  });
+
+  it.each([
+    { windowFunction: 'nuttall', scale: 0.12210766226053238 },
+    { windowFunction: 'blackman', scale: 0.13487598299980164 },
+    { windowFunction: 'hanning', scale: 0.15077874064445496 },
+    { windowFunction: 'hamming', scale: 0.1547544300556183 },
+  ] as const)(
+    'preserves degree-one shrink behavior with $windowFunction',
+    ({ windowFunction, scale }) => {
+      const mesh = octahedron();
+      const pristine = cloneMesh(mesh);
+      const smoothed = meshSmooth(mesh, { numberOfIterations: 1, passBand: 0.1, windowFunction });
+
+      // Float32 radii independently reproduced by Python VTK 9.6.2.
+      expect(smoothed.points).toEqual(mesh.points.map((coordinate) => coordinate * scale));
+      expect(smoothed.polys).toEqual(mesh.polys);
+
+      const zeroPassBand = meshSmooth(mesh, { numberOfIterations: 1, passBand: 0, windowFunction });
+      expect(zeroPassBand.points.every((coordinate) => coordinate === 0)).toBe(true);
+      expect(zeroPassBand.polys).toEqual(mesh.polys);
+      expect(mesh).toEqual(pristine);
+    },
+  );
+
+  it('still passes through zero iterations with a zero pass band', () => {
+    const mesh = octahedron();
+    const pristine = cloneMesh(mesh);
+    const smoothed = meshSmooth(mesh, {
+      numberOfIterations: 0,
+      passBand: 0,
+      normalizeCoordinates: true,
+    });
+
+    expect(smoothed).toEqual(pristine);
+    expect(smoothed.points).not.toBe(mesh.points);
+    expect(smoothed.polys).not.toBe(mesh.polys);
+    expect(mesh).toEqual(pristine);
+  });
+});

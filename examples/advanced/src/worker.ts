@@ -5,7 +5,6 @@ import {
   meshSmooth,
   resampleNearest,
   triangleCount,
-  type ImageGeometry,
   type Mesh,
   type OrientedImage,
 } from 'segmorph';
@@ -21,36 +20,27 @@ import type {
 // Mesh extraction, smoothing, decimation, and preview resampling are
 // synchronous and CPU-bound, so this pipeline runs off the main thread.
 
-let scalars: Uint8Array | undefined;
-let geometry: ImageGeometry | undefined;
+let sourceVolume: OrientedImage<Uint8Array> | undefined;
 
 /**
  * Working volumes by stride. Converting a 256 x 256 x 133 CT at full
  * resolution is a real workload (millions of triangles), so the app offers a
- * coarser preview. `resampleNearest` builds it: same world extent, fewer
- * samples, so every mesh still lands in the same coordinate system.
+ * coarser preview. `resampleNearest` retains the origin and orientation with
+ * wider spacing and fewer samples in the same world coordinate system.
  */
 const resampled = new Map<number, OrientedImage<Uint8Array>>();
 
-function workingVolume(stride: number, source: Uint8Array, imageGeometry: ImageGeometry) {
-  if (stride <= 1) return { data: source, ...imageGeometry } as OrientedImage<Uint8Array>;
-
+function workingVolume(stride: number, input: OrientedImage<Uint8Array>) {
+  if (stride <= 1) return input;
   const cached = resampled.get(stride);
   if (cached) return cached;
-
-  const dims = imageGeometry.dims.map((d) => Math.max(1, Math.floor(d / stride)));
-  const spacing = imageGeometry.spacing.map((s) => s * stride);
   const reference = {
-    dims,
-    spacing,
-    origin: imageGeometry.origin,
-    direction: imageGeometry.direction,
+    dims: input.dims.map((d) => Math.max(1, Math.floor(d / stride))),
+    spacing: input.spacing.map((s) => s * stride),
+    origin: input.origin,
+    direction: input.direction,
   };
-  const coarse = resampleNearest(
-    createOrientedImage({ data: source, ...imageGeometry }),
-    reference,
-  ) as OrientedImage<Uint8Array>;
-
+  const coarse = resampleNearest(input, reference);
   resampled.set(stride, coarse);
   return coarse;
 }
@@ -98,9 +88,9 @@ function convertSegment(
   };
 }
 
-function convert(request: ConvertRequest, source: Uint8Array, imageGeometry: ImageGeometry) {
+function convert(request: ConvertRequest, source: OrientedImage<Uint8Array>) {
   const start = performance.now();
-  const volume = workingVolume(request.stride, source, imageGeometry);
+  const volume = workingVolume(request.stride, source);
 
   const segments = request.segments.map((segment) =>
     convertSegment(segment, request.pipeline, volume),
@@ -117,10 +107,10 @@ function convert(request: ConvertRequest, source: Uint8Array, imageGeometry: Ima
 
 self.onmessage = ({ data: request }: MessageEvent<WorkerRequest>) => {
   if (request.kind === 'init') {
-    scalars = request.data;
-    geometry = request.geometry;
+    sourceVolume = createOrientedImage({ data: request.data, ...request.geometry });
+    resampled.clear();
     return;
   }
-  if (!scalars || !geometry) throw new Error('convert requested before init');
-  convert(request, scalars, geometry);
+  if (!sourceVolume) throw new Error('convert requested before init');
+  convert(request, sourceVolume);
 };

@@ -7,8 +7,7 @@ import type vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 /**
  * A real chest CT: LIDC2 from the Lung Image Database Consortium, served as
  * vtk.js sample data. 256 x 256 x 133, Uint8, anisotropic spacing
- * (1.40625, 1.40625, 2.5), which is exactly the oblique/anisotropic case the
- * conversions are tested against.
+ * (1.40625, 1.40625, 2.5).
  */
 const LIDC2_URL = 'https://kitware.github.io/vtk-js/data/volume/LIDC2.vti';
 
@@ -44,14 +43,3 @@ export const SEGMENT_SEEDS: SegmentSeed[] = [
   { id: 'body', name: 'Body', color: [0.4, 0.68, 0.95], window: [30, 255], opacity: 0.1 },
   { id: 'bone', name: 'Bone', color: [0.98, 0.72, 0.28], window: [150, 255], opacity: 1 },
 ];
-
-/** Threshold a scalar volume into a binary mask for one seed. */
-export function seedMask(scalars: Uint8Array, seed: SegmentSeed, labelValue: number) {
-  const [low, high] = seed.window;
-  const mask = new Uint8Array(scalars.length);
-  for (let i = 0; i < scalars.length; i += 1) {
-    const value = scalars[i];
-    if (value >= low && value <= high) mask[i] = labelValue;
-  }
-  return mask;
-}

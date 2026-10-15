@@ -62,7 +62,12 @@ export function getOrCreateRepresentation(
       representation = representations[rule.target];
     } else {
       representation = applyConversionRule(rule, representation);
-      representations[rule.target] = representation;
+      Object.defineProperty(representations, rule.target, {
+        value: representation,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
     }
   }
 
