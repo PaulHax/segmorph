@@ -322,17 +322,30 @@ function computeCoefficients(options: ResolvedOptions) {
       fprimeKpb += cprime[i] * basis;
     }
 
+    // A NaN residual must not take the convergence branch below.
+    if (!Number.isFinite(fKpb)) {
+      throw new RangeError(
+        'meshSmooth filter gain became nonfinite; adjust passBand or numberOfIterations',
+      );
+    }
+
     if (numIters > 1) {
-      if (Math.abs(fKpb - 1) >= NEWTON_ERROR_TOLERANCE) {
-        sigma -= (fKpb - 1) / fprimeKpb; // Newton-Raphson toward f(kPb) = 1
-      } else {
+      if (Math.abs(fKpb - 1) < NEWTON_ERROR_TOLERANCE) {
         done = true;
+      } else {
+        sigma -= (fKpb - 1) / fprimeKpb; // Newton-Raphson toward f(kPb) = 1
       }
     } else {
       // Degree 1 cannot be tuned; the mesh will likely shrink (VTK behavior).
       done = true;
       sigma = 0;
     }
+  }
+
+  if (!done) {
+    throw new RangeError(
+      'meshSmooth filter did not converge after 500 attempts; adjust passBand or numberOfIterations',
+    );
   }
 
   return c;
@@ -351,7 +364,8 @@ function boundingBoxNormalization(points: Float32Array) {
   // vtkPolyData::GetLength is the bounding-box diagonal; GetCenter its middle.
   const length = Math.hypot(max[0] - min[0], max[1] - min[1], max[2] - min[2]);
   const center = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2];
-  return { length, center };
+  // Coincident points center to zero; a unit scale preserves their position.
+  return { length: length === 0 ? 1 : length, center };
 }
 
 // The smoothing passes. Four float32 point buffers (matching the input point
@@ -478,8 +492,12 @@ function smoothPoints(
  * ordering are preserved and the polys array is copied bit-identically; only
  * point positions change. The input mesh is never mutated.
  *
- * Deviation from VTK: an input with no points or no triangles returns an
- * unchanged copy (VTK returns an empty vtkPolyData after a warning).
+ * Degree 1 skips coefficient tuning and may shrink the mesh.
+ * Throws RangeError if coefficient tuning fails or final coordinates are nonfinite.
+ *
+ * Deviations from VTK: coincident points remain unchanged when normalized;
+ * an input with no points or no triangles returns an unchanged copy (VTK
+ * returns an empty vtkPolyData after a warning).
  */
 export function meshSmooth(mesh: Mesh, options: MeshSmoothOptions = {}): Mesh {
   validateMesh(mesh);
@@ -494,6 +512,9 @@ export function meshSmooth(mesh: Mesh, options: MeshSmoothOptions = {}): Mesh {
   const connectivity = analyzePoints(mesh, numPts, resolved);
   const c = computeCoefficients(resolved);
   const points = smoothPoints(mesh.points, connectivity, c, resolved);
+  if (!points.every(Number.isFinite)) {
+    throw new RangeError('meshSmooth produced nonfinite point coordinates');
+  }
 
   return { points, polys: new Uint32Array(mesh.polys) };
 }

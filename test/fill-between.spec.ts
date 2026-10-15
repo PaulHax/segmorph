@@ -125,6 +125,68 @@ describe('fillBetween invariants', () => {
     }
   });
 
+  it.each([0, 1, 2])('extrapolates disjoint endpoint components along axis %i', (axis) => {
+    const dims: [number, number, number] =
+      axis === 0 ? [7, 18, 9] : axis === 1 ? [18, 7, 9] : [18, 9, 7];
+    const image = makeImage(dims);
+    drawDisk(image, axis, 1, 3, 3, 1.5);
+    drawDisk(image, axis, 5, 11, 3, 1.5);
+    const out = fillBetween(image, { labelValue: 1, axis });
+    const expected = makeImage(dims);
+    drawDisk(expected, axis, 1, 3, 3, 1.5);
+    drawDisk(expected, axis, 5, 11, 3, 1.5);
+    // ITK's conditional-dilation median keeps these 3x3 regions at every
+    // intermediate slice, without introducing a bridge between components.
+    for (let slice = 2; slice < 5; slice += 1) {
+      drawDisk(expected, axis, slice, 3, 3, 1.5);
+      drawDisk(expected, axis, slice, 11, 3, 1.5);
+    }
+    expect(out.data).toEqual(expected.data);
+  });
+
+  it('handles unmatched components alongside an overlapping pair', () => {
+    const image = makeImage([24, 9, 7]);
+    drawDisk(image, 2, 1, 3, 3, 1.5);
+    drawDisk(image, 2, 5, 3, 3, 1.5);
+    drawDisk(image, 2, 1, 11, 3, 1.5);
+    drawDisk(image, 2, 5, 19, 3, 1.5);
+    const out = fillBetween(image, { labelValue: 1, axis: 2 });
+    const expected = makeImage([24, 9, 7]);
+    expected.data.set(image.data);
+    for (let slice = 2; slice < 5; slice += 1) {
+      for (const center of [3, 11, 19]) drawDisk(expected, 2, slice, center, 3, 1.5);
+    }
+    expect(out.data).toEqual(expected.data);
+  });
+
+  it('aligns the phantom onto a concave component whose centroid is background', () => {
+    const image = makeImage([24, 12, 7]);
+    for (let y = 2; y <= 8; y += 1) {
+      for (let x = 2; x <= 8; x += 1) {
+        if (x < 4 || x > 6 || y < 4 || y > 6) image.data[x + 24 * (y + 12)] = 1;
+      }
+    }
+    drawDisk(image, 2, 5, 18, 4, 1.5);
+    const out = fillBetween(image, { labelValue: 1, axis: 2 });
+    const expected = makeImage([24, 12, 7]);
+    expected.data.set(image.data);
+    const rowsBySlice = [
+      ['.######', '.######', '.#...##', '.....##', '.#...##', '.######', '.######'],
+      ['...####', '...####', '.....##', '.....##', '.....##', '...####', '...####'],
+      ['.......', '....###', '.....##', '.....##', '.....##', '....###', '.......'],
+    ];
+    for (const [offset, rows] of rowsBySlice.entries()) {
+      const z = offset + 2;
+      drawDisk(expected, 2, z, 18, 4, 1.5);
+      for (const [y, row] of rows.entries()) {
+        for (const [x, voxel] of [...row].entries()) {
+          if (voxel === '#') expected.data[x + 2 + 24 * (y + 2 + 12 * z)] = 1;
+        }
+      }
+    }
+    expect(out.data).toEqual(expected.data);
+  });
+
   it('honors an explicit axis and ignores other axes', () => {
     const image = makeImage([12, 12, 7]);
     drawDisk(image, 2, 1, 5.5, 5.5, 4.2);

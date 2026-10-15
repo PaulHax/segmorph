@@ -70,6 +70,90 @@ describe('source-authoritative invalidation', () => {
     expect(convert).not.toHaveBeenCalled();
   });
 
+  it('reuses existing intermediate representations when deriving a missing target', () => {
+    const segmentation = addSegment(
+      createSegmentation('A'),
+      createSegment({
+        id: 'segment',
+        name: 'Segment',
+        color: [1, 0, 0],
+        representations: { A: 'source', B: 'cached-b' },
+      }),
+    );
+    const graph = createConversionGraph([
+      { source: 'A', target: 'B', cost: 1, convert: (value: string) => `${value}-b` },
+      { source: 'B', target: 'C', cost: 1, convert: (value: string) => `${value}-c` },
+    ]);
+    const result = getOrCreateRepresentation(segmentation, 'segment', 'C', graph);
+
+    expect(result.representation).toBe('cached-b-c');
+    expect(result.segmentation.segments.segment.representations).toEqual({
+      A: 'source',
+      B: 'cached-b',
+      C: 'cached-b-c',
+    });
+    expect(segmentation.segments.segment.representations).toEqual({ A: 'source', B: 'cached-b' });
+  });
+
+  describe.each(['__proto__', 'constructor', 'toString'])('representation named %s', (target) => {
+    it.each([
+      { kind: 'object', representation: { value: 'derived' } },
+      { kind: 'null', representation: null },
+      { kind: 'undefined', representation: undefined },
+    ])('caches, promotes, and edits a $kind result', ({ representation }) => {
+      const segmentation = addSegment(
+        createSegmentation('A'),
+        createSegment({
+          id: '__proto__',
+          name: 'Segment',
+          color: [1, 0, 0],
+          representations: { A: 'source' },
+        }),
+      );
+      const snapshot = structuredClone(segmentation);
+      const convert = vi.fn(() => representation);
+      const finish = vi.fn((value: unknown) => ({ received: value }));
+      const graph = createConversionGraph([
+        { source: 'A', target, cost: 1, convert },
+        { source: target, target: 'finished', cost: 1, convert: finish },
+      ]);
+
+      const first = getOrCreateRepresentation(segmentation, '__proto__', target, graph);
+      const cachedSnapshot = structuredClone(first.segmentation);
+      const second = getOrCreateRepresentation(first.segmentation, '__proto__', target, graph);
+      expect(first.representation).toBe(representation);
+      expect(second.representation).toBe(representation);
+      expect(second.segmentation).toBe(first.segmentation);
+      expect(convert).toHaveBeenCalledOnce();
+
+      const representations = first.segmentation.segments['__proto__'].representations;
+      expect(Object.getOwnPropertyDescriptor(representations, target)).toEqual({
+        value: representation,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
+      expect(Object.getPrototypeOf(representations)).toBe(Object.prototype);
+
+      const derived = getOrCreateRepresentation(first.segmentation, '__proto__', 'finished', graph);
+      expect(derived.representation).toEqual({ received: representation });
+      expect(convert).toHaveBeenCalledOnce();
+      expect(finish).toHaveBeenCalledOnce();
+      expect(finish).toHaveBeenCalledWith(representation);
+
+      const promoted = promoteRepresentationToSource(derived.segmentation, target);
+      expect(promoted.sourceRepresentation).toBe(target);
+      const edited = editRepresentation(promoted, '__proto__', target, 'edited');
+      expect(edited.segments['__proto__'].representations).toEqual({ [target]: 'edited' });
+      expect(Object.hasOwn(edited.segments['__proto__'].representations, target)).toBe(true);
+      expect(Object.getPrototypeOf(edited.segments['__proto__'].representations)).toBe(
+        Object.prototype,
+      );
+      expect(first.segmentation).toEqual(cachedSnapshot);
+      expect(segmentation).toEqual(snapshot);
+    });
+  });
+
   it('rejects derived edits until that representation is promoted to source', () => {
     const segmentation = segmentationWithRepresentations();
 

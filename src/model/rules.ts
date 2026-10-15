@@ -1,22 +1,14 @@
-import { contourToSurface } from '../convert/contourToSurface.js';
 import { contourToLabelmap } from '../convert/contourToLabelmap.js';
 import { labelmapToSurface } from '../convert/labelmapToSurface.js';
 import { surfaceToContour } from '../convert/surfaceToContour.js';
 import { surfaceToLabelmap } from '../convert/surfaceToLabelmap.js';
-import {
-  createContourPlane,
-  planarContourWorldLoops,
-  type PlanarContour,
-} from '../geometry/contour.js';
+import { createContourPlane, type PlanarContour } from '../geometry/contour.js';
 import type { Mesh } from '../geometry/mesh.js';
 import { indexToWorld } from '../image/orientedImage.js';
 import type { ImageData, ImageGeometry, OrientedImage, Vector3 } from '../image/orientedImage.js';
 import { createConversionGraph } from './graph.js';
 
-/**
- * Representation names shared with the model layer (see createSegmentation
- * and the segment representation map in test/model.spec.ts).
- */
+/** Representation names used by the default conversion rules. */
 export const defaultRepresentations = {
   labelmap: 'labelmap',
   surface: 'surface',
@@ -24,27 +16,16 @@ export const defaultRepresentations = {
 } as const;
 
 /**
- * Relative cost weights for findCheapestPath. Absolute values carry no unit;
- * only the ratios matter when picking among alternative paths. They are
- * proportional to expected work per conversion:
- * - labelmap -> surface: one marching-cubes table lookup per voxel cell plus
- *   linear output assembly.
- * - surface -> labelmap: per-sample even-odd containment tests against the
- *   triangle set, substantially more work than extraction on the same
- *   geometry, so it is weighted an order of magnitude higher.
- * - surface -> contour: one plane cut per reference slice, comparable to a
- *   single extraction pass.
- * - contour -> labelmap: per-slice scan fill, cheap.
- * - contour -> surface: dynamic-programming stitch between adjacent planes
- *   plus end-cap rasterization; kept below the contour -> labelmap ->
- *   surface total (2 + 1) so RTSTRUCT-style inputs take the direct stitch
- *   instead of a voxelization detour.
+ * Route preferences for findCheapestPath. Direct surface voxelization must
+ * cost less than the contour detour: voxelization includes boundary samples,
+ * while cutting and half-open contour rasterization can discard them.
+ * Contours use the reference labelmap before surface extraction to preserve
+ * contour grouping and sample occupancy. Costs describe route suitability.
  */
 const labelmapToSurfaceCost = 1;
-const surfaceToLabelmapCost = 10;
+const surfaceToLabelmapCost = 3;
 const surfaceToContourCost = 2;
 const contourToLabelmapCost = 2;
-const contourToSurfaceCost = 2;
 
 /**
  * The data type carried by each default representation. Adding a
@@ -115,12 +96,8 @@ export type DefaultRuleOptions = Readonly<{
 }>;
 
 /**
- * Default rules for the conversions landed so far. Extension list, in the
- * order the algorithms are expected to land (each is a new entry below, with
- * its parameters added to DefaultRuleOptions; smoothing and decimation are
- * post-processing options folded into the labelmap -> surface rule rather
- * than separate graph nodes):
- * - labelmap <-> fractional labelmap (fractional; captures oversampling).
+ * Default conversions among binary labelmaps, closed surfaces, and planar
+ * contours on the reference image's slice planes.
  *
  * The inferred return type is the union of each rule's fully typed
  * ConversionRule, so the source/target/data-type pairings are visible to
@@ -155,12 +132,6 @@ export function createDefaultRules(options: DefaultRuleOptions) {
       target: defaultRepresentations.labelmap,
       cost: contourToLabelmapCost,
       convert: (input) => contourToLabelmap(input, referenceGeometry, { labelValue }),
-    }),
-    representationRule({
-      source: defaultRepresentations.contour,
-      target: defaultRepresentations.surface,
-      cost: contourToSurfaceCost,
-      convert: (input) => contourToSurface(input.flatMap(planarContourWorldLoops)),
     }),
   ];
 }

@@ -22,7 +22,12 @@ const generatedDir = fileURLToPath(new URL('./test/generated', import.meta.url))
 // dataset. There is nothing for the fast tier to read.
 const liveOnlySpecs = ['test/property-sweep.spec.ts', 'test/clinical-regression.spec.ts'];
 
-const oracleSpecs = ['test/oracle-*.spec.ts', 'test/harness.spec.ts', ...liveOnlySpecs];
+const oracleSpecs = [
+  'test/oracle-*.spec.ts',
+  'test/surface-nets.spec.ts',
+  'test/harness.spec.ts',
+  ...liveOnlySpecs,
+];
 
 export default defineConfig({
   test: {

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { fillBetween } from '../src/convert/fillBetween.js';
 import type { OrientedImage } from '../src/image/orientedImage.js';
 import { dice } from './diff/image.js';
+import { findFixtureEntries, readFixtureManifest } from './fixtures/loaders.js';
 import { fixtureUrl } from './fixtures/root.js';
 
 // Per-slice Dice thresholds against the @itk-wasm oracle (defaults: distance
@@ -48,8 +49,9 @@ function loadParams(caseName: string) {
   const url = fixtureUrl(`H/${caseName}/params.json`);
   return JSON.parse(readFileSync(url, 'utf8')) as {
     labelValue: number;
-    axis: number;
+    axis: 0 | 1 | 2;
     segmentedSlices: number[];
+    noUseDistanceTransform?: boolean;
   };
 }
 
@@ -101,4 +103,29 @@ describe('fillBetween vs itk-wasm morphological contour interpolation', () => {
       });
     });
   }
+});
+
+describe('fillBetween vs ITK conditional-dilation median', () => {
+  it.each([
+    'conditional-dilation-disjoint',
+    'conditional-dilation-mixed',
+    'conditional-dilation-concave',
+    'conditional-dilation-reverse-odd-gap',
+  ])('matches every voxel for %s', (name) => {
+    const input = loadImage(name, 'input.img.json');
+    const golden = loadImage(name, 'golden.img.json');
+    const params = loadParams(name);
+    const manifest = readFixtureManifest(readFileSync(fixtureUrl('manifest.json'), 'utf8'));
+    const entries = findFixtureEntries(manifest, 'H', name);
+    expect(entries).toHaveLength(1);
+    expect(entries[0].oracle).toEqual({
+      name: 'itk-wasm-morphological-contour-interpolation',
+      version: '2.0.0',
+    });
+    expect(entries[0].params.noUseDistanceTransform).toBe(true);
+    expect(params.noUseDistanceTransform).toBe(true);
+
+    const actual = fillBetween(input, { labelValue: params.labelValue, axis: params.axis });
+    expect(actual.data).toEqual(golden.data);
+  });
 });

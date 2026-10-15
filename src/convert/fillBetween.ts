@@ -4,8 +4,7 @@
 // McCormick; algorithm after Albu, Beugeling, Laurendeau, IEEE TBME 2008).
 // Median between corresponding slice regions is the iterated conditional
 // dilation variant (ITK UseDistanceTransform=false); region connectivity and
-// the structuring element are "ball" (8-connected in-plane), matching the
-// @itk-wasm/morphological-contour-interpolation effective default.
+// the structuring element are "ball" (8-connected in-plane).
 
 import type { ImageData, OrientedImage } from '../image/orientedImage.js';
 
@@ -386,7 +385,7 @@ function interpolate1to1(
   jIdx: number,
   jMask: Mask,
 ) {
-  if (jIdx - iIdx < 2) return;
+  if (Math.abs(jIdx - iIdx) < 2) return;
   const [tu, tv] = align(iMask, jMask);
   const mid = Math.floor((iIdx + jIdx) / 2);
   const frac = (mid - iIdx) / (jIdx - iIdx);
@@ -406,6 +405,52 @@ function interpolate1to1(
   writeSlice(out, view, mid, median, labelValue);
   interpolate1to1(out, view, labelValue, iIdx, iMask, mid, median);
   interpolate1to1(out, view, labelValue, mid, median, jIdx, jMask);
+}
+
+function extrapolate(
+  out: ImageData,
+  view: AxisView,
+  labelValue: number,
+  iIdx: number,
+  iMask: Mask,
+  jIdx: number,
+) {
+  const [cu, cv] = centroid(iMask);
+  const start = Math.floor(cv) * iMask.nu + Math.floor(cu);
+  const queue = [start];
+  const visited = new Uint8Array(iMask.data.length);
+  visited[start] = 1;
+  let seedIndex = start;
+  // A concave component can have its centroid outside the foreground.
+  // Align the singleton phantom by a nearest-centroid breadth search.
+  // Seed offsets +u,-u,+v,-v correspond to ITK translations -u,+u,-v,+v.
+  for (let next = 0; next < queue.length; next += 1) {
+    const index = queue[next];
+    if (iMask.data[index]) {
+      seedIndex = index;
+      break;
+    }
+    const u = index % iMask.nu;
+    const v = (index - u) / iMask.nu;
+    for (const [du, dv] of [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ]) {
+      const nu = u + du;
+      const nv = v + dv;
+      if (nu < 0 || nu >= iMask.nu || nv < 0 || nv >= iMask.nv) continue;
+      const neighbor = nv * iMask.nu + nu;
+      if (!visited[neighbor]) {
+        visited[neighbor] = 1;
+        queue.push(neighbor);
+      }
+    }
+  }
+  const phantom = emptyLike(iMask);
+  phantom.data[seedIndex] = 1;
+  interpolate1to1(out, view, labelValue, iIdx, iMask, jIdx, phantom);
 }
 
 function interpolateBetweenTwo(
@@ -438,6 +483,17 @@ function interpolateBetweenTwo(
   }
 
   const { nu, nv } = iMask;
+  for (let a = 1; a <= iConn.count; a += 1) {
+    if (!overlaps.has(a)) {
+      extrapolate(out, view, labelValue, iIdx, componentMask(iConn.labels, a, nu, nv), jIdx);
+    }
+  }
+  for (let b = 1; b <= jConn.count; b += 1) {
+    if (!jCounts.has(b)) {
+      extrapolate(out, view, labelValue, jIdx, componentMask(jConn.labels, b, nu, nv), iIdx);
+    }
+  }
+
   const pendingByJ = new Map<number, number[]>();
   for (const [a, bs] of overlaps) {
     const aMask = componentMask(iConn.labels, a, nu, nv);
