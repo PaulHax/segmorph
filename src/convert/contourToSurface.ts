@@ -6,7 +6,7 @@ import { validateMesh, type Mesh } from '../geometry/mesh.js';
 // closed surface in Slicer and in @icr/polyseg-wasm (which compiles this same
 // rule; it is the oracle for test/oracle-contour-to-surface.spec.ts).
 //
-// Pipeline, mirrored stage for stage:
+// Pipeline (with nesting and closure corrections described below):
 // 1. Fit a plane normal per contour, average, and rotate the stack so the
 //    contour planes become z-normal (CalculateContourTransform).
 // 2. Sort contours by mean z (SortContours).
@@ -14,9 +14,10 @@ import { validateMesh, type Mesh } from '../geometry/mesh.js';
 //    zero-width channel of coincident point pairs - into separate loops
 //    (FixKeyholes, epsilon 0.001, minimum index separation 3).
 // 4. Normalize loops counterclockwise in plane xy (SetLinesCounterClockwise).
-// 5. For each pair of adjacent planes, divide each loop by its closest
-//    overlapping partner (Branch) and stitch the divided loops with a
-//    dynamic-programming minimal-distance triangulation
+// 5. Restrict adjacent-plane candidates by nesting depth and compatible
+//    ancestors, rejecting unsupported nested splits/merges. Divide each loop
+//    by its closest eligible partner (Branch) and stitch the divided loops
+//    with a dynamic-programming minimal-distance triangulation
 //    (TriangulateBetweenContours).
 // 6. Cap every loop edge not triangulated to a neighbor plane (EndCapping):
 //    smooth mode rasterizes the loop onto a small binary image
@@ -28,14 +29,16 @@ import { validateMesh, type Mesh } from '../geometry/mesh.js';
 //    (TriangulateContourInterior) and stitches it to the source loop.
 // 7. Rotate the result back.
 //
-// Deliberate deviations, all combinatorial rather than geometric (the oracle
-// spec compares geometrically):
+// Deliberate deviations (the oracle spec compares geometrically):
+// - Straight caps close by shared point id, including the smooth fallback.
+// - Strict per-slice nesting prevents outer boundaries from branching to holes.
+//   Touching/crossing rings and nested split/merge candidates are rejected.
 // - The per-contour plane fit uses a covariance eigenanalysis instead of
 //   Eigen's BDCSVD (vtkAddonMathUtilities::FitPlaneToPoints); both return the
 //   least-squares plane. The normal's sign is arbitrary in both; it only
 //   mirrors the intermediate rotated frame, which the final inverse rotation
 //   undoes.
-// - The ear-cut triangulation picks ears smallest-angle-first rather than
+// - The ear-cut triangulation picks the largest convex ear by area rather than
 //   reproducing vtkPolygon's priority order; any full triangulation of the
 //   same planar polygon covers the same surface.
 // - Point locator queries (closest point, radius search) are brute force;
@@ -52,7 +55,7 @@ export type EndCappingMode = 'none' | 'smooth' | 'straight';
 export type ContourToSurfaceOptions = {
   /**
    * How to close the surface across the first and last contour planes (and
-   * any loop with no overlapping partner on an adjacent plane). Matches the
+   * any loop with no compatible partner on an adjacent plane). Matches the
    * rule's end capping parameter; 'smooth' is the Slicer default.
    */
   endCapping?: EndCappingMode;
@@ -260,6 +263,38 @@ function calculateContourRotation(points: PointStore, lines: readonly Line[]) {
   ];
 }
 
+/** Float32 bin width, including zero and subnormal coordinates. */
+function float32Ulp(value: number) {
+  return Math.max(2 ** -149, 2 ** (Math.floor(Math.log2(Math.abs(value))) - 23));
+}
+
+/** Local normal-coordinate uncertainty, measured before rotation overwrites xyz. */
+function contourPointZErrors(points: PointStore, rotation: number[][] | undefined) {
+  const errors: number[] = [];
+  for (let offset = 0; offset < points.length; offset += 3) {
+    if (!rotation) {
+      // Stored z coordinates are exact Float32 values without projection.
+      // Distinct representable planes must remain separate at bin boundaries.
+      errors.push(0);
+      continue;
+    }
+    const row = rotation[2];
+    let inputError = 0;
+    let magnitude = 0;
+    let z = 0;
+    for (let axis = 0; axis < 3; axis += 1) {
+      const coordinate = points[offset + axis];
+      inputError += (Math.abs(row[axis]) * float32Ulp(coordinate)) / 2;
+      magnitude += Math.abs(row[axis] * coordinate);
+      z += row[axis] * coordinate;
+    }
+    // Input quantization, output quantization, and double-precision dot-product
+    // roundoff. Each budget belongs to this point; distant slices cannot widen it.
+    errors.push(inputError + float32Ulp(f32(z)) / 2 + 4 * Number.EPSILON * magnitude);
+  }
+  return errors;
+}
+
 function applyRotation(points: PointStore, rotation: number[][] | undefined, inverse: boolean) {
   if (!rotation) return;
   for (let id = 0; id < points.length / 3; id += 1) {
@@ -391,29 +426,87 @@ function setLinesCounterClockwise(points: PointStore, lines: Line[]) {
   return lines.map((line) => (isLineClockwise(points, line) ? [...line].reverse() : line));
 }
 
-// --- GetSpacingBetweenLines / GetNumberOfLinesOnPlane -----------------------
+// --- Plane grouping and spacing --------------------------------------------
 
-function getSpacingBetweenLines(
-  points: PointStore,
-  lines: readonly Line[],
+type ContourPlaneGroup = { first: number; end: number; z: number };
+
+function groupContourPlanes(points: PointStore, lines: Line[], pointZErrors: readonly number[]) {
+  const planes = lines.map((line) => {
+    const ids = line.slice(0, -1);
+    const bounds = lineBounds(points, line);
+    const center: Vec3 = [0, 0, 0];
+    const reference = getPoint(points, ids[0]);
+    let error = 0;
+    for (const id of ids) {
+      for (let axis = 0; axis < 3; axis += 1) {
+        center[axis] += points[id * 3 + axis] - reference[axis];
+      }
+      error = Math.max(error, pointZErrors[id]);
+    }
+    for (let axis = 0; axis < 3; axis += 1) {
+      center[axis] = reference[axis] + center[axis] / ids.length;
+    }
+    // The averaged stack normal can leave a small residual tilt. Across
+    // separated coplanar roots, its z drift exceeds either ring's z spread.
+    const normal = bounds[4] === bounds[5] ? undefined : fitPlaneNormal(points, ids);
+    const slope =
+      normal && normal[2] !== 0 ? [-normal[0] / normal[2], -normal[1] / normal[2]] : [0, 0];
+    return { bounds, center, error, slope };
+  });
+
+  const slices: ContourPlaneGroup[] = [];
+  for (let first = 0; first < lines.length;) {
+    const anchor = planes[first];
+    let end = first + 1;
+    let minZ = anchor.bounds[4];
+    let maxZ = anchor.bounds[5];
+    while (end < lines.length) {
+      const candidate = planes[end];
+      const dx = candidate.center[0] - anchor.center[0];
+      const dy = candidate.center[1] - anchor.center[1];
+      const tilt = Math.max(
+        Math.abs(anchor.slope[0] * dx + anchor.slope[1] * dy),
+        Math.abs(candidate.slope[0] * dx + candidate.slope[1] * dy),
+      );
+      const uncertainty =
+        anchor.error +
+        candidate.error +
+        (anchor.bounds[5] - anchor.bounds[4] + candidate.bounds[5] - candidate.bounds[4]) / 2 +
+        tilt;
+      const distance = Math.abs(candidate.center[2] - anchor.center[2]);
+      // Fixed first anchor: do not chain neighboring error intervals. Equality
+      // at a nonzero uncertainty boundary keeps adjacent representable planes
+      // distinct; exact equal coordinates still group when every budget is zero.
+      if (distance !== 0 && distance >= uncertainty) break;
+      minZ = Math.min(minZ, candidate.bounds[4]);
+      maxZ = Math.max(maxZ, candidate.bounds[5]);
+      end += 1;
+    }
+    slices.push({ first, end, z: (minZ + maxZ) / 2 });
+    first = end;
+  }
+  // As with the stack rotation, this assumes sufficiently resolved, parallel
+  // rings. Ill-conditioned fits or uncertainty that interleaves distinct planes
+  // in sorted z cannot be repaired by a local grouping tolerance.
+  return slices;
+}
+
+function getSpacingBetweenPlanes(
+  slices: readonly ContourPlaneGroup[],
   defaultSliceThickness: number,
 ) {
-  if (lines.length < 2) return defaultSliceThickness;
-
   const distances: number[] = [];
   let distanceSum = 0;
-  for (let lineId = 0; lineId < lines.length - 1; lineId += 1) {
-    const distance = Math.abs(
-      lineMeanZ(points, lines[lineId]) - lineMeanZ(points, lines[lineId + 1]),
-    );
-    if (distance > 0.01) {
+  for (let slice = 1; slice < slices.length; slice += 1) {
+    const distance = Math.abs(slices[slice].z - slices[slice - 1].z);
+    if (distance > 0) {
       distances.push(distance);
       distanceSum += distance;
     }
   }
   if (distances.length === 0) return defaultSliceThickness;
 
-  let mean = distanceSum / distances.length;
+  const mean = distanceSum / distances.length;
   let keptSum = 0;
   let keptCount = 0;
   for (const distance of distances) {
@@ -421,27 +514,7 @@ function getSpacingBetweenLines(
     keptSum += distance;
     keptCount += 1;
   }
-  if (keptCount === 0) return mean;
-  mean = keptSum / keptCount;
-  return mean;
-}
-
-function getNumberOfLinesOnPlane(
-  points: PointStore,
-  lines: readonly Line[],
-  originalLineIndex: number,
-  spacing: number,
-) {
-  const threshold = 0.1 * spacing;
-  const lineZ = lineMeanZ(points, lines[originalLineIndex]);
-  let currentLineId = originalLineIndex + 1;
-  while (
-    currentLineId < lines.length &&
-    Math.abs(lineMeanZ(points, lines[currentLineId]) - lineZ) < threshold
-  ) {
-    currentLineId += 1;
-  }
-  return currentLineId - originalLineIndex;
+  return keptCount === 0 ? mean : keptSum / keptCount;
 }
 
 function doLinesOverlap(points: PointStore, line1: Line, line2: Line) {
@@ -453,6 +526,195 @@ function doLinesOverlap(points: PointStore, line1: Line, line2: Line) {
     bounds1[2] < bounds2[3] &&
     bounds1[3] > bounds2[2]
   );
+}
+
+// --- Strict nesting and correspondence -------------------------------------
+
+function segmentsIntersectXY(points: PointStore, a: number, b: number, c: number, d: number) {
+  const side = (p: number, q: number, r: number) =>
+    (points[q * 3] - points[p * 3]) * (points[r * 3 + 1] - points[p * 3 + 1]) -
+    (points[q * 3 + 1] - points[p * 3 + 1]) * (points[r * 3] - points[p * 3]);
+  const onSegment = (p: number, q: number, r: number) =>
+    points[r * 3] >= Math.min(points[p * 3], points[q * 3]) &&
+    points[r * 3] <= Math.max(points[p * 3], points[q * 3]) &&
+    points[r * 3 + 1] >= Math.min(points[p * 3 + 1], points[q * 3 + 1]) &&
+    points[r * 3 + 1] <= Math.max(points[p * 3 + 1], points[q * 3 + 1]);
+  const abc = side(a, b, c);
+  const abd = side(a, b, d);
+  const cda = side(c, d, a);
+  const cdb = side(c, d, b);
+  if (
+    (abc === 0 && onSegment(a, b, c)) ||
+    (abd === 0 && onSegment(a, b, d)) ||
+    (cda === 0 && onSegment(c, d, a)) ||
+    (cdb === 0 && onSegment(c, d, b))
+  ) {
+    return true;
+  }
+  return (
+    ((abc < 0 && abd > 0) || (abc > 0 && abd < 0)) && ((cda < 0 && cdb > 0) || (cda > 0 && cdb < 0))
+  );
+}
+
+function boundariesIntersectXY(points: PointStore, line1: Line, line2: Line) {
+  for (let i = 0; i < line1.length - 1; i += 1) {
+    for (let j = 0; j < line2.length - 1; j += 1) {
+      if (segmentsIntersectXY(points, line1[i], line1[i + 1], line2[j], line2[j + 1])) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/** Even-odd containment; callers check boundary contact separately. */
+function pointInsideLineXY(points: PointStore, pointId: number, line: Line) {
+  const x = points[pointId * 3];
+  const y = points[pointId * 3 + 1];
+  let inside = false;
+  for (let i = 0; i < line.length - 1; i += 1) {
+    const a = line[i] * 3;
+    const b = line[i + 1] * 3;
+    if (
+      points[a + 1] > y !== points[b + 1] > y &&
+      x <
+        points[a] +
+          ((y - points[a + 1]) * (points[b] - points[a])) / (points[b + 1] - points[a + 1])
+    ) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function getContourNesting(
+  points: PointStore,
+  lines: Line[],
+  slices: readonly { first: number; end: number }[],
+) {
+  const containers: number[][] = Array.from({ length: lines.length }, () => []);
+  const bounds = lines.map((line) => lineBounds(points, line));
+  for (const { first, end } of slices) {
+    for (let i = first; i < end; i += 1) {
+      for (let j = i + 1; j < end; j += 1) {
+        // Inclusive bounds retain contacts for the strict-containment check.
+        const a = bounds[i];
+        const b = bounds[j];
+        if (a[0] > b[1] || a[1] < b[0] || a[2] > b[3] || a[3] < b[2]) continue;
+        if (boundariesIntersectXY(points, lines[i], lines[j])) {
+          throw new RangeError(
+            'Contour to surface does not support intersecting or touching contours on the same slice',
+          );
+        }
+        // For simple rings with disjoint boundaries, one boundary vertex
+        // determines containment. Testing edges first is essential: vertices
+        // can all be inside a concave polygon while an edge exits its interior.
+        if (pointInsideLineXY(points, lines[i][0], lines[j])) containers[i].push(j);
+        else if (pointInsideLineXY(points, lines[j][0], lines[i])) containers[j].push(i);
+      }
+    }
+  }
+  const depths = containers.map((ancestors) => ancestors.length);
+  const parents = containers.map((ancestors) =>
+    ancestors.reduce(
+      (parent, candidate) =>
+        parent === -1 || depths[candidate] > depths[parent] ? candidate : parent,
+      -1,
+    ),
+  );
+  return { depths, parents };
+}
+
+function projectedPolygonsOverlap(points: PointStore, line1: Line, line2: Line) {
+  return (
+    doLinesOverlap(points, line1, line2) &&
+    (boundariesIntersectXY(points, line1, line2) ||
+      pointInsideLineXY(points, line1[0], line2) ||
+      pointInsideLineXY(points, line2[0], line1))
+  );
+}
+
+/** Preflight every adjacent-slice graph before emitting any triangles. */
+function buildContourCorrespondences(
+  points: PointStore,
+  lines: Line[],
+  slices: readonly ContourPlaneGroup[],
+) {
+  const { depths, parents } = getContourNesting(points, lines, slices);
+  const above: number[][] = Array.from({ length: lines.length }, () => []);
+  const below: number[][] = Array.from({ length: lines.length }, () => []);
+  // Sibling rings reuse the same ancestor pairs; scan each polygon pair once.
+  const polygonOverlaps = new Map<string, boolean>();
+  const polygonsOverlap = (line1: number, line2: number) => {
+    const key = `${line1}:${line2}`;
+    const cached = polygonOverlaps.get(key);
+    if (cached !== undefined) return cached;
+    const overlaps = projectedPolygonsOverlap(points, lines[line1], lines[line2]);
+    polygonOverlaps.set(key, overlaps);
+    return overlaps;
+  };
+
+  const candidatesByDepth = new Map<number, [number, number][]>();
+  for (let slice = 0; slice < slices.length - 1; slice += 1) {
+    const first = slices[slice];
+    const second = slices[slice + 1];
+    for (let i = first.first; i < first.end; i += 1) {
+      for (let j = second.first; j < second.end; j += 1) {
+        if (depths[i] !== depths[j] || !doLinesOverlap(points, lines[i], lines[j])) continue;
+        const candidates = candidatesByDepth.get(depths[i]) ?? [];
+        candidates.push([i, j]);
+        candidatesByDepth.set(depths[i], candidates);
+      }
+    }
+  }
+
+  // Resolve parents before children. A retained translating nested parent need
+  // not intersect its own projection, so descendants follow that retained edge.
+  const supportedAbove = new Array<boolean>(lines.length).fill(false);
+  const supportedBelow = new Array<boolean>(lines.length).fill(false);
+  for (const depth of [...candidatesByDepth.keys()].sort((a, b) => a - b)) {
+    const candidates = candidatesByDepth.get(depth)!.filter(([i, j]) => {
+      if (depth === 0) return true;
+      const parent1 = parents[i];
+      const parent2 = parents[j];
+      if (depth > 1) return above[parent1].includes(parent2);
+      // A unique reciprocal root edge can carry a translating annulus even
+      // when its projections are disjoint. Ambiguous root bbox graphs still
+      // require polygon support, keeping concave sibling parents separate.
+      return (
+        polygonsOverlap(parent1, parent2) ||
+        (above[parent1].length === 1 &&
+          below[parent2].length === 1 &&
+          above[parent1][0] === parent2)
+      );
+    });
+    for (const [i, j] of candidates) {
+      if (depth > 0 && polygonsOverlap(i, j)) {
+        supportedAbove[i] = true;
+        supportedBelow[j] = true;
+      }
+    }
+    for (const [i, j] of candidates) {
+      // Polygon support resolves competing bbox-only alternatives. With no
+      // stronger partner at either end, keep the original correspondence: an
+      // isolated moving hole can have disjoint projected polygon interiors.
+      if (depth > 0 && !polygonsOverlap(i, j) && (supportedAbove[i] || supportedBelow[j])) continue;
+      above[i].push(j);
+      below[j].push(i);
+    }
+  }
+
+  for (let i = 0; i < lines.length; i += 1) {
+    // Roots retain their original many-to-many graph. Ambiguous nested splits
+    // and merges still fail, including multiple remaining bbox-only partners.
+    // Zero partners invoke the ordinary half-slice birth/death caps.
+    if (depths[i] > 0 && (above[i].length > 1 || below[i].length > 1)) {
+      throw new RangeError(
+        'Contour to surface does not support nested-ring split/merge correspondence: a nested ring has multiple eligible partners on an adjacent slice',
+      );
+    }
+  }
+  return { above, below };
 }
 
 // --- Branch -----------------------------------------------------------------
@@ -1059,7 +1321,7 @@ function createSmoothEndCapContour(
       });
     }
   }
-  return [createStraightEndCapContour(points, inputLine, lineSpacing, true)];
+  return [createStraightEndCapContour(points, inputLine, lineSpacing)];
 }
 
 function isCapLineClockwise(pointCoords: number[], line: number[]) {
@@ -1074,21 +1336,21 @@ function isCapLineClockwise(pointCoords: number[], line: number[]) {
 
 /**
  * CreateStraightEndCapContour: copy the loop half a slice out of plane. The
- * direct mode keeps every point including the closure duplicate and emits an
- * id-open line; the smooth-pipeline fallback drops the closure duplicate and
- * re-closes by id, as the two code paths do in the original.
+ * straight mode and smooth fallback both reuse the first new point id to
+ * close the cap. Stitching tests closure by id, so copying the repeated
+ * coordinate into a distinct vertex would leave a seam and mis-triangulate
+ * the cap extension.
  */
 function createStraightEndCapContour(
   points: PointStore,
   inputLine: Line,
   lineSpacing: number,
-  smoothFallback = false,
 ): Line {
-  const sourceIds = smoothFallback ? inputLine.slice(0, -1) : inputLine;
+  const sourceIds = inputLine.slice(0, -1);
   const outputIds = sourceIds.map((id) =>
     insertPoint(points, points[id * 3], points[id * 3 + 1], points[id * 3 + 2] + lineSpacing / 2),
   );
-  if (smoothFallback) outputIds.push(outputIds[0]);
+  outputIds.push(outputIds[0]);
   return outputIds;
 }
 
@@ -1202,10 +1464,9 @@ function endCapping(
   triangulatedAbove: boolean[],
   triangulatedBelow: boolean[],
   mode: EndCappingMode,
-  defaultSliceThickness: number,
+  lineSpacing: number,
 ) {
   const numberOfLines = triangulatedAbove.length;
-  const lineSpacing = getSpacingBetweenLines(points, lines, defaultSliceThickness);
 
   for (let lineIndex = 0; lineIndex < numberOfLines; lineIndex += 1) {
     const currentLine = lines[lineIndex];
@@ -1247,8 +1508,15 @@ function endCapping(
  *
  * The contours may lie in any set of parallel planes (the stack is rotated so
  * they become z-normal and rotated back afterward); loops on the same plane
- * may branch to multiple loops on the neighbor plane, and RTSTRUCT keyhole
- * loops are split into their outer boundary and holes first.
+ * may branch to multiple root loops on the neighbor plane. RTSTRUCT keyhole
+ * loops are split before computing winding-independent strict nesting.
+ * Persistent nested rings require the same depth and compatible ancestors;
+ * unmatched rings retain the selected half-slice end-capping behavior.
+ *
+ * Throws RangeError for touching/crossing rings on a slice or multiple
+ * eligible partners for a nested ring (unsupported split/merge correspondence).
+ * This does not guarantee manifold output for arbitrary root branching or
+ * remove the smooth cap pipeline's existing degenerate triangles.
  */
 export function contourToSurface(
   loops: readonly ArrayLike<number>[],
@@ -1283,6 +1551,7 @@ export function contourToSurface(
   });
 
   const rotation = calculateContourRotation(points, lines);
+  const pointZErrors = contourPointZErrors(points, rotation);
   applyRotation(points, rotation, false);
 
   lines = sortContours(points, lines);
@@ -1290,71 +1559,34 @@ export function contourToSurface(
   lines = setLinesCounterClockwise(points, lines);
 
   const numberOfLines = lines.length;
-  const spacing = getSpacingBetweenLines(points, lines, defaultSliceThickness);
+  const slices = groupContourPlanes(points, lines, pointZErrors);
+  const spacing = getSpacingBetweenPlanes(slices, defaultSliceThickness);
 
   const triangulatedAbove = new Array<boolean>(numberOfLines).fill(false);
   const triangulatedBelow = new Array<boolean>(numberOfLines).fill(false);
   const polys: number[] = [];
 
-  let firstLineOnPlane1 = 0;
-  let linesInPlane1 = numberOfLines > 0 ? getNumberOfLinesOnPlane(points, lines, 0, spacing) : 0;
-
-  while (firstLineOnPlane1 + linesInPlane1 < numberOfLines) {
-    const firstLineOnPlane2 = firstLineOnPlane1 + linesInPlane1;
-    const linesInPlane2 = getNumberOfLinesOnPlane(points, lines, firstLineOnPlane2, spacing);
-
-    const plane1Overlaps: number[][] = Array.from({ length: linesInPlane1 }, () => []);
-    const plane2Overlaps: number[][] = Array.from({ length: linesInPlane2 }, () => []);
-    for (let line1 = 0; line1 < linesInPlane1; line1 += 1) {
-      for (let line2 = 0; line2 < linesInPlane2; line2 += 1) {
-        if (
-          doLinesOverlap(points, lines[firstLineOnPlane1 + line1], lines[firstLineOnPlane2 + line2])
-        ) {
-          plane1Overlaps[line1].push(firstLineOnPlane2 + line2);
-          plane2Overlaps[line2].push(firstLineOnPlane1 + line1);
-        }
+  const { above, below } = buildContourCorrespondences(points, lines, slices);
+  for (let line1Index = 0; line1Index < numberOfLines; line1Index += 1) {
+    const line1 = lines[line1Index];
+    const overlaps1 = above[line1Index];
+    const overlap1Lines = overlaps1.map((id) => lines[id]);
+    for (const line2Index of overlaps1) {
+      const line2 = lines[line2Index];
+      const overlaps2 = below[line2Index];
+      const overlap2Lines = overlaps2.map((id) => lines[id]);
+      const dividedLine1 = branchLine(points, line1, line2Index, overlaps1, overlap1Lines);
+      const dividedLine2 = branchLine(points, line2, line1Index, overlaps2, overlap2Lines);
+      if (dividedLine1.length > 1 && dividedLine2.length > 1) {
+        triangulatedAbove[line1Index] = true;
+        triangulatedBelow[line2Index] = true;
+        triangulateBetweenContours(points, dividedLine1, dividedLine2, polys);
       }
     }
-
-    for (
-      let line1Index = firstLineOnPlane1;
-      line1Index < firstLineOnPlane1 + linesInPlane1;
-      line1Index += 1
-    ) {
-      const line1 = lines[line1Index];
-      const overlaps1 = plane1Overlaps[line1Index - firstLineOnPlane1];
-      const overlap1Lines = overlaps1.map((id) => lines[id]);
-
-      for (const line2Index of overlaps1) {
-        const line2 = lines[line2Index];
-        const overlaps2 = plane2Overlaps[line2Index - firstLineOnPlane2];
-        const overlap2Lines = overlaps2.map((id) => lines[id]);
-
-        const dividedLine1 = branchLine(points, line1, line2Index, overlaps1, overlap1Lines);
-        const dividedLine2 = branchLine(points, line2, line1Index, overlaps2, overlap2Lines);
-
-        if (dividedLine1.length > 1 && dividedLine2.length > 1) {
-          triangulatedAbove[line1Index] = true;
-          triangulatedBelow[line2Index] = true;
-          triangulateBetweenContours(points, dividedLine1, dividedLine2, polys);
-        }
-      }
-    }
-
-    firstLineOnPlane1 = firstLineOnPlane2;
-    linesInPlane1 = linesInPlane2;
   }
 
   if (endCappingMode !== 'none') {
-    endCapping(
-      points,
-      lines,
-      polys,
-      triangulatedAbove,
-      triangulatedBelow,
-      endCappingMode,
-      defaultSliceThickness,
-    );
+    endCapping(points, lines, polys, triangulatedAbove, triangulatedBelow, endCappingMode, spacing);
   }
 
   applyRotation(points, rotation, true);

@@ -148,7 +148,7 @@ that debounces requests and drops stale responses.
 
 ## Examples
 
-Both are Vite apps that consume the library through `file:../..`, so build the
+The examples are Vite apps that consume the library through `file:../..`, so build the
 package once (`npm run build`) before running them.
 
 - [`examples/basic`](./examples/basic) is the smallest useful thing: a labelmap
@@ -169,19 +169,19 @@ Model functions return new objects instead of mutating their inputs.
 
 ### Convert (`src/convert`)
 
-| Export                                                  | Description                                                                                                                                                                                                                                                    |
-| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `labelmapToSurface(image, { labelValue })`              | Extract a closed triangle surface for one label using VTK's table-driven discrete marching cubes cases. A one-sample background border closes foreground that touches the volume edge. Returns a `Mesh` in world coordinates.                                  |
-| `surfaceToLabelmap(mesh, geometry, { labelValue })`     | Rasterize a closed triangle surface onto the sample points of a reference `ImageGeometry` using ray-parity (even-odd) containment; samples on the surface are foreground. Returns an `OrientedImage` whose typed array width fits `labelValue`.                |
-| `meshSmooth(mesh, options)`                             | Smooth a mesh with a windowed-sinc filter ported from `vtkWindowedSincPolyDataFilter`. Preserves vertex count and topology; returns a new `Mesh`.                                                                                                              |
-| `meshDecimate(mesh, options)`                           | Reduce triangle count with quadric-error edge collapse ported from `vtkQuadricDecimation`. `options.targetReduction` in 0..1. Returns a new `Mesh`.                                                                                                            |
-| `surfaceToContour(mesh, plane)`                         | Intersect a mesh with a `ContourPlane` (ported `vtkCutter` + contour-loop extraction) and return the closed planar loops as a `PlanarContour`.                                                                                                                 |
-| `contourToLabelmap(contours, geometry, { labelValue })` | Rasterize planar contours into a binary labelmap with even-odd fill (nested loops make holes). Returns an `OrientedImage`.                                                                                                                                     |
-| `contourToSurface(loops, options)`                      | Stitch a stack of planar contours (world-space loops, the RTSTRUCT shape) into a closed surface, ported from SlicerRT's planar-contour-to-closed-surface rule: keyhole splitting, branching, dynamic-programming stitching, smooth end caps. Returns a `Mesh`. |
-| `surfaceToFractionalLabelmap(mesh, geometry, options)`  | Compute fractional (sub-voxel) occupancy of a surface using PolySeg's 216-offset supersampling. Returns an `OrientedImage` of fractional values.                                                                                                               |
-| `fractionalLabelmapToSurface(image, options)`           | Extract a surface from a fractional labelmap by threshold, ported from PolySeg. `options.threshold` is the iso occupancy in `(0, 1]` (default `0.5`); zero is rejected. Returns a `Mesh`.                                                                      |
-| `fillBetween(image, options)`                           | Interpolate contours between segmented slices, ported from ITK's morphological contour interpolation. Returns a new `OrientedImage`.                                                                                                                           |
-| `surfaceNets(image, options)`                           | Extract a dual-grid surface net from a labelmap, ported from `vtkSurfaceNets3D`. Returns a `Mesh`.                                                                                                                                                             |
+| Export                                                  | Description                                                                                                                                                                                                                                             |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `labelmapToSurface(image, { labelValue })`              | Extract a closed triangle surface for one label using VTK's table-driven discrete marching cubes cases. A one-sample background border closes foreground that touches the volume edge. Returns a `Mesh` in world coordinates.                           |
+| `surfaceToLabelmap(mesh, geometry, { labelValue })`     | Rasterize a closed triangle surface onto the sample points of a reference `ImageGeometry` using ray-parity (even-odd) containment; samples on the surface are foreground. Returns an `OrientedImage` whose typed array width fits `labelValue`.         |
+| `meshSmooth(mesh, options)`                             | Smooth a mesh with a windowed-sinc filter ported from `vtkWindowedSincPolyDataFilter`. Preserves vertex count and topology; returns a new `Mesh`.                                                                                                       |
+| `meshDecimate(mesh, options)`                           | Reduce triangle count with quadric-error edge collapse ported from `vtkQuadricDecimation`. `options.targetReduction` in 0..1. Returns a new `Mesh`.                                                                                                     |
+| `surfaceToContour(mesh, plane)`                         | Intersect a mesh with a `ContourPlane` (ported `vtkCutter` + contour-loop extraction) and return the closed planar loops as a `PlanarContour`.                                                                                                          |
+| `contourToLabelmap(contours, geometry, { labelValue })` | Rasterize planar contours into a binary labelmap with even-odd fill (nested loops make holes). Returns an `OrientedImage`.                                                                                                                              |
+| `contourToSurface(loops, options)`                      | Stitch a stack of planar contours (world-space loops, the RTSTRUCT shape) into a surface, ported from SlicerRT's planar-contour-to-closed-surface rule: keyhole splitting, branching, dynamic-programming stitching, smooth end caps. Returns a `Mesh`. |
+| `surfaceToFractionalLabelmap(mesh, geometry, options)`  | Compute fractional (sub-voxel) occupancy of a surface using PolySeg's 216-offset supersampling. Returns an `OrientedImage` of fractional values.                                                                                                        |
+| `fractionalLabelmapToSurface(image, options)`           | Extract a surface from a fractional labelmap by threshold, ported from PolySeg. `options.threshold` is the iso occupancy in `(0, 1]` (default `0.5`); zero is rejected. Returns a `Mesh`.                                                               |
+| `fillBetween(image, options)`                           | Interpolate contours between segmented slices, ported from ITK's morphological contour interpolation. Returns a new `OrientedImage`.                                                                                                                    |
+| `surfaceNets(image, options)`                           | Extract a dual-grid surface net from a labelmap, ported from `vtkSurfaceNets3D`. Returns a `Mesh`.                                                                                                                                                      |
 
 `surfaceNets` preserves VTK's winding conventions. Reflected image directions
 reverse winding, and interfaces with other labels may have mixed orientation.
@@ -191,6 +191,21 @@ Consumers that require outward normals must orient the resulting mesh.
 bounded to 1% of the smallest sample spacing. Very fine grids far from the
 coordinate origin can exceed this precision bound. Center the geometry before
 constructing its Float32 mesh when retaining those boundaries is required.
+
+`contourToSurface` preserves the nesting of persistent rings and closes
+straight caps by sharing seam vertices. Crossing or touching rings on a slice,
+and nested rings with multiple eligible partners on an adjacent slice, throw
+`RangeError`. Unmatched rings use the selected half-slice end caps. Arbitrary
+root branching can still produce nonmanifold topology, and smooth caps can
+retain degenerate triangles. Large translations can be sensitive to a contour's
+starting vertex. Plane grouping requires numerically resolved parallel planes.
+
+When an explicit `surfaceToLabelmap` output array cannot represent `labelValue`
+exactly, conversion throws instead of truncating or rounding the label.
+
+`meshSmooth` throws `RangeError` when its filter search fails or produces
+non-finite coordinates. Coincident points remain finite when coordinate
+normalization is enabled.
 
 ### Image (`src/image`)
 
@@ -252,7 +267,7 @@ Extents are inclusive bounds in `[xMin, xMax, yMin, yMax, zMin, zMax]` order.
 | `reorderSegments(segmentation, order)`                              | New segmentation with segments in the given id order.                                                                                                       |
 | `createLayerModel()`                                                | Empty `{layer, labelValue}` overlap model for shared labelmaps.                                                                                             |
 | `assignSegmentToLayer(model, segmentId, labelValue, mask)`          | Assign a segment mask to a layer with no foreground overlap or duplicate label. Foreground labels are positive uint32 integers.                             |
-| `compactLayers(model)`                                              | Reassign every segment to remove gaps left by removed or shrunken segments.                                                                                 |
+| `compactLayers(model)`                                              | Reassign segments to remove layer gaps without increasing the number of occupied layers.                                                                    |
 | `createConversionGraph(rules?)`                                     | Conversion graph from an optional initial rule list.                                                                                                        |
 | `registerConversionRule(graph, rule)`                               | New graph with the rule added. A rule is a data record: `{ source, target, cost, convert }`.                                                                |
 | `findCheapestPath(graph, source, target)`                           | Cheapest rule sequence from source to target representation, `[]` when source equals target, undefined when unreachable.                                    |
@@ -262,6 +277,16 @@ Extents are inclusive bounds in `[xMin, xMax, yMin, yMax, zMin, zMax]` order.
 | `editRepresentation(segmentation, segmentId, name, representation)` | Write the source representation of a segment and drop its derived representations. Editing a non-source representation throws.                              |
 | `getOrCreateRepresentation(segmentation, segmentId, target, graph)` | Return the target representation, converting from the source along the cheapest path and caching intermediate results when absent.                          |
 | `promoteRepresentationToSource(segmentation, name)`                 | Make an existing representation the source for future edits; every segment must already carry it.                                                           |
+
+The default graph converts contours to surfaces through the reference
+labelmap. Loops within one contour use even-odd fill; separate contours combine
+by union. This sampling gives a single contour one slice of thickness and
+allows empty contours to produce an empty surface. Contours must align with
+reference slice planes, and geometry outside the reference extent is clipped.
+Subvoxel details can disappear. Only supplied slices are filled; omitted slices
+remain background. Use `fillBetween` before extracting a surface to interpolate
+a labelmap, or call `contourToSurface` explicitly for continuous contour
+stitching.
 
 Cached representations are identified by name. Changing conversion parameters
 does not invalidate them. Use `editRepresentation` to write the source and clear

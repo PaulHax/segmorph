@@ -21,7 +21,8 @@ export function validateLabelValue(labelValue: number) {
 /**
  * Allocate labelmap storage. By default the width is the narrowest unsigned
  * integer that holds labelValue; pass outputArray to force a specific element
- * type, e.g. to preserve a source dtype across a round trip.
+ * type, e.g. to preserve a source dtype across a round trip. Explicit storage
+ * must represent labelValue exactly.
  */
 export function createLabelData(length: number, labelValue: number): LabelData;
 export function createLabelData(
@@ -34,7 +35,14 @@ export function createLabelData(
   labelValue: number,
   outputArray?: LabelArrayConstructor,
 ) {
-  if (outputArray) return new outputArray(length);
+  if (outputArray) {
+    const probe = new outputArray(1);
+    probe[0] = labelValue;
+    if (probe[0] !== labelValue) {
+      throw new RangeError(`outputArray cannot represent labelValue ${labelValue} exactly`);
+    }
+    return new outputArray(length);
+  }
   if (labelValue <= 0xff) return new Uint8Array(length);
   if (labelValue <= 0xffff) return new Uint16Array(length);
   return new Uint32Array(length);

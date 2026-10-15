@@ -1,13 +1,8 @@
-import { contourToSurface } from '../convert/contourToSurface.js';
 import { contourToLabelmap } from '../convert/contourToLabelmap.js';
 import { labelmapToSurface } from '../convert/labelmapToSurface.js';
 import { surfaceToContour } from '../convert/surfaceToContour.js';
 import { surfaceToLabelmap } from '../convert/surfaceToLabelmap.js';
-import {
-  createContourPlane,
-  planarContourWorldLoops,
-  type PlanarContour,
-} from '../geometry/contour.js';
+import { createContourPlane, type PlanarContour } from '../geometry/contour.js';
 import type { Mesh } from '../geometry/mesh.js';
 import { indexToWorld } from '../image/orientedImage.js';
 import type { ImageData, ImageGeometry, OrientedImage, Vector3 } from '../image/orientedImage.js';
@@ -24,14 +19,13 @@ export const defaultRepresentations = {
  * Route preferences for findCheapestPath. Direct surface voxelization must
  * cost less than the contour detour: voxelization includes boundary samples,
  * while cutting and half-open contour rasterization can discard them.
- * Direct contour stitching similarly avoids an extra sampling pass through
- * a labelmap. These weights express route suitability, not execution time.
+ * Contours use the reference labelmap before surface extraction to preserve
+ * contour grouping and sample occupancy. Costs describe route suitability.
  */
 const labelmapToSurfaceCost = 1;
 const surfaceToLabelmapCost = 3;
 const surfaceToContourCost = 2;
 const contourToLabelmapCost = 2;
-const contourToSurfaceCost = 2;
 
 /**
  * The data type carried by each default representation. Adding a
@@ -138,12 +132,6 @@ export function createDefaultRules(options: DefaultRuleOptions) {
       target: defaultRepresentations.labelmap,
       cost: contourToLabelmapCost,
       convert: (input) => contourToLabelmap(input, referenceGeometry, { labelValue }),
-    }),
-    representationRule({
-      source: defaultRepresentations.contour,
-      target: defaultRepresentations.surface,
-      cost: contourToSurfaceCost,
-      convert: (input) => contourToSurface(input.flatMap(planarContourWorldLoops)),
     }),
   ];
 }

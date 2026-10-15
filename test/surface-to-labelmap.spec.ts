@@ -256,6 +256,76 @@ describe('surfaceToLabelmap', () => {
     expect(result.data[1 + 3 * (1 + 3 * 1)]).toBe(256);
   });
 
+  describe('explicit output storage', () => {
+    const geometry = {
+      dims: [2, 1, 1],
+      spacing: [1, 1, 1],
+      origin: [0, 0, 0],
+      direction: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
+    } as const;
+    const mesh = cube(geometry, -0.5, 0.5);
+
+    it.each([
+      { outputArray: Uint8Array, labelValue: 255 },
+      { outputArray: Uint8ClampedArray, labelValue: 255 },
+      { outputArray: Uint16Array, labelValue: 256 },
+      { outputArray: Uint16Array, labelValue: 65535 },
+      { outputArray: Uint32Array, labelValue: 65536 },
+      { outputArray: Uint32Array, labelValue: 4294967295 },
+      { outputArray: Int8Array, labelValue: 127 },
+      { outputArray: Int16Array, labelValue: 32767 },
+      { outputArray: Int32Array, labelValue: 2147483647 },
+      { outputArray: Float32Array, labelValue: 16777216 },
+      { outputArray: Float32Array, labelValue: 16777218 },
+      { outputArray: Float64Array, labelValue: 4294967295 },
+    ])('preserves label $labelValue in $outputArray.name', ({ outputArray, labelValue }) => {
+      const snapshot = structuredClone({ mesh, geometry });
+      const result = surfaceToLabelmap(mesh, geometry, { labelValue, outputArray });
+
+      expect(result.data.constructor).toBe(outputArray);
+      expect([...result.data]).toEqual([labelValue, 0]);
+      expect(labelmapToSurface(result, { labelValue }).points.length).toBeGreaterThan(0);
+      expect({ mesh, geometry }).toEqual(snapshot);
+    });
+
+    it.each([
+      { outputArray: Uint8Array, labelValue: 256 },
+      { outputArray: Uint8Array, labelValue: 257 },
+      { outputArray: Uint8ClampedArray, labelValue: 256 },
+      { outputArray: Uint16Array, labelValue: 65536 },
+      { outputArray: Int8Array, labelValue: 128 },
+      { outputArray: Int16Array, labelValue: 32768 },
+      { outputArray: Int32Array, labelValue: 2147483648 },
+      { outputArray: Float32Array, labelValue: 16777217 },
+      { outputArray: Float32Array, labelValue: 4294967295 },
+    ])('rejects label $labelValue in $outputArray.name', ({ outputArray, labelValue }) => {
+      const snapshot = structuredClone({ mesh, geometry });
+      expect(() => surfaceToLabelmap(mesh, geometry, { labelValue, outputArray })).toThrow(
+        new RangeError(`outputArray cannot represent labelValue ${labelValue} exactly`),
+      );
+      expect({ mesh, geometry }).toEqual(snapshot);
+    });
+
+    it('rejects an unrepresentable label before allocating the full output', () => {
+      const lengths: number[] = [];
+      class TrackedUint8Array extends Uint8Array {
+        constructor(length: number) {
+          super(length);
+          lengths.push(length);
+        }
+      }
+
+      expect(() =>
+        surfaceToLabelmap(mesh, geometry, { labelValue: 256, outputArray: TrackedUint8Array }),
+      ).toThrow(RangeError);
+      expect(lengths).toEqual([1]);
+    });
+  });
+
   it('includes boundary samples with small anisotropic spacing', () => {
     const geometry = {
       dims: [3, 3, 3],

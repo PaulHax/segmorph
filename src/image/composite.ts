@@ -43,7 +43,8 @@ function forEachExtentIndex(
 }
 
 function copy<T extends ImageData>(data: T) {
-  return data.slice() as T;
+  // Buffer overrides slice with a view; call the copying typed-array operation.
+  return Uint8Array.prototype.slice.call(data) as T;
 }
 
 export function compositeImage<T extends ImageData>(
